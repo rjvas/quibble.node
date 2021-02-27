@@ -1,0 +1,62 @@
+/*
+
+Class Names
+
+For the board:
+  grid_background - background color for grid
+  line_horizontal - all horizontal lines in the grid
+  line_vertical - all vertical lines in the grid
+  safety_rect - the safety rectangles
+  center_rect - the board center
+
+For the tiles:
+  tile_rect - the fill rectangle for the tiles
+  tile_text - the tile character
+  tile_points - the point value on the tiles
+
+For the scoreboard
+player_1_area
+player_2_area
+
+scoreboard_rect - the rectangle outline and container
+scoreboard_title - says "SCOREBOARD"
+scoreboard_player_1 - player 1 name
+scoreboard_player_2 - player 2 name
+scoreboard_tiles_left - the text "Tiles Left"
+scoreboard_tiles_left_value - the value of "Tiles Left"
+
+*/
+
+ .grid_background {
+   fill: #f5efe6ff;
+ }
+.safety_square {
+  fill: #f5efe6ff;
+}
+.center_square {
+  fill: #f5efe6ff;
+}
+
+ .scoreboard_title {
+  font-family: Arial, Helvetica, sans-serif;
+  stroke : #ff0000ff;
+  font-style: italic;
+ }
+
+.wt_board {
+  background-color: 'White';
+}
+.safety_text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 80%;
+  stroke : '#44bb55';
+  font-style: italic;
+}
+.scoreboard_rect {
+  fill : #eeeeee;
+}
+
+.scoreboard_tiles_left_value {
+  font: 16px italic;
+  stroke: red;
+}
