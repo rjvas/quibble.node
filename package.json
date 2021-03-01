@@ -1,0 +1,13 @@
+{
+  "name": "heist",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Very Verbose Heist",
+  "dependencies": {
+    "debug": "~2.6.9",
+    "http-errors": "~1.6.3",
+    "mongodb": "^3.5.9",
+    "mongoose": "^5.11.15",
+    "pug": "^3.0.0"
+  }
+}
