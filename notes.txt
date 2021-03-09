@@ -1,5 +1,0 @@
-need to address
-  no limits on tile trades
-
-var isIpad = !!req.headers['user-agent'].match(/iPad/);
-var isAndroid = !!req.headers['user-agent'].match(/Android/);

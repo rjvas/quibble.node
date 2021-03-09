@@ -116,17 +116,19 @@ class Game {
         let t = player.tiles.find(tile => {
           if (tile == null) return;
           else if (tile.id == id)
-            return tile.id;
+            return tile;
         });
         // remove from player's hand place on the board
-        player.tiles[t.player_hand_idx] = null;
-        t.row = item.row;
-        t.column = item.col;
-        // if this is a blank tile, set the character (sent in the play_data)
-        if (t.char == BLANK_TILE) {
-          t.char = item.char;
+        if (t) {
+          player.tiles[t.player_hand_idx] = null;
+          t.row = item.row;
+          t.column = item.col;
+          // if this is a blank tile, set the character (sent in the play_data)
+          if (t.char == BLANK_TILE) {
+            t.char = item.char;
+          }
+          played_tiles.push(t);
         }
-        played_tiles.push(t);
       });
     }
 
@@ -172,7 +174,7 @@ class Game {
   }
 
   handle_exchange(player, play_data, played_tiles) {
-    var new_tiles = [];
+    var xchanged_tiles = [];
 
     // first, get the replacement tiles (want to get replacements
     // before stuffing the old tiles to minimize possibility of getting
@@ -180,7 +182,7 @@ class Game {
     for (let i = 0; i < played_tiles.length; i++) {
       let t = Tile.get_random_tile();
       t.setup_for_play(player, played_tiles[i].player_hand_idx, Game.current_play);
-      new_tiles.push(t.get_JSON());
+      xchanged_tiles.push(t.get_JSON());
     }
 
     // now, stuff the played tiles back in the tile_pool
@@ -202,25 +204,31 @@ class Game {
     let err_idx = -1;
     let new_data = this.toggle_player_new_play();
     let ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
-                                                 "new_tiles" : new_tiles}]);
+                                                 "xchanged_tiles" : xchanged_tiles}]);
     played_tiles = [];
     return ret_val;
   }
 
   finish_the_play(player, play_data) {
-    var ret_val = null;
+    var ret_val = [];
 
     // get the type of play and take it off the play_data
-    var play_type = play_data[0].type;
-    play_data.shift();
+    var play_type = play_data.shift();
 
     var played_tiles = this.played_tiles_update(player, play_data);
 
-    if (play_type == "regular_play") {
+    if (play_type.type == "regular_play") {
       ret_val = this.handle_regular_play(player, play_data, played_tiles);
-    } else if (play_type == "xchange") {
+    } else if (play_type.type == "xchange") {
       ret_val = this.handle_exchange(player, play_data, played_tiles);
     }
+
+    let playertxt = player == Game.current_game.player_1 ? "/player1" :
+      "/player2";
+    ret_val.unshift({"player" : playertxt});
+
+    // use the passed play_type to decode the response in board.js
+    ret_val.unshift(play_type);
 
     console.log("in finish the play: ", ret_val);
     return JSON.stringify(ret_val);
@@ -270,7 +278,7 @@ class Game {
       Game.current_play = this.player_1_play;
     }
 
-    new_data.push({"tiles_left_value" : Tile.tile_pool.length});
+    new_data.unshift({"tiles_left_value" : Tile.tile_pool.length});
     Tile.total_tile_count = Tile.tile_pool.length;
     return new_data;
   }

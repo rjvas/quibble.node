@@ -166,6 +166,12 @@ class TileDefs {
       }
     ];
   }
+
+  is_safe_tile(tile) {
+    return this.defs.find(item => {
+      return tile.char == item.char && item.is_safe ? true : false;
+    })
+  }
 }
 
 exports.TileDefs = TileDefs;

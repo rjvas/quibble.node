@@ -8,6 +8,7 @@
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
+var URL = null;
 var AppSpace = null;
 var Scale = 1.0;
 const CELL_SIZE = 35;
@@ -259,72 +260,78 @@ function dblclicked_player_area(event) {
   var player = null;
 }
 
-function setup_tile_for_play(tile) {
+function setup_tile_for_play(tile, no_drag) {
 
   let board_width = NUM_ROWS_COLS*CELL_SIZE;
   let startx = board_width + CELL_SIZE;
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttributeNS(null, 'x', startx + tile.player_hand_idx*CELL_SIZE);
-  svg.setAttributeNS(null, 'y', 0);
+  if (svg) {
+    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
+    svg.setAttributeNS(null, 'id', "tile_" + tile.id);
+    svg.setAttributeNS(null, 'x', startx + tile.player_hand_idx*CELL_SIZE);
+    svg.setAttributeNS(null, 'y', 0);
 
-  svg.setAttributeNS(null, 'width', CELL_SIZE);
-  svg.setAttributeNS(null, 'height', CELL_SIZE);
+    svg.setAttributeNS(null, 'width', CELL_SIZE);
+    svg.setAttributeNS(null, 'height', CELL_SIZE);
 
-  // rect and text position attributes are always relative to the svg
-  let r = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  r.setAttributeNS(null, 'x', 0);
-  r.setAttributeNS(null, 'y', 0);
-  r.setAttributeNS(null, 'width', CELL_SIZE);
-  r.setAttributeNS(null, 'height', CELL_SIZE);
-  r.setAttributeNS(null, 'fill', tile.fill);
-  r.setAttributeNS(null, 'stroke_width', 1);
-  r.setAttributeNS(null, 'stroke', '#000');
-  r.setAttributeNS(null, 'class', 'tile_rect');
+    // rect and text position attributes are always relative to the svg
+    let r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttributeNS(null, 'x', 0);
+    r.setAttributeNS(null, 'y', 0);
+    r.setAttributeNS(null, 'width', CELL_SIZE);
+    r.setAttributeNS(null, 'height', CELL_SIZE);
+    r.setAttributeNS(null, 'fill', tile.fill);
+    r.setAttributeNS(null, 'stroke_width', 1);
+    r.setAttributeNS(null, 'stroke', '#000');
+    r.setAttributeNS(null, 'class', 'tile_rect');
 
-  let t = document.createElementNS('http://www.w3.org/2000/svg','text');
-  t.setAttributeNS(null, 'x', CELL_SIZE/2);
-  t.setAttributeNS(null, 'y', CELL_SIZE/2);
-  t.setAttributeNS(null, 'width', CELL_SIZE);
-  t.setAttributeNS(null, 'height', CELL_SIZE);
-  t.setAttributeNS(null, 'stroke_width', 2);
-  t.setAttributeNS(null, 'stroke', '#000');
-  t.setAttributeNS(null, 'text-anchor', "middle");
-  t.setAttributeNS(null, 'alignment-baseline',"central");
-  t.setAttributeNS(null, 'class', 'tile_text');
-  t.textContent = tile.char;
-  t.addEventListener("click", tile_clicked);
+    let t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttributeNS(null, 'x', CELL_SIZE/2);
+    t.setAttributeNS(null, 'y', CELL_SIZE/2);
+    t.setAttributeNS(null, 'width', CELL_SIZE);
+    t.setAttributeNS(null, 'height', CELL_SIZE);
+    t.setAttributeNS(null, 'stroke_width', 2);
+    t.setAttributeNS(null, 'stroke', '#000');
+    t.setAttributeNS(null, 'text-anchor', "middle");
+    t.setAttributeNS(null, 'alignment-baseline',"central");
+    t.setAttributeNS(null, 'class', 'tile_text');
+    t.textContent = tile.char;
+    t.addEventListener("click", tile_clicked);
 
-  let p = document.createElementNS('http://www.w3.org/2000/svg','text');
-  p.setAttributeNS(null, 'x', CELL_SIZE - 2);
-  p.setAttributeNS(null, 'y', CELL_SIZE - 10);
-  // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
-  p.setAttributeNS(null, 'width', CELL_SIZE/10);
-  p.setAttributeNS(null, 'height', CELL_SIZE/10);
-  p.setAttributeNS(null, 'stroke_width', 1);
-  p.setAttributeNS(null, 'stroke', '#000');
-  p.setAttributeNS(null, 'text-anchor', "end");
-  p.setAttributeNS(null, 'alignment-baseline',"central");
-  p.setAttributeNS(null, 'class', 'tile_points');
-  p.textContent = tile.points;
+    let p = document.createElementNS('http://www.w3.org/2000/svg','text');
+    p.setAttributeNS(null, 'x', CELL_SIZE - 2);
+    p.setAttributeNS(null, 'y', CELL_SIZE - 10);
+    // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
+    p.setAttributeNS(null, 'width', CELL_SIZE/10);
+    p.setAttributeNS(null, 'height', CELL_SIZE/10);
+    p.setAttributeNS(null, 'stroke_width', 1);
+    p.setAttributeNS(null, 'stroke', '#000');
+    p.setAttributeNS(null, 'text-anchor', "end");
+    p.setAttributeNS(null, 'alignment-baseline',"central");
+    p.setAttributeNS(null, 'class', 'tile_points');
+    p.textContent = tile.points;
 
-  svg.append(r);
-  svg.append(t);
-  svg.append(p);
+    svg.append(r);
+    svg.append(t);
+    svg.append(p);
 
-  AppSpace.append(svg);
+    AppSpace.append(svg);
 
-  let drag_rec = new PlainDraggable(svg);
+    if (!no_drag) {
+      let drag_rec = new PlainDraggable(svg);
 
-  drag_rec.onMove = tile_moving;
-  drag_rec.onDragEnd = tile_moved;
-  drag_rec.onDragStart = tile_move_start;
+      drag_rec.onMove = tile_moving;
+      drag_rec.onDragEnd = tile_moved;
+      drag_rec.onDragStart = tile_move_start;
 
-  drag_rec.containment = {left: 0, top: 0,
-    width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-    height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
-  drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
-
+      drag_rec.containment = {left: 0, top: 0,
+        width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
+        height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
+      drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
+    }
+  }
+  return svg;
 }
 
 function set_tile_props(tile) {
@@ -332,6 +339,12 @@ function set_tile_props(tile) {
   if (svg) {
     let r = svg.childNodes[0];
     r.setAttributeNS(null, 'fill', tile.fill);
+    svg.classList.remove('player_tile_svg');
+  }
+  else {
+    svg = setup_tile_for_play(tile, true);
+    svg.setAttributeNS(null, 'x', (tile.col - 1)*CELL_SIZE);
+    svg.setAttributeNS(null, 'y', (tile.row - 1)*CELL_SIZE);
   }
 }
 
@@ -396,8 +409,8 @@ function update_scoreboard(data) {
     item = document.getElementById("scoreboard_player_2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   }
-  else if (data.tiles_left) {
-    item = document.getElementById("tiles_left_value");
+  else if (data.tiles_left_value) {
+    item = document.getElementById("scoreboard_tiles_left_value");
     if (item) item.textContent = data.tiles_left_value;
   } else
     ret_val = false;
@@ -405,7 +418,7 @@ function update_scoreboard(data) {
   return ret_val;
 }
 
-function handle_the_respnonse(resp) {
+function handle_the_response(resp) {
   // error responses
   if (resp[0].err_msg) {
     handle_err_response(resp);
@@ -415,12 +428,16 @@ function handle_the_respnonse(resp) {
     let word_tiles = resp[0].word_tiles;
 
     // first, dump the drags and set the correct fill
+    // and get rid of the '.player_tile_svg' class
     for (let i = 0; i < word_tiles.length; i++) {
       let rec = play_drags.find(item => {
         return item.svg_id == "tile_" + word_tiles[i].id;
       })
-      if (rec) rec.drag.remove();
-      rec.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
+      if (rec) {
+        rec.drag.remove();
+        rec.svg.classList.remove('player_tile_svg');
+        rec.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
+      }
     }
 
     // now update the play data
@@ -450,14 +467,16 @@ function clicked_player_name(event) {
   // if the active player clicked the other player's name
   if (event.currentTarget.textContent == 'Wait ...') return;
 
-  var url = window.location.href;
-  url.indexOf("player1") > -1 ? url = "/player1" : url = "/player2";
+  if (!URL) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+  }
 
-  if (url == "/player1") {
+  if (URL == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
   }
-  else if (url == "/player2") {
+  else if (URL == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
@@ -465,26 +484,9 @@ function clicked_player_name(event) {
   let jsons = get_played_JSONS();
   jsons.unshift({"type" : "regular_play"});
 
-  if (jsons && jsons.length > 0) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("POST", url + "/jsons/trash", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
+  console.log("in clicked_player_name: " + JSON.stringify(jsons));
+  ws.send(JSON.stringify(jsons));
 
-    // called back by the server
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          let resp = JSON.parse(this.responseText);
-
-          handle_the_respnonse(resp);
-
-          console.log("in the json call back: ", resp);
-        }
-    };
-
-    // Sending data with the request
-    xhr.send(JSON.stringify(jsons));
-
-  }
   console.log("clicked on ", event.currentTarget.innerHTML);
 }
 
@@ -547,14 +549,17 @@ return jsons;
 }
 
 function clicked_tiles_area(event) {
-  var url = window.location.href;
-  url.indexOf("player1") > -1 ? url = "/player1" : url = "/player2";
 
-  if (url == "/player1") {
+  if (!URL) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+  }
+
+  if (URL == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
   }
-  else if (url == "/player2") {
+  else if (URL == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
@@ -591,32 +596,37 @@ function clicked_tiles_area(event) {
   if (jsons.length > 0) {
     jsons.unshift({"type" : "xchange"});
 
-    let xhr = new XMLHttpRequest();
-    xhr.open("POST", url + "/jsons/xchange", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    ws.send(JSON.stringify(jsons));
 
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          let resp = JSON.parse(this.responseText);
-
-          let new_data = resp[0].new_data;
-          let new_tiles = resp[0].new_tiles;
-
-          // update the play data
-          for (let i = 0; i < new_data.length; i++) {
-            if (update_scoreboard(new_data[i])) {;}
-          }
-          // new tiles
-          new_tiles.forEach((item, idx) => {
-            setup_tile_for_play(item);
-          });
-
-          play_starts = [];
-          play_drags = [];
-          play_trash = [];
-        }
-    };
-    xhr.send(JSON.stringify(jsons));
+    // let xhr = new XMLHttpRequest();
+    // xhr.open("POST", URL + "/jsons/xchange", true);
+    // xhr.setRequestHeader("Content-Type", "application/json");
+    //
+    // xhr.onreadystatechange = function () {
+    //     if (xhr.readyState === 4 && xhr.status === 200) {
+    //       let resp = JSON.parse(this.responseText);
+    //
+    //       console.log("in clicked_tiles_area: " + this.responseText);
+    //
+    //       let new_data = resp[1].new_data;
+    //       let xchanged_tiles = resp[1].xchanged_tiles;
+    //
+    //       // update the scoreboard
+    //       for (let i = 0; i < new_data.length; i++) {
+    //         if (update_scoreboard(new_data[i])) {;}
+    //       }
+    //
+    //       // new tiles
+    //       xchanged_tiles.forEach((item, idx) => {
+    //         setup_tile_for_play(item);
+    //       });
+    //
+    //       play_starts = [];
+    //       play_drags = [];
+    //       play_trash = [];
+    //     }
+    // };
+    // xhr.send(JSON.stringify(jsons));
 
   }
   console.log("clicked on " + event.currentTarget.innerHTML);
@@ -632,17 +642,19 @@ function clicked_save_btn(event) {
 }
 
 function clicked_new_btn(event) {
-  var url = window.location.href;
-  url.indexOf("player1") == -1 ? url = "/player2" : url = "/player1";
+  if (!URL) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+  }
 
-  if (window.confirm("New game? After that ...?")) {
+  if (window.confirm("New game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", url + "/new_game", true);
+    xhr.open("GET", URL + "/new_game", true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = url;;
+          document.location.href = URL;;
         }
     }
 
@@ -747,7 +759,106 @@ function setup_tiles_for_drag() {
   });
 }
 
+function update_the_board(resp) {
+  // error responses
+  if (resp[0].err_msg) {
+    return;
+
+  } else { // handle the data response
+    let new_data = resp[0].new_data;
+    let word_tiles = resp[0].word_tiles;
+
+    // now update the play data
+    let item = null;
+    for (let i = 0; i < new_data.length; i++) {
+      if (update_scoreboard(new_data[i])) {;}
+      else if (new_data[i].play_data) {
+        new_data[i].play_data.forEach((item, idx) => {
+          set_tile_props(item);
+        });
+      }
+    }
+  }
+
+  console.log("in update_the_board")
+}
+
+function handle_exchange(resp) {
+  console.log("in handle_exchange: " + JSON.stringify(resp));
+
+  let new_data = resp[0].new_data;
+  let xchanged_tiles = resp[0].xchanged_tiles;
+
+  // update the scoreboard
+  for (let i = 0; i < new_data.length; i++) {
+    if (update_scoreboard(new_data[i])) {;}
+  }
+
+  // new tiles
+  xchanged_tiles.forEach((item, idx) => {
+    setup_tile_for_play(item);
+  });
+
+  play_starts = [];
+  play_drags = [];
+  play_trash = [];
+}
+
 AppSpace = document.querySelectorAll('#wt_board')[0];
+
+const ws = new WebSocket('ws://localhost:3043');
+ws.onmessage = function(msg) {
+
+  if (!URL) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+  }
+
+  let resp = JSON.parse(msg.data);
+
+  // need this for vectoring control
+  let type = resp.shift();
+
+  // this data should be going to both players. The inactive player
+  // needs to handle the data differently - ignore the new player-hand tiles
+  // and just show the played tiles and scoreboard
+  let player = resp.shift();
+
+  console.log("in onmessage: player = " + player.player + " URL = " + URL);
+  console.log("in onmessage: msg = " + msg.data);
+
+  if (player.player == URL) {
+    if (type.type == "xchange") {
+      handle_exchange(resp);
+    }
+    else if (type.type == "regular_play") {
+      console.log("in onmessage: calling handle_the_response");
+      handle_the_response(resp);
+    }
+  }
+  else {
+    if (type.type == "xchange") {
+      // update the scoreboard
+      let new_data = resp[0].new_data;
+      for (let i = 0; i < new_data.length; i++) {
+        if (update_scoreboard(new_data[i])) {;}
+      }
+    } else {
+      console.log("in onmessage: calling update_the_board");
+      update_the_board(resp);
+    }
+  }
+};
+
+ws.onopen = function() {
+    // ws.send("daddy's HOOOME!!");
+};
+ws.onerror = function(msg) {
+  console.log("in get socket: error " + msg);
+};
+ws.onclose = function(msg) {
+  console.log("in get socket: close " + msg);
+};
 
 initial_setup();
 draw_board();
