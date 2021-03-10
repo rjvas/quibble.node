@@ -35,15 +35,19 @@ class Player {
     this.total_points =  total_points;
     this.trade_tiles_count = 0;
     // this.update_hand(true, null);
-  }
+    this.max_tile_trade = 3;
+}
 
-  update_hand(initial, play) {
+  update_hand(game, initial, play) {
     // this does not hit the 'magic' s - get that after
     var ret_val = [];
     for(let i= 0; i < Player.num_player_tiles; i++) {
       if (this.tiles[i] == null) {
-        let t = Tile.get_random_tile();
-        if (!t) return false; //Game.current_game.end_the_game();
+        let t = game.get_random_tile();
+        if (!t) {
+          game.end_the_game();
+          return false;
+        }
         else {
           t.setup_for_play(this, i, play);
           ret_val.push(t.get_JSON());
@@ -73,14 +77,13 @@ class Player {
     }
 
     if (initial) {
-      let tile = Tile.get_tile("S");
+      let tile = game.get_tile("S");
       if (tile) tile.setup_for_play(this, Player.num_player_tiles);
     }
 
     return ret_val;
   }
 
-  static max_tile_trade = 3;
   static current_id = 0;
   static num_player_tiles = 7;
 }

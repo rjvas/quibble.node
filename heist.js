@@ -1,22 +1,32 @@
+/*
+  This file breaks down into 2 sections: 1) the node server responding to
+  http requests and the WebSocket server responding to update requests.
+  The http server is on port 3042 and the WebSocket server on 3043.
+
+  This file is also at the top of the control hierarchy. Game (js/game.js)
+  manages the play. See in-line comments for more info.
+*/
+
+
 const http = require('http');
 const pug = require('pug');
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
 
+// import the Game and Word classes. Game is needed at this level to
+// help with control and Word contributes data to the pug template.
 var Game = require('./js/game').Game;
 var Word = require('./js/word').Word;
 
-const port = 3042;
-const hostname = '127.0.0.1';
+const main_port = 3042;
+const sock_port = 3043;
+// const hostname = 'www.drawbridgecreativegames.com';
+const hostname = 'localhost';
 
 var createServer_count = 0;
 
 var CurrentGame = null;
-
-// these are used to update the non-active player's board
-var LastPlayer1Data = null;
-var LastPlayer2Data = null;
 
 var mimeTypes = {
   "html": "text/html",
@@ -28,13 +38,21 @@ var mimeTypes = {
   "css": "text/css"
 };
 
+// pug is a template engine that can pre-compile template defs
 var pug_grid = pug.compileFile('views/grid.pug');
 
+// Create the http server and set up the callbacks
 var server = http.createServer((request, response) => {
   var pathname = url.parse(request.url).pathname;
   var filename = null;
 
-  // start a new game
+  // Start a new game when the 'New' button is pressed and use the
+  // precompiled template to show the inital page.
+  // new Game() builds the entire runtime structure for a single game
+  // either on startup (CurrentGame == null) or upon request and uses
+  // that runtime structure to populate the compiled template, pug_grid.
+  // That template is then returned to the requesting page through
+  // respones.end(pug_grid(...)).
   if (!CurrentGame || pathname.indexOf("new_game") != -1) {
     CurrentGame = new Game();
     pathname.indexOf("player1") != -1 ? pathname = "/player1" :
@@ -47,33 +65,7 @@ var server = http.createServer((request, response) => {
       'player' : pathname}));
   }
 
-  // update the inactive player's board
-  else if (!CurrentGame || pathname.indexOf("last_play_data") != -1) {
-    let resp_data = null;
-
-    if (pathname.indexOf("player1") != -1 ) {
-       pathname = "/player1";
-       response.writeHead(200, {'Content-Type':'application/json'});
-       resp_data = LastPlayer2Data;
-       LastPlayer2Data = null;
-    }
-    else {
-      pathname = "/player2";
-      response.writeHead(200, {'Content-Type':'application/json'});
-      resp_data = LastPlayer1Data;
-      LastPlayer1Data = null;
-    }
-    if (resp_data) {
-      console.log('sent: ' + resp_data);
-      response.end(resp_data);
-    }
-    else {
-      response.writeHead(200, {'Content-Type':'application/json'});
-      response.end();
-    }
-  }
-
-  // initial board display
+  // This will refresh the player's page with the currrent state of CurrentGame
   else if (pathname === "/player1" || pathname === "/player2") {
     response.writeHead(200, {
       'Content-Type': 'text/html'
@@ -84,28 +76,6 @@ var server = http.createServer((request, response) => {
       'Game' : Game,
       'Word' : Word,
       'player' : pathname}));
-
-  // received after a normal play to update state
-  } else if (pathname.indexOf("json") > -1 &&
-              request.method === 'POST') {
-    var body = '';
-    request.on('data', function (data) {
-      body += data;
-    });
-    request.on('end', function () {
-      var play_data = JSON.parse(body);
-      let player = null;
-      // which player?
-      pathname.indexOf("player1") != -1 ? player = CurrentGame.player_1 :
-        player = CurrentGame.player_2;
-      let resp_data = CurrentGame.finish_the_play(player, play_data);
-      response.writeHead(200, {'Content-Type':'application/json'});
-      console.log('sent: ' + resp_data);
-      player == CurrentGame.player_1 ? LastPlayer1Data = resp_data :
-        LastPlayer2Data = resp_data;
-      response.end(resp_data);
-    });
-    console.log("pathname: " + pathname + " filename: " + filename);
   }
 
   // error handling
@@ -135,20 +105,29 @@ var server = http.createServer((request, response) => {
     return;
   }
 });
-server.listen(port);
+server.listen(main_port);
 
+// Now set up the WebSocket seerver
 const WebSocket = require('ws');
 const ws_server = new WebSocket.Server({
-  port: 3043
+  port: sock_port
 });
 
+// this holds a socket for each player
 let sockets = [];
+
+// socket call backs - .on fires ONLY on the inital connection or if
+// the player refreshes the page. If a refresh occurs the original socket
+// is deleted and a new socket created and 'pushed'.
 ws_server.on('connection', function(socket) {
   sockets.push(socket);
 
-  // When you receive a message, send that message to every socket.
+  // Both players requests for updates wind up here and are distinguished
+  // by the current_player. CurrentGame processes the request info and then
+  // returns the new state of play in 'resp_data' which is then vectored to
+  // both sockets.
   socket.on('message', function(msg) {
-    let player = Game.current_player;
+    let player = CurrentGame.current_player;
     var play_data = JSON.parse(msg);
     let resp_data = CurrentGame.finish_the_play(player, play_data);
     console.log("socket message: " + resp_data);

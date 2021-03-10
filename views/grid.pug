@@ -126,7 +126,7 @@ html
         text(class="scoreboard_player_1" id="scoreboard_player_1" x="4" y="53" width="82" height="9"
           stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left"
           onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
-          if Game.current_player == game.player_1
+          if game.current_player == game.player_1
             |#{game.player_1.name}
           else 
             |Wait ...
@@ -148,7 +148,7 @@ html
         text(class="scoreboard_player_2" id="scoreboard_player_2" x="184" y="53" width="82" height="9"
           stroke_width="1" stroke="#000" text-anchor="right" alignment-baseline="right"
           onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
-          if Game.current_player == game.player_2
+          if game.current_player == game.player_2
             |#{game.player_2.name}
           else 
             |Wait ...

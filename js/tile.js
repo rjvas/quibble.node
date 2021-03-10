@@ -94,7 +94,7 @@ class Tile {
     } else { this.update_states_inplay(play); }
   }
 
-  revert_state(play) {
+  revert_state(game, play) {
     var ret_val = true;
     for (let i = this.states.length - 1; i > -1; i--) {
       if (this.states[i].in_play == play) {
@@ -116,12 +116,12 @@ class Tile {
           // stuff it back in the player hand
           this.row = -1;
           this.column = -1;
-          Tile.clear_adjacencies(this);
+          Tile.clear_adjacencies(game, this);
           // this.svg.setAttributeNS(null, 'transform', "");
           // this.drag = this.drag.position();
           this.player.tiles[this.player_hand_idx] = this;
           // make sure it has default 'is_safe'
-          let def = Tile.tile_defs.defs.find(item => {
+          let def = game.tile_defs.defs.find(item => {
             return item.char == this.char;
           });
           def ? this.is_safe = def.is_safe : this.is_safe = false;
@@ -162,52 +162,47 @@ class Tile {
   static RECT_POSITION = 0;
   static TEXT_POSITION = 1;
 
-  static played_tiles = [];
-
-  static tile_pool = [];
-  static total_tile_count = 0;
   // static tile_trash = [];
-  static tile_defs = null;
   static BLANK_TILE = " ";
 
   static TileState = TileState;
 
-  static init_Tile() {
-    Tile.played_tiles = [];
-    Tile.tile_pool = [];
-    Tile.total_tile_count = 0;
-    Tile.tile_defs = new TileDefs();
+  static init_Tile(game) {
+    game.played_tiles = [];
+    game.tile_pool = [];
+    game.total_tile_count = 0;
+    game.tile_defs = new TileDefs();
 
-    for (let i = 0; i < Tile.tile_defs.defs.length; i++) {
-      Tile.total_tile_count += Tile.tile_defs.defs[i].count;
+    for (let i = 0; i < game.tile_defs.defs.length; i++) {
+      game.total_tile_count += game.tile_defs.defs[i].count;
     }
 
-    var tmp_count = Tile.total_tile_count;
+    var tmp_count = game.total_tile_count;
     var min = 0;
-    var max = (Tile.tile_defs.defs.length - 1);
+    var max = (game.tile_defs.defs.length - 1);
     var t = null;
 
     // TODO: the randomization here is stupid - make it better
     while (tmp_count != 0) {
       var rand_idx = Math.floor(Math.random() * (max - min)) + min;
 
-      if (Tile.tile_defs.defs[rand_idx].count != 0) {
-        Tile.tile_defs.defs[rand_idx].count--;
+      if (game.tile_defs.defs[rand_idx].count != 0) {
+        game.tile_defs.defs[rand_idx].count--;
         tmp_count--;
-        t = new Tile(0, Tile.tile_defs.defs[rand_idx].char,
-          Tile.tile_defs.defs[rand_idx].points, Tile.tile_defs.defs[rand_idx].is_safe, -1, -1, null);
-        Tile.tile_pool.push(t);
+        t = new Tile(0, game.tile_defs.defs[rand_idx].char,
+          game.tile_defs.defs[rand_idx].points, game.tile_defs.defs[rand_idx].is_safe, -1, -1, null);
+        game.tile_pool.push(t);
       }
 
       else {
         // Getting hits is less and less likely as the counts go to 0. If the
         // tmp_count is less than 15 just stuff the rest in the tile_pool
         if (tmp_count < 15) {
-          for (let i = 0; i < Tile.tile_defs.defs.length; i++) {
-            while (Tile.tile_defs.defs[i].count > 0) {
-              Tile.tile_defs.defs[i].count--;
-              Tile.tile_pool.push(new Tile(0, Tile.tile_defs.defs[i].char,
-                Tile.tile_defs.defs[i].points, Tile.tile_defs.defs[i].is_safe, -1, -1, null));
+          for (let i = 0; i < game.tile_defs.defs.length; i++) {
+            while (game.tile_defs.defs[i].count > 0) {
+              game.tile_defs.defs[i].count--;
+              game.tile_pool.push(new Tile(0, game.tile_defs.defs[i].char,
+                game.tile_defs.defs[i].points, game.tile_defs.defs[i].is_safe, -1, -1, null));
             }
           }
           break;
@@ -217,33 +212,7 @@ class Tile {
     console.log("Tile initialised");
   }
 
-  static get_tile(char) {
-    var ret_val = null;
-    var idx = Tile.tile_pool.findIndex(t => {
-      return t.char == char;
-    });
-    // decrement the total count - need to know when we're out
-    Tile.total_tile_count--;
-    ret_val = Tile.tile_pool[idx];
-    // remove that tile from the pool
-    Tile.tile_pool.splice(idx, 1);
-    return ret_val;
-  }
-
-  static get_random_tile() {
-    var ret_val = null;
-    var min = 0;
-    var max = Tile.tile_pool.length - 1;
-    var rand_idx = Math.floor(Math.random() * (max - min)) + min;
-    ret_val = Tile.tile_pool[rand_idx];
-    // decrement the total count - need to know when we're out
-    Tile.total_tile_count--;
-    // remove that tile from the pool
-    Tile.tile_pool.splice(rand_idx, 1);
-    return ret_val;
-  }
-
-  static clear_adjacencies(t) {
+  static clear_adjacencies(game, t) {
     if (t.left) {
       t.left.right = null;
       t.left = null;
@@ -260,18 +229,18 @@ class Tile {
       t.down.up = null;
       t.down = null;
     }
-    // if it's already in the Tile.played_tiles
+    // if it's already in the game.played_tiles
     // remove it
-    let idx = Tile.played_tiles.findIndex( tile => {
+    let idx = game.played_tiles.findIndex( tile => {
       return tile.id == t.id;
     });
     if (idx > 0) {
-      Tile.played_tiles.splice(idx, 1);
+      game.played_tiles.splice(idx, 1);
     }
   }
 
-  static set_adjacencies(t) {
-    let r = Tile.played_tiles.filter(tile => {
+  static set_adjacencies(game, t) {
+    let r = game.played_tiles.filter(tile => {
       return ((tile.column == t.column - 1 ||
                 tile.column == t.column + 1 ) &&
                 tile.row == t.row) ||

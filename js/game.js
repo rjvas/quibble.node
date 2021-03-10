@@ -47,26 +47,35 @@ class Game {
     else {
       this.id = ++Game.current_id;
     }
-    Tile.init_Tile();
+
     Word.release_all_words();
 
-    this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
-    this.player_1_play = new Play(0, this.player_1);
-    this.player_1.update_hand(true, this.player_1_play);
-
-    this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
-    this.player_2_play = new Play(0, this.player_2);
-    this.player_2.update_hand(true, this.player_2_play);
-
     this.plays = [];
+
+    // tile info for the game
+    this.tile_pool = [];
+    this.total_tile_count = 0;
+    this.tile_defs = null;
+    this.played_tiles = [];
+    Tile.init_Tile(this);
+
     this.default_name = "Game " + this.id;
     name ? this.name = name : this.name = this.default_name;
     this.name_time = this.name + ":" + Date.now();
 
     Game.current_game = this;
-    Game.current_play = this.player_1_play;
-    Game.current_player = this.player_1;
-    Game.current_play.player = this.player_1;
+    this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
+    this.player_1_play = new Play(0, this.player_1);
+    this.player_1.update_hand(this, true, this.player_1_play);
+
+    this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
+    this.player_2_play = new Play(0, this.player_2);
+    this.player_2.update_hand(this, true, this.player_2_play);
+
+    this.current_play = this.player_1_play;
+    this.current_player = this.player_1;
+    this.current_play.player = this.player_1;
+
   }
 
   set_name(new_name) {
@@ -81,14 +90,14 @@ class Game {
 
   roll_back_current_play() {
     let ret_val = [];
-    let play = Game.current_play;
+    let play = this.current_play;
     play.tiles.forEach((item, i) => {
       // need to revert state BEFORE Getting
       // the json state for the client - this keeps
       // stolen tiles from reverting to the wrongs
       // player hand. Also, the revert_state returns false
       // if there is no valid revert for this play.
-      if (item.revert_state(play) && item.player == Game.current_player) {
+      if (item.revert_state(this, play) && item.player == this.current_player) {
         ret_val.push(item.get_JSON());
       }
     });
@@ -110,7 +119,7 @@ class Game {
     var played_tiles = [];
 
     // first, get the player tiles that were played
-    if (Game.current_play && Game.current_player == player) {
+    if (this.current_play && this.current_player == player) {
       data.forEach((item, i) => {
         let id = parseInt(item.id.split("_")[1]);
         let t = player.tiles.find(tile => {
@@ -139,10 +148,10 @@ class Game {
     var ret_val;
 
     played_tiles.forEach((item, i) => {
-      Tile.set_adjacencies(item);
-      Tile.played_tiles.push(item);
+      Tile.set_adjacencies(this, item);
+      this.played_tiles.push(item);
       this.update_play(item);
-      Word.new_word.addLetter(item, Game.current_player);
+      Word.new_word.addLetter(item, this.current_player);
     });
 
     // finalize the word building
@@ -158,14 +167,14 @@ class Game {
         let word_tiles = Word.words[Word.words.length - 1].get_JSON();
         ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
-        Word.new_word = new Word(0, Game.current_play, Game.current_player,
+        Word.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       } else {
         let roll_back_tiles = this.roll_back_current_play();
         // must happen before the new Word - the invalid word is at
         // Word.new_word.check_words[err_idx]
         ret_val = this.build_the_response(err_idx, roll_back_tiles);
-        Word.new_word = new Word(0, Game.current_play, Game.current_player,
+        Word.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       }
     }
@@ -180,8 +189,8 @@ class Game {
     // before stuffing the old tiles to minimize possibility of getting
     // same tiles again.)
     for (let i = 0; i < played_tiles.length; i++) {
-      let t = Tile.get_random_tile();
-      t.setup_for_play(player, played_tiles[i].player_hand_idx, Game.current_play);
+      let t = this.get_random_tile();
+      t.setup_for_play(player, played_tiles[i].player_hand_idx, this.current_play);
       xchanged_tiles.push(t.get_JSON());
     }
 
@@ -193,12 +202,12 @@ class Game {
 
       // make sure any tiles released to the pool have
       // safety set according to the tile definiations
-      let def = Tile.tile_defs.defs.find(item => {
+      let def = this.tile_defs.defs.find(item => {
         return item.char == played_tiles[i].char;
       });
       def ? played_tiles[i].is_safe = def.is_safe : played_tiles[i].is_safe = false;
 
-      Tile.tile_pool.push(played_tiles[i]);
+      this.tile_pool.push(played_tiles[i]);
     }
 
     let err_idx = -1;
@@ -236,16 +245,12 @@ class Game {
 
   update_play(tile) {
     // if it's already in the tile list ignore it
-    let tl = Game.current_play.tiles.find (t => {
+    let tl = this.current_play.tiles.find (t => {
       return t == tile;
     });
 
-    !tl ? Game.current_play.tiles.push(tile) :
+    !tl ? this.current_play.tiles.push(tile) :
       console.log("tile already in list: %d", tile.id);
-  }
-
-  get_the_response() {
-
   }
 
   toggle_player_new_play() {
@@ -254,7 +259,7 @@ class Game {
     Word.calculate_total_points(Game.current_game.player_1);
     Word.calculate_total_points(Game.current_game.player_2);
 
-    if (Game.current_player == this.player_1) {
+    if (this.current_player == this.player_1) {
       new_data.push({"scoreboard_player_1_name" : "Wait ..."});
       new_data.push({"scoreboard_player_1_score" : Game.current_game.player_1.total_points});
       new_data.push({"scoreboard_player_2_name" : this.player_2.name});
@@ -262,9 +267,9 @@ class Game {
       new_data.push({"play_data" : this.player_1_play.get_played_JSON()});
       this.plays.push(this.player_1_play);
       this.player_1_play = new Play(0, this.player_1);
-      new_data.push({"new_tiles" : this.player_1.update_hand(false, this.player_1_play)});
-      Game.current_player = this.player_2;
-      Game.current_play = this.player_2_play;
+      new_data.push({"new_tiles" : this.player_1.update_hand(this, false, this.player_1_play)});
+      this.current_player = this.player_2;
+      this.current_play = this.player_2_play;
     } else {
       new_data.push({"scoreboard_player_2_name" : "Wait ..."});
       new_data.push({"scoreboard_player_2_score" : Game.current_game.player_2.total_points});
@@ -273,14 +278,40 @@ class Game {
       new_data.push({"play_data" : this.player_2_play.get_played_JSON()});
       this.plays.push(this.player_2_play);
       this.player_2_play = new Play(0, this.player_2);
-      new_data.push({"new_tiles" : this.player_2.update_hand(false, this.player_2_play)});
-      Game.current_player = this.player_1;
-      Game.current_play = this.player_1_play;
+      new_data.push({"new_tiles" : this.player_2.update_hand(this, false, this.player_2_play)});
+      this.current_player = this.player_1;
+      this.current_play = this.player_1_play;
     }
 
-    new_data.unshift({"tiles_left_value" : Tile.tile_pool.length});
-    Tile.total_tile_count = Tile.tile_pool.length;
+    new_data.unshift({"tiles_left_value" : this.tile_pool.length});
+    this.total_tile_count = this.tile_pool.length;
     return new_data;
+  }
+
+  get_tile(char) {
+    var ret_val = null;
+    var idx = this.tile_pool.findIndex(t => {
+      return t.char == char;
+    });
+    // decrement the total count - need to know when we're out
+    this.total_tile_count--;
+    ret_val = this.tile_pool[idx];
+    // remove that tile from the pool
+    this.tile_pool.splice(idx, 1);
+    return ret_val;
+  }
+
+  get_random_tile() {
+    var ret_val = null;
+    var min = 0;
+    var max = this.tile_pool.length - 1;
+    var rand_idx = Math.floor(Math.random() * (max - min)) + min;
+    ret_val = this.tile_pool[rand_idx];
+    // decrement the total count - need to know when we're out
+    this.total_tile_count--;
+    // remove that tile from the pool
+    this.tile_pool.splice(rand_idx, 1);
+    return ret_val;
   }
 
   end_the_game() {
