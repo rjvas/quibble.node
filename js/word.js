@@ -95,38 +95,7 @@ class Word {
     {row: Word.NUM_ROWS_COLS, col: Math.round(Word.NUM_ROWS_COLS/2), rect: null}
   ];
 
-  static release_all_words() {
-    // for (let j = 0; j < Word.words.length; j++) {
-    //   Word.words[j].tiles.forEach((item) => {
-    //     item.player = null;
-    //     item.row = -1;
-    //     item.column = -1;
-    //     let def = game.tile_defs.find(it => {
-    //       return it.char == item.char;
-    //     });
-    //     def ? item.is_safe = def.is_safe : item.is_safe = false;
-    //     game.tile_pool.push(item);
-    //     item = null;
-    //   });
-    //   Word.words[j] = null;
-    // }
-    Word.words = [];
-  }
-
-  static calculate_total_points(player) {
-    player.total_points = 0;
-    for (let i = 0; i < Word.words.length; i++) {
-      for (let j = 0; j < Word.words[i].tiles.length; j++) {
-        if (Word.words[i].tiles[j].player == player) {
-          player.total_points += Word.words[i].tiles[j].points;
-        }
-      }
-    }
-  }
-
   static last_id = 0;
-  static words = [];
-  static new_word = new Word(0, null, null, "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
 
   get_JSON() {
     var ret_val = [];
@@ -404,7 +373,7 @@ class Word {
     // returns idx of non-valid word
     if ((ret_val = this.all_words_valid()) == -1) {
       // this.cleanup_drag();
-      Word.words.push(this);
+      game.words.push(this);
     }
 
     // DEBUG indicate the beginings of words

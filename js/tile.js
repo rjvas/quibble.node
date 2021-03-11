@@ -170,43 +170,49 @@ class Tile {
   static init_Tile(game) {
     game.played_tiles = [];
     game.tile_pool = [];
-    game.total_tile_count = 0;
     game.tile_defs = new TileDefs();
+    var tmp_tile_defs = new TileDefs();
 
-    for (let i = 0; i < game.tile_defs.defs.length; i++) {
-      game.total_tile_count += game.tile_defs.defs[i].count;
+    var tmp_count = 0;
+    for (let i = 0; i < tmp_tile_defs.defs.length; i++) {
+      tmp_count += tmp_tile_defs.defs[i].count;
     }
 
-    var tmp_count = game.total_tile_count;
     var min = 0;
-    var max = (game.tile_defs.defs.length - 1);
+    var max = (tmp_tile_defs.defs.length - 1);
     var t = null;
+
+    // DEBUG: remove this line!!!
+    tmp_count = 17;
 
     // TODO: the randomization here is stupid - make it better
     while (tmp_count != 0) {
       var rand_idx = Math.floor(Math.random() * (max - min)) + min;
 
-      if (game.tile_defs.defs[rand_idx].count != 0) {
-        game.tile_defs.defs[rand_idx].count--;
+      if (tmp_tile_defs.defs[rand_idx].count != 0) {
+        tmp_tile_defs.defs[rand_idx].count--;
         tmp_count--;
-        t = new Tile(0, game.tile_defs.defs[rand_idx].char,
-          game.tile_defs.defs[rand_idx].points, game.tile_defs.defs[rand_idx].is_safe, -1, -1, null);
+        t = new Tile(0, tmp_tile_defs.defs[rand_idx].char,
+          tmp_tile_defs.defs[rand_idx].points, tmp_tile_defs.defs[rand_idx].is_safe, -1, -1, null);
         game.tile_pool.push(t);
       }
 
       else {
+        tmp_tile_defs.defs.splice(rand_idx, 1);
+        max = (tmp_tile_defs.defs.length - 1);
+
         // Getting hits is less and less likely as the counts go to 0. If the
         // tmp_count is less than 15 just stuff the rest in the tile_pool
-        if (tmp_count < 15) {
-          for (let i = 0; i < game.tile_defs.defs.length; i++) {
-            while (game.tile_defs.defs[i].count > 0) {
-              game.tile_defs.defs[i].count--;
-              game.tile_pool.push(new Tile(0, game.tile_defs.defs[i].char,
-                game.tile_defs.defs[i].points, game.tile_defs.defs[i].is_safe, -1, -1, null));
-            }
-          }
-          break;
-        }
+        // if (tmp_count < 15) {
+        //   for (let i = 0; i < tmp_tile_defs.defs.length; i++) {
+        //     while (tmp_tile_defs.defs[i].count > 0) {
+        //       tmp_tile_defs.defs[i].count--;
+        //       game.tile_pool.push(new Tile(0, tmp_tile_defs.defs[i].char,
+        //         tmp_tile_defs.defs[i].points, tmp_tile_defs.defs[i].is_safe, -1, -1, null));
+        //     }
+        //   }
+        //   break;
+        // }
       }
     }
     console.log("Tile initialised");
@@ -234,7 +240,7 @@ class Tile {
     let idx = game.played_tiles.findIndex( tile => {
       return tile.id == t.id;
     });
-    if (idx > 0) {
+    if (idx > -1) {
       game.played_tiles.splice(idx, 1);
     }
   }

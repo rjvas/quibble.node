@@ -48,14 +48,18 @@ class Game {
       this.id = ++Game.current_id;
     }
 
-    Word.release_all_words();
-
     this.plays = [];
+    this.words = [];
+    this.new_word = new Word(0, null, null, "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
+
+    // only counts consecutive passes - the player1 passes, player2 does not, then
+    // pass count resets. when both pass, game over. managed on finish_the_play
+    // and handle_pass
+    this.consecutive_pass_count = 2;
 
     // tile info for the game
     this.tile_pool = [];
-    this.total_tile_count = 0;
-    this.tile_defs = null;
+    this.tile_defs = null; // initialized in Tile.init_Tile()
     this.played_tiles = [];
     Tile.init_Tile(this);
 
@@ -75,7 +79,17 @@ class Game {
     this.current_play = this.player_1_play;
     this.current_player = this.player_1;
     this.current_play.player = this.player_1;
+  }
 
+  calculate_total_points(player) {
+    player.total_points = 0;
+    for (let i = 0; i < this.words.length; i++) {
+      for (let j = 0; j < this.words[i].tiles.length; j++) {
+        if (this.words[i].tiles[j].player == player) {
+          player.total_points += this.words[i].tiles[j].points;
+        }
+      }
+    }
   }
 
   set_name(new_name) {
@@ -109,7 +123,7 @@ class Game {
   build_the_response(err_idx, tiles) {
     if (err_idx != -1) {
       tiles.unshift(
-        {"err_msg" : Word.new_word.check_words[err_idx] + " is not a valid word, FOOL!"});
+        {"err_msg" : this.new_word.check_words[err_idx] + " is not a valid word"});
     }
     console.log("in build_the_response: " + tiles)
     return tiles;
@@ -151,30 +165,30 @@ class Game {
       Tile.set_adjacencies(this, item);
       this.played_tiles.push(item);
       this.update_play(item);
-      Word.new_word.addLetter(item, this.current_player);
+      this.new_word.addLetter(item, this.current_player);
     });
 
     // finalize the word building
-    if (Word.new_word.tiles.length > 0) {
+    if (this.new_word.tiles.length > 0) {
       if (played_tiles.length == 7) {
-        Word.new_word.is_safe = true;
+        this.new_word.is_safe = true;
       }
 
       // finalize returns the index of the first non-valid word
       let err_idx = -1;
-      if ((err_idx = Word.new_word.finalize(this)) == -1) {
+      if ((err_idx = this.new_word.finalize(this)) == -1) {
         let new_data = this.toggle_player_new_play();
-        let word_tiles = Word.words[Word.words.length - 1].get_JSON();
+        let word_tiles = this.words[this.words.length - 1].get_JSON();
         ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
-        Word.new_word = new Word(0, this.current_play, this.current_player,
+        this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       } else {
         let roll_back_tiles = this.roll_back_current_play();
         // must happen before the new Word - the invalid word is at
-        // Word.new_word.check_words[err_idx]
+        // this.new_word.check_words[err_idx]
         ret_val = this.build_the_response(err_idx, roll_back_tiles);
-        Word.new_word = new Word(0, this.current_play, this.current_player,
+        this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       }
     }
@@ -218,6 +232,13 @@ class Game {
     return ret_val;
   }
 
+  handle_pass(play_data) {
+    this.consecutive_pass_count--;
+    let new_data = this.toggle_player_new_play();
+    let ret_val = this.build_the_response(-1, [{"new_data" : new_data}]);
+    return ret_val;
+  }
+
   finish_the_play(player, play_data) {
     var ret_val = [];
 
@@ -227,17 +248,23 @@ class Game {
     var played_tiles = this.played_tiles_update(player, play_data);
 
     if (play_type.type == "regular_play") {
+      this.consecutive_pass_count = 2;
       ret_val = this.handle_regular_play(player, play_data, played_tiles);
     } else if (play_type.type == "xchange") {
+      this.consecutive_pass_count = 2;
       ret_val = this.handle_exchange(player, play_data, played_tiles);
-    }
+    } else if (play_type.type == "pass")
+      ret_val = this.handle_pass(play_data);
 
-    let playertxt = player == Game.current_game.player_1 ? "/player1" :
+    let player_txt = player == Game.current_game.player_1 ? "/player1" :
       "/player2";
-    ret_val.unshift({"player" : playertxt});
+    ret_val.unshift({"player" : player_txt});
 
     // use the passed play_type to decode the response in board.js
     ret_val.unshift(play_type);
+
+    if (player.get_tile_count() == 0 || !this.consecutive_pass_count)
+      ret_val = this.end_game(player_txt);
 
     console.log("in finish the play: ", ret_val);
     return JSON.stringify(ret_val);
@@ -254,10 +281,11 @@ class Game {
   }
 
   toggle_player_new_play() {
-    var new_data = [];
+    var new_data = [{"new_tiles" : null}];
+    var hand_data = [];
 
-    Word.calculate_total_points(Game.current_game.player_1);
-    Word.calculate_total_points(Game.current_game.player_2);
+    this.calculate_total_points(Game.current_game.player_1);
+    this.calculate_total_points(Game.current_game.player_2);
 
     if (this.current_player == this.player_1) {
       new_data.push({"scoreboard_player_1_name" : "Wait ..."});
@@ -267,7 +295,8 @@ class Game {
       new_data.push({"play_data" : this.player_1_play.get_played_JSON()});
       this.plays.push(this.player_1_play);
       this.player_1_play = new Play(0, this.player_1);
-      new_data.push({"new_tiles" : this.player_1.update_hand(this, false, this.player_1_play)});
+      this.player_1.update_hand(this, false, this.player_1_play, hand_data);
+      new_data[0].new_tiles = hand_data;
       this.current_player = this.player_2;
       this.current_play = this.player_2_play;
     } else {
@@ -278,44 +307,82 @@ class Game {
       new_data.push({"play_data" : this.player_2_play.get_played_JSON()});
       this.plays.push(this.player_2_play);
       this.player_2_play = new Play(0, this.player_2);
-      new_data.push({"new_tiles" : this.player_2.update_hand(this, false, this.player_2_play)});
+      this.player_2.update_hand(this, false, this.player_2_play, hand_data);
+      new_data[0].new_tiles = hand_data;
       this.current_player = this.player_1;
       this.current_play = this.player_1_play;
     }
 
     new_data.unshift({"tiles_left_value" : this.tile_pool.length});
-    this.total_tile_count = this.tile_pool.length;
     return new_data;
   }
 
   get_tile(char) {
     var ret_val = null;
+
     var idx = this.tile_pool.findIndex(t => {
       return t.char == char;
     });
-    // decrement the total count - need to know when we're out
-    this.total_tile_count--;
-    ret_val = this.tile_pool[idx];
-    // remove that tile from the pool
-    this.tile_pool.splice(idx, 1);
+
+    if (idx > -1) {
+      ret_val = this.tile_pool[idx];
+      // remove that tile from the pool
+      this.tile_pool.splice(idx, 1);
+    }
+
     return ret_val;
   }
 
   get_random_tile() {
     var ret_val = null;
+
     var min = 0;
     var max = this.tile_pool.length - 1;
     var rand_idx = Math.floor(Math.random() * (max - min)) + min;
-    ret_val = this.tile_pool[rand_idx];
-    // decrement the total count - need to know when we're out
-    this.total_tile_count--;
-    // remove that tile from the pool
-    this.tile_pool.splice(rand_idx, 1);
+    if (rand_idx > -1) {
+      ret_val = this.tile_pool[rand_idx];
+      // remove that tile from the pool
+      this.tile_pool.splice(rand_idx, 1);
+    }
+
     return ret_val;
   }
 
-  end_the_game() {
-    alert("Game Over!!");
+  end_game(player) {
+    var ret_val = [];
+
+    // the tiles remaining in player1's hand are point-totaled,
+    // subtracted from p1's total and added to p2'2 score
+    let p1_hand_points = 0;
+    this.player_1.tiles.forEach((item, i) => {
+        if (item) p1_hand_points += item.points;
+    });
+    // remove from player 1
+    this.player_1.total_points -= p1_hand_points;
+    // add to player 2
+    this.player_2.total_points += p1_hand_points;
+
+    // now the same for player 2
+    let p2_hand_points = 0;
+    this.player_2.tiles.forEach((item, i) => {
+        if (item) p2_hand_points += item.points;
+    });
+    // remove from player 1
+    this.player_2.total_points -= p2_hand_points;
+    // add to player 2
+    this.player_1.total_points += p2_hand_points;
+
+    ret_val.push({"type" : "game_over"});
+    ret_val.push({"player" : player});
+
+    ret_val.push({"player1" : {"score" : this.player_1.total_points,
+                              "remaining_tiles" : this.player_1.get_hand_JSONS()},
+                  "player2" : {"score" : this.player_2.total_points,
+                              "remaining_tiles" : this.player_2.get_hand_JSONS()}});
+
+    console.log("Game Over!");
+
+    return ret_val;
   }
 
   static current_id = 0;

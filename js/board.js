@@ -409,7 +409,7 @@ function update_scoreboard(data) {
     item = document.getElementById("scoreboard_player_2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   }
-  else if (data.tiles_left_value) {
+  else if (data.tiles_left_value >= 0) {
     item = document.getElementById("scoreboard_tiles_left_value");
     if (item) item.textContent = data.tiles_left_value;
   } else
@@ -548,6 +548,26 @@ function get_played_trash_JSONS() {
 return jsons;
 }
 
+function repatriate_trashed_tiles() {
+
+  if (play_starts.length > 0) {
+    play_starts.forEach(item => {
+      // play_starts.push({"svg_id" : svg.id, "svg" : svg, "start" : new_position});
+      let svg = document.getElementById(item.svg_id);
+      svg.setAttributeNS(null, "x", item.x);
+      svg.setAttributeNS(null, "y", item.y);
+      let rec = play_drags.find(drg => {
+        return drg.svg == svg;
+      })
+      if (rec) rec.drag.position();
+    });
+  }
+  play_starts = [];
+  play_drags = [];
+  play_trash = [];
+
+}
+
 function clicked_tiles_area(event) {
 
   if (!URL) {
@@ -566,69 +586,40 @@ function clicked_tiles_area(event) {
 
   let jsons = null;
 
-  if (play_trash.length == 0 &&
-      window.confirm("Are you sure you want to trade all of your tiles?")) {
-    jsons = get_player_hand_JSONS();
-    erase_player_hand();
-  } else if (play_trash.length > 0) {
+  // if not enough tiles to complete, consider this a pass
+  let tiles_left = parseInt(document.getElementById("scoreboard_tiles_left_value").textContent);
+  if (play_trash.length == 0 && tiles_left < NUM_PLAYER_TILES ||
+      play_trash.length > tiles_left) {
+    window.alert("Not enough tiles left to complete the play - THIS IS A PASS")
+    repatriate_trashed_tiles();
+    jsons =[{"type" : "pass"}];
+  }
 
-      // roll back if no confirm
-      if (window.confirm("Are you sure you want to trade " + play_trash.length + " of your tiles?")) {
-        jsons = get_played_trash_JSONS();
+  else {
+    if (play_trash.length == 0 &&
+        window.confirm("Are you sure you want to trade all of your tiles?")) {
+      jsons = get_player_hand_JSONS();
+      erase_player_hand();
+
+    } else if (play_trash.length > 0) {
+        // roll back if no confirm
+        if (window.confirm("Are you sure you want to trade " + play_trash.length + " of your tiles?")) {
+          jsons = get_played_trash_JSONS();
+        }
+        // move the trashed tiles back to the player tile area
+        else {
+          repatriate_trashed_tiles();
+        }
       }
-      // move the trashed tiles back to the player tile area
-      else {
-        play_starts.forEach(item => {
-          // play_starts.push({"svg_id" : svg.id, "svg" : svg, "start" : new_position});
-          let svg = document.getElementById(item.svg_id);
-          svg.setAttributeNS(null, "x", item.x);
-          svg.setAttributeNS(null, "y", item.y);
-          let rec = play_drags.find(drg => {
-            return drg.svg == svg;
-          })
-          if (rec) rec.drag.position();
-        });
-      }
-    }
-  else
-    return;
+    else return;
+  }
 
   if (jsons.length > 0) {
-    jsons.unshift({"type" : "xchange"});
-
+    if (!jsons[0].type)
+      jsons.unshift({"type" : "xchange"});
     ws.send(JSON.stringify(jsons));
-
-    // let xhr = new XMLHttpRequest();
-    // xhr.open("POST", URL + "/jsons/xchange", true);
-    // xhr.setRequestHeader("Content-Type", "application/json");
-    //
-    // xhr.onreadystatechange = function () {
-    //     if (xhr.readyState === 4 && xhr.status === 200) {
-    //       let resp = JSON.parse(this.responseText);
-    //
-    //       console.log("in clicked_tiles_area: " + this.responseText);
-    //
-    //       let new_data = resp[1].new_data;
-    //       let xchanged_tiles = resp[1].xchanged_tiles;
-    //
-    //       // update the scoreboard
-    //       for (let i = 0; i < new_data.length; i++) {
-    //         if (update_scoreboard(new_data[i])) {;}
-    //       }
-    //
-    //       // new tiles
-    //       xchanged_tiles.forEach((item, idx) => {
-    //         setup_tile_for_play(item);
-    //       });
-    //
-    //       play_starts = [];
-    //       play_drags = [];
-    //       play_trash = [];
-    //     }
-    // };
-    // xhr.send(JSON.stringify(jsons));
-
   }
+
   console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
@@ -804,6 +795,34 @@ function handle_exchange(resp) {
   play_trash = [];
 }
 
+function handle_pass(resp) {
+  // update the scoreboard
+  for (let i = 0; i < resp[0].new_data.length; i++) {
+    if (update_scoreboard(resp[0].new_data[i])) {;}
+  }
+}
+
+function handle_game_over(resp) {
+  // build the game over message
+  var p1_msg = "Final Score: Player 1: "
+  var p2_msg = "Final Score: Player 2: "
+
+  var p1_tiles_inhand = [];
+  resp[0].player1.remaining_tiles.forEach((item, i) => {
+    p1_tiles_inhand.push(item.char +  "/" + item.points);
+  });
+  p1_msg += resp[0].player1.score + '\n' + "Unplayed tiles: \n" +
+    p1_tiles_inhand.join(" ");
+
+  var p2_tiles_inhand = [];
+  resp[0].player2.remaining_tiles.forEach((item, i) => {
+    p2_tiles_inhand.push(item.char + "/" + item.points);
+  });
+  p2_msg += resp[0].player2.score + '\n' + "Unplayed tiles: \n"  + p2_tiles_inhand.join(" ");
+
+  window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
+}
+
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
 const ws = new WebSocket('ws://localhost:3043');
@@ -827,28 +846,38 @@ ws.onmessage = function(msg) {
   console.log("in onmessage: player = " + player.player + " URL = " + URL);
   console.log("in onmessage: msg = " + msg.data);
 
-  if (player.player == URL) {
-    if (type.type == "xchange") {
+  if (type.type == "game_over") {
+    handle_game_over(resp);
+  }
+
+  else if (type.type == "pass") {
+    handle_pass(resp);
+  }
+
+  else if (type.type == "xchange") {
+    if (player.player == URL) {
       handle_exchange(resp);
     }
-    else if (type.type == "regular_play") {
-      console.log("in onmessage: calling handle_the_response");
-      handle_the_response(resp);
-    }
-  }
-  else {
-    if (type.type == "xchange") {
+    else {
       // update the scoreboard
       let new_data = resp[0].new_data;
       for (let i = 0; i < new_data.length; i++) {
         if (update_scoreboard(new_data[i])) {;}
       }
-    } else {
-      console.log("in onmessage: calling update_the_board");
-      update_the_board(resp);
     }
   }
-};
+
+  else if (type.type == "regular_play") {
+    if (player.player == URL)
+      handle_the_response(resp);
+    else
+      update_the_board(resp);
+  }
+
+  else {
+    console.log("in onmessage: no play type");
+  }
+}
 
 ws.onopen = function() {
     // ws.send("daddy's HOOOME!!");
