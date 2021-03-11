@@ -183,7 +183,7 @@ class Tile {
     var t = null;
 
     // DEBUG: remove this line!!!
-    tmp_count = 17;
+    // tmp_count = 17;
 
     // TODO: the randomization here is stupid - make it better
     while (tmp_count != 0) {
