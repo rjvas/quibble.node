@@ -4,9 +4,23 @@
 * copyright 2021
 */
 
+// const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
+const ws = new WebSocket('ws://localhost:3043');
+
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
+
+
+class Tile {
+  constructor (svg, drag, json) {
+    this.svg = svg;
+    this.drag = drag;
+    this.json = json;
+  }
+}
+
+var PlayerHand = [];
 
 var URL = null;
 var AppSpace = null;
@@ -104,7 +118,7 @@ function init_color_popup() {
   color_picker.picker.onDone = set_default_colors;
 }
 
-function initial_setup() {
+function set_button_callbacks() {
   let btn = document.getElementById('save_btn');
   if (btn) {
     btn.addEventListener("click", clicked_save_btn);
@@ -185,8 +199,6 @@ function draw_board() {
     board_horiz[i].setAttributeNS(null, 'stroke_width', 1);
   }
 
-  // draw_safe_squares();
-  // draw_center_start();
 }
 
 function tile_clicked(event) {
@@ -256,10 +268,6 @@ function clicked_player_area(event) {
   color_picker.picker.show();
 }
 
-function dblclicked_player_area(event) {
-  var player = null;
-}
-
 function setup_tile_for_play(tile, no_drag) {
 
   let board_width = NUM_ROWS_COLS*CELL_SIZE;
@@ -271,7 +279,6 @@ function setup_tile_for_play(tile, no_drag) {
     svg.setAttributeNS(null, 'id', "tile_" + tile.id);
     svg.setAttributeNS(null, 'x', startx + tile.player_hand_idx*CELL_SIZE);
     svg.setAttributeNS(null, 'y', 0);
-
     svg.setAttributeNS(null, 'width', CELL_SIZE);
     svg.setAttributeNS(null, 'height', CELL_SIZE);
 
@@ -329,8 +336,12 @@ function setup_tile_for_play(tile, no_drag) {
         width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
         height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
       drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
+
+      PlayerHand[tile.player_hand_idx] = new Tile(svg, drag_rec, get_tile_json(svg, tile.player_hand_idx));
     }
   }
+
+  console.log("in setup_tile_for_play: ", PlayerHand[tile.player_hand_idx]);
   return svg;
 }
 
@@ -452,7 +463,7 @@ function handle_the_response(resp) {
       // new tiles
       else if (new_data[i].new_tiles) {
         new_data[i].new_tiles.forEach((item, idx) => {
-          setup_tile_for_play(item);
+          setup_tile_for_play(item, false);
         });
       }
     }
@@ -492,26 +503,30 @@ function clicked_player_name(event) {
 
 function get_player_hand_JSONS() {
   let jsons = [];
-  let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  for (let i= 0; i < tile_svgs.length; i++) {
-    let item = tile_svgs[i];
-    // don't get the magic S
-    if (i != 7) {
-      let x = item.getAttributeNS(null, "x");
-      let y = item.getAttributeNS(null, "y");
-      let col = Math.round(x/CELL_SIZE) + 1;
-      let row = Math.round(y/CELL_SIZE) + 1;
-      jsons.push({
-        id : item.id,
-        char : item.childNodes[1].textContent,
-        x : x,
-        y : y,
-        row : row,
-        col : col,
-        player_hand_idx : i
-      });
-    }
-  };
+  PlayerHand.forEach((item, i) => {
+    jsons.push(item.json);
+  });
+
+  // let tile_svgs = document.querySelectorAll('.player_tile_svg');
+  // for (let i= 0; i < tile_svgs.length; i++) {
+  //   let item = tile_svgs[i];
+  //   // don't get the magic S
+  //   if (i != 7) {
+  //     let x = item.getAttributeNS(null, "x");
+  //     let y = item.getAttributeNS(null, "y");
+  //     let col = Math.round(x/CELL_SIZE) + 1;
+  //     let row = Math.round(y/CELL_SIZE) + 1;
+  //     jsons.push({
+  //       id : item.id,
+  //       char : item.childNodes[1].textContent,
+  //       x : x,
+  //       y : y,
+  //       row : row,
+  //       col : col,
+  //       player_hand_idx : i
+  //     });
+  //   }
+  // };
   return jsons;
 }
 
@@ -662,12 +677,71 @@ function tile_move_start(new_position) {
   let x = svg.getAttributeNS(null, "x");
   let y = svg.getAttributeNS(null, "y");
 
+  let phi = -1;
+  let tile = PlayerHand.find((t, idx) => {
+    if (t.svg == svg) {
+      phi = idx;
+      return t;
+    }
+  });
+
   play_starts.push({"svg_id" : svg.id, "svg" : svg, "x" : x, "y" : y});
+  console.log("tile_move_start: ", get_tile_json(svg, phi));
+}
+
+function rearrange_hand(svg, to_idx) {
+
+  let tile = PlayerHand.find(t => {
+    return t.svg == svg;
+  });
+
+  // move the svgs and update the json.char and json.id
+  if (tile) {
+    let char = tile.json.char;
+    let id = tile.json.id;
+    let drag = tile.drag;
+
+    if (to_idx > tile.json.player_hand_idx) {
+      for (let i = tile.json.player_hand_idx; i < to_idx; i++) {
+        PlayerHand[i].svg = PlayerHand[i+1].svg;
+        PlayerHand[i].drag = PlayerHand[i+1].drag;
+        PlayerHand[i].json.id = PlayerHand[i+1].json.id;
+        PlayerHand[i].json.char = PlayerHand[i+1].json.char;
+        PlayerHand[i].svg.setAttributeNS(null, "x", PlayerHand[i].json.x);
+        PlayerHand[i].svg.setAttributeNS(null, "y", PlayerHand[i].json.y);
+        PlayerHand[i].drag.position();
+      }
+    }
+    else if (to_idx < tile.json.player_hand_idx) {
+      for (let i = tile.json.player_hand_idx; i > to_idx; i--) {
+        PlayerHand[i].svg = PlayerHand[i-1].svg;
+        PlayerHand[i].drag = PlayerHand[i-1].drag;
+        PlayerHand[i].json.id = PlayerHand[i-1].json.id;
+        PlayerHand[i].json.char = PlayerHand[i-1].json.char;
+        PlayerHand[i].svg.setAttributeNS(null, "x", PlayerHand[i].json.x);
+        PlayerHand[i].svg.setAttributeNS(null, "y", PlayerHand[i].json.y);
+        PlayerHand[i].drag.position();
+      }
+    }
+    PlayerHand[to_idx].svg = svg;
+    PlayerHand[to_idx].drag = drag;
+    PlayerHand[to_idx].json.char = char;
+    PlayerHand[to_idx].json.id = id;
+    PlayerHand[to_idx].svg.setAttributeNS(null, "x", PlayerHand[to_idx].json.x);
+    PlayerHand[to_idx].svg.setAttributeNS(null, "y", PlayerHand[to_idx].json.y);
+    PlayerHand[to_idx].drag.position();
+  }
 }
 
 function tile_moving(new_position) {
   // 'this' references the PlainDraggable instance
   Scale = CELL_SIZE / this.rect.width;
+
+  // note that there are +1 and -1 conversions on row/col - this is due to
+  // using 0-based coordinate system for x/y and 1-based coord system
+  // for row/col
+
+  // just initing ...
   let row = -1;
   let col = -1;
 
@@ -675,14 +749,17 @@ function tile_moving(new_position) {
   //   row = Math.round(scale*new_position.top/CELL_SIZE) - 1;
   //   col = Math.round(scale*new_position.left/CELL_SIZE) - 1;
   // } else {
-    row = Math.round(Scale*new_position.top/CELL_SIZE);
-    col = Math.round(Scale*new_position.left/CELL_SIZE);
+    row = Math.round(Scale*new_position.top/CELL_SIZE + 1);
+    col = Math.round(Scale*new_position.left/CELL_SIZE + 1);
   // }
   let svg = this.element;
 
-  // let tile = null;
-  // tile = CurrentPlayer.tiles.find( t => {
-  //   return t && t.drag && t.drag._id == this._id});
+  // if dragging within the player-hand area ...
+  if (row == 1 && col > 16 && col < 24) {
+    let cur_location_idx = col - 17;
+    rearrange_hand(svg, cur_location_idx);
+    console.log("tile_moving - player hand idx: " + (col - 17));
+  }
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
   // css' translate. So, the tiles.svg have the original player_hand
@@ -690,8 +767,8 @@ function tile_moving(new_position) {
   // with cycling through the player colors because setting the rect color
   // directly doesn't use the css translate. So, fix up the svg coords here.d
   svg.setAttributeNS(null, 'transform', "");
-  svg.setAttributeNS(null, 'x', col*CELL_SIZE);
-  svg.setAttributeNS(null, 'y', row*CELL_SIZE);
+  svg.setAttributeNS(null, 'x', (col - 1)*CELL_SIZE);
+  svg.setAttributeNS(null, 'y', (row - 1)*CELL_SIZE);
 
   // tile.is_safe ? tile.set_tile_color(CurrentPlayer.tile_color_safe) :
   //   tile.set_tile_color(CurrentPlayer.tile_color_risky);
@@ -734,9 +811,25 @@ function tile_moved(new_position) {
   }
 }
 
+function get_tile_json(svg, idx) {
+  let x = svg.getAttributeNS(null, "x");
+  let y = svg.getAttributeNS(null, "y");
+  let col = Math.round(x/CELL_SIZE) + 1;
+  let row = Math.round(y/CELL_SIZE) + 1;
+  return {
+    id : svg.id,
+    char : svg.childNodes[1].textContent,
+    x : x,
+    y : y,
+    row : row,
+    col : col,
+    player_hand_idx : idx
+  };
+}
+
 function setup_tiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  tile_svgs.forEach( item => {
+  tile_svgs.forEach( (item, idx) => {
     let drag_rec = new PlainDraggable(item);
 
     drag_rec.onMove = tile_moving;
@@ -747,6 +840,8 @@ function setup_tiles_for_drag() {
       width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
       height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
     drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
+
+    PlayerHand.push(new Tile(item, drag_rec, get_tile_json(item, idx)));
   });
 }
 
@@ -787,7 +882,7 @@ function handle_exchange(resp) {
 
   // new tiles
   xchanged_tiles.forEach((item, idx) => {
-    setup_tile_for_play(item);
+    setup_tile_for_play(item, false);
   });
 
   play_starts = [];
@@ -825,7 +920,6 @@ function handle_game_over(resp) {
 
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
-const ws = new WebSocket('ws://localhost:3043');
 ws.onmessage = function(msg) {
 
   if (!URL) {
@@ -889,6 +983,6 @@ ws.onclose = function(msg) {
   console.log("in get socket: close " + msg);
 };
 
-initial_setup();
+set_button_callbacks();
 draw_board();
 setup_tiles_for_drag();
