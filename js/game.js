@@ -181,6 +181,8 @@ class Game {
         let word_tiles = this.words[this.words.length - 1].get_JSON();
         ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
+        let msg_words = this.words[this.words.length - 1].check_words.join(" ");
+        ret_val.unshift({"info" : player.name + " played the word(s): " + msg_words});
         this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       } else {
@@ -188,6 +190,7 @@ class Game {
         // must happen before the new Word - the invalid word is at
         // this.new_word.check_words[err_idx]
         ret_val = this.build_the_response(err_idx, roll_back_tiles);
+        ret_val.unshift({"info" : "none"});
         this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       }
@@ -228,14 +231,17 @@ class Game {
     let new_data = this.toggle_player_new_play();
     let ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
                                                  "xchanged_tiles" : xchanged_tiles}]);
+    ret_val.unshift({"info" : player.name + " has exchanged tiles - your turn."});
+
     played_tiles = [];
     return ret_val;
   }
 
-  handle_pass(play_data) {
+  handle_pass(player, play_data) {
     this.consecutive_pass_count--;
     let new_data = this.toggle_player_new_play();
     let ret_val = this.build_the_response(-1, [{"new_data" : new_data}]);
+    ret_val.unshift({"info" : player.name + " has passed - your turn."});
     return ret_val;
   }
 

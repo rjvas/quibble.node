@@ -46,6 +46,7 @@ const NUM_PLAYER_TILES = 7;
 
 const TEXT_POSITION = 1;
 const BLANK_TILE = " ";
+const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
 
 const back_ground = "#f5efe6ff";
 var scoreboard = null;
@@ -116,6 +117,7 @@ class Tile {
   static on_board = 2;
   static trashed = 4;
   static is_blank = 8;
+  static is_magic_s = 16;
 }
 
 class PlayerHand {
@@ -200,9 +202,13 @@ class PlayerHand {
   }
   static remove(tile) {
     if (tile.status & Tile.in_hand) tile.status = tile.status ^ Tile.in_hand;
-    let idx = PlayerHand.tiles.indexOf(tile);
-    if (idx != -1)
-      PlayerHand.tiles[idx] = null;
+    // a little brute force here - if the tile has been moved through the
+    // playerhand on the way to the board then it may reside in more than one
+    // playerhand slot - so, null *all* of the slots that reference it.
+    PlayerHand.tiles.forEach((item, i) => {
+      if (item == tile)
+        PlayerHand.tiles[i] = null;
+    });
   }
   static add(tile) {
     let idx = -1;
@@ -867,6 +873,9 @@ function tile_moved(new_position) {
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
     if (row == 1 && col > 16 && col < 24) {
+      // if it's the magic s being rearranged, don't let it
+      if (tile.status & Tile.is_magic_s)
+        PlayerHand.rearrange_hand(tile.svg, 7);
       PlayStarts.pop();
       console.log("tile_moving - rearranged hand to: " + (col - 17));
     }
@@ -887,6 +896,9 @@ function tile_moved(new_position) {
       if (tile.status & Tile.is_blank) {
         letter = window.prompt("Please type the letter to use: ");
         if (letter) {
+          while (!char_regex.test(letter)) {
+            letter = window.prompt("ONLY A SINGLE CHARACTER a-z or A-Z is acceptable!");
+          }
           svg.childNodes[TEXT_POSITION].textContent = letter.trim().toLowerCase();
         }
         console.log("blank tile moved: " + letter);
@@ -926,7 +938,11 @@ function setup_tiles_for_drag() {
       height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
     drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
 
-    PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
+    // this is the magic s - keep track of it
+    if (idx == 7)
+      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand | Tile.is_magic_s));
+    else
+      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
   });
 }
 
@@ -1021,6 +1037,9 @@ ws.onmessage = function(msg) {
   // and just show the played tiles and scoreboard
   let player = resp.shift();
 
+  // info goes to the inactive player for a 'heads-up'
+  let info = resp.shift();
+
   console.log("in onmessage: player = " + player.player + " URL = " + URL);
   console.log("in onmessage: msg = " + msg.data);
 
@@ -1029,6 +1048,8 @@ ws.onmessage = function(msg) {
   }
 
   else if (type.type == "pass") {
+    if (player.player != URL)
+      alert(info.info);
     handle_pass(resp);
   }
 
@@ -1042,14 +1063,18 @@ ws.onmessage = function(msg) {
       for (let i = 0; i < new_data.length; i++) {
         if (update_scoreboard(new_data[i])) {;}
       }
+      alert(info.info);
     }
   }
 
   else if (type.type == "regular_play") {
     if (player.player == URL)
       handle_the_response(resp);
-    else
+    else {
       update_the_board(resp);
+      if (info.info != "none")
+        alert(info.info);
+    }
   }
 
   else {

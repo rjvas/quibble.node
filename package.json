@@ -6,9 +6,10 @@
   "dependencies": {
     "debug": "~2.6.9",
     "http-errors": "~1.6.3",
-    "mongodb": "^3.5.9",
+    "mongodb": "^3.6.5",
     "mongoose": "^5.11.15",
     "pug": "^3.0.2",
+    "winston": "^3.3.3",
     "ws": "^7.4.4"
   }
 }
