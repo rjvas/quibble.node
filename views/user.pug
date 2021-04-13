@@ -1,0 +1,47 @@
+doctype html
+html(lang="en")
+  head
+    title Word Heist!
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='views/user.css')
+  body
+    #welcome
+      |Welcome to Word Hiest, #{user.display_name}
+    #row2
+      #info
+        |Here is some handy info
+      #saved_games
+        div.label Continue a game?
+        if games.length > 0
+          ul
+            each val of games
+              li= val
+        else 
+          |No Saved Games
+    #buttons
+      #practice
+        input(id="practice_btn" type="button" class="button" value="Practice game?" height="35" width="50")
+      #wait4
+        | Wait for other player? Player name: 
+        input(id="wait4_user_txt" type="text")
+    #row4
+      #pickups
+        div.label Pickup a game
+        if gamers.length > 0
+          ul
+            each val of gamers 
+              li= val
+        else 
+          |No pickups
+          
+        input(id="add_pickup_btn" type="button" class="button" value="Add your name?" height="35" width="50")
+        
+      #invite
+        form(action="invite")
+          div.label Or, invite a frienemy to play!
+          div.invite_name
+            input(type="text" name="name" placeholder="name")
+          div.email
+            input(type="text" name="email" placeholder="foo@bar.com")
+          button(type="submit") Invite!

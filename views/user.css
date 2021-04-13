@@ -1,0 +1,51 @@
+body {
+  background-image: url('./bridge_hero_large.jpg');
+  padding: 0;
+  margin: 0px;
+  font-family: 'Lato', sans-serif;
+}
+
+div {
+  border: 1px solid black;
+  padding: 10px;
+  margin: 20px;
+  /* opacity: 0.0; */
+}
+
+#welcome {
+  justify-content: center;
+  align-items: center;
+}
+
+#row2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#info {
+  width : 40%;
+}
+
+#saved_games {
+  width : 40%;
+}
+
+#buttons {
+  display: flex;
+}
+
+#row4 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#practice {
+  width : 40%;
+  justify-content: center;
+}
+
+#wait4 {
+  width : 40%;
+}

@@ -1,5 +1,3 @@
-doctype html
-
 //- Handles dynamic part of drawing grid - updating scoreboard,
 //- drawing played tiles and either player1's or player2's hand
 //-
@@ -113,6 +111,7 @@ html
         text(id="error_text" x="200" y="50" width="400" height="220")
       foreignobject(id="color_fo" class="node" x="530" y="240" width="400" height="400")
         button(id="color_btn" height = "50" width = "100" style="border: none")
+        hidden(id="ws_port" value=port)
         
       // the scoreboard
       svg(id="scoreboard" class="scoreboard" x="560" y="100" width="245" height="105"

@@ -4,6 +4,7 @@
   "private": true,
   "description": "The Very Verbose Heist",
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "debug": "~2.6.9",
     "http-errors": "~1.6.3",
     "mongodb": "^3.6.5",

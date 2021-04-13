@@ -4,9 +4,6 @@
 * copyright 2021
 */
 
-// const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
-const ws = new WebSocket('ws://localhost:3043');
-
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
@@ -1081,6 +1078,11 @@ ws.onmessage = function(msg) {
     console.log("in onmessage: no play type");
   }
 }
+
+var ws_port = getElementById("wsport").value;
+
+// const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
+const ws = new WebSocket('ws://localhost:' + ws_port);
 
 ws.onopen = function() {
     // ws.send("daddy's HOOOME!!");

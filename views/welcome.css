@@ -1,0 +1,120 @@
+/* W3hubs.com - Download Free Responsive Website Layout
+ Templates designed on HTML5 CSS3,Bootstrap,Tailwind CSS which are 100% Mobile friendly.
+  w3Hubs all Layouts are responsive cross browser supported, best quality world class designs. */
+
+body {
+  background-image: url('./bridge_hero_large.jpg');
+  padding: 0;
+  margin: 0px;
+  font-family: 'Lato', sans-serif;
+}
+
+#both {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  /* height: 100vh; */
+  width: 40%;
+}
+
+#first {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+#second {
+  /* display: flex; */
+  padding: 30px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+form {
+  background-color: rgba(60, 89, 107, 0.63);
+  width: 40%;
+  padding: 30px;
+}
+
+.username input,
+.password input {
+  width: 100%;
+  height: 30px;
+  border: 0px;
+  margin: 5px 5px 15px;
+  box-sizing: border-box;
+  padding: 15px 15px;
+}
+
+.reg_email input,
+.reg_username input,
+.reg_password input {
+  width: 100%;
+  height: 30px;
+  border: 0px;
+  margin: 5px 5px 15px;
+  box-sizing: border-box;
+  padding: 15px 15px;
+}
+
+input:focus,
+button:focus {
+  outline: none;
+}
+
+button {
+  background: #63cdda;
+  color: #fff;
+  border: 0px;
+  width: 100%;
+  padding: 10px;
+  margin: 5px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.checkbox {
+  color: #fff;
+  padding-bottom: 10px;
+}
+
+h3 {
+  font-size: 24px;
+  text-align: center;
+  color: #fff;
+  text-transform: capitalize;
+  margin-bottom: 10px;
+}
+
+p {
+  text-align: center;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.fa {
+  float: left;
+  font-size: 18px;
+}
+
+a {
+  padding-left: 5px;
+  text-decoration: none;
+  color: #63cdda;
+  text-transform: capitalize;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.label {
+  font-size: 20px;
+  text-align: center;
+  color: #fff;
+  padding-bottom: 5px;
+  text-transform: capitalize;
+}

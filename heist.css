@@ -26,8 +26,11 @@ scoreboard_tiles_left - the text "Tiles Left"
 scoreboard_tiles_left_value - the value of "Tiles Left"
 
 */
+form {
+  text-align: center;
+}
 
- .grid_background {
+.grid_background {
    fill: #f9aefe6ff;
  }
 .safety_square {
