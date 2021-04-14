@@ -5,8 +5,6 @@ html(lang="en")
     title Welcome to Word Heist!
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    //- link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Lato:300,400,700,900&display=swap')
-    //- link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css')
     link(rel='stylesheet', href='views/welcome.css')
   body
     #both
@@ -17,20 +15,19 @@ html(lang="en")
             input(type="text" name="username" placeholder="username")
           div.password
             input(type="password" name="password" placeholder="password")
-          //- div.checkbox
-          //-  input(type='checkbox' name='agreement' checked)
-          //- |Remember me
-          button(type="submit") login
-          
-        #second
-          form(action="register")
-            div.label or register
-            div.reg_username
-              input(type="text" name="username" placeholder="username")
-            div.reg_displayname
-              input(type="text" name="displayname" placeholder="displayname")
-            div.reg_password
-              input(type="password" name="password" placeholder="password")
-            div.reg_email
-              input(type="text" name="email" placeholder="foo@bar.com")
+          div.submit
+            button(type="submit") login
+                
+      #second
+        form(action="register")
+          div.label or register
+          div.reg_username
+            input(type="text" name="username" placeholder="username")
+          div.reg_displayname
+            input(type="text" name="displayname" placeholder="displayname")
+          div.reg_password
+            input(type="password" name="password" placeholder="password")
+          div.reg_email
+            input(type="text" name="email" placeholder="foo@bar.com")
+          div.reg_submit
             button(type="submit") register
