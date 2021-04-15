@@ -45,7 +45,6 @@ const hostname = 'localhost';
 var createServer_count = 0;
 
 var CurrentAGame = null;
-var AGames = [];
 
 var mimeTypes = {
   "html": "text/html",
@@ -78,15 +77,25 @@ function startup() {
     // that runtime structure to populate the compiled template, pug_grid.
     // That template is then returned to the requesting page through
     // respones.end(pug_grid(...)).
-    if (pathname.indexOf("new_game") != -1) {
-      CurrentAGame = new ActiveGame();
-      AGames.push(CurrentAGame);
-      pathname.indexOf("player1") != -1 ? pathname = "/player1" :
-        pathname = "/player2";
-      console.log("NEW GAME!!");
-      response.end(pug_grid({
-        'games' : CurrentAGame.port,
-        'gamers': CurrentAGame.game}));
+    if (pathname.indexOf("new_practice_game") != -1) {
+      CurrentAGame == null;
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
+      });
+      if (user) {
+        CurrentAGame = new ActiveGame(user, user, ActiveGame.in_play|ActiveGame.practice);
+        ActiveGame.all_active.push(CurrentAGame);
+        pathname.indexOf("player1") != -1 ? pathname = "/player1" :
+          pathname = "/player2";
+        console.log("NEW GAME!!");
+        response.end(pug_grid({
+          'is_practice' : true,
+          'port' : CurrentAGame.port,
+          'game': CurrentAGame.game,
+          'Game' : Game,
+          'Word' : Word,
+          'player' : pathname}));
+      }
     }
 
     else if (pathname == "/") {
@@ -100,21 +109,34 @@ function startup() {
 
     // async
     else if (pathname == "/login") {
-      let user = User.login(query, remote_addr, response);
+      User.login(query, remote_addr, response);
     }
 
     // This will refresh the player's page with the currrent state of CurrentGame
     else if (pathname === "/player1" || pathname === "/player2") {
-      response.writeHead(200, {
-        'Content-Type': 'text/html'
+      CurrentAGame == null;
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
       });
-      console.log("pathname: " + pathname + " filename: " + filename);
-      response.end(pug_grid({
-        'port' : CurrentAGame.port,
-        'game': CurrenetAGame.game,
-        'Game' : Game,
-        'Word' : Word,
-        'player' : pathname}));
+      if (user) {
+        CurrentAGame = ActiveGame.all_active.find(g => {
+          return g.user1 == user || g.user2 == user;
+        });
+      }
+
+      if (CurrentAGame) {
+        response.writeHead(200, {
+          'Content-Type': 'text/html'
+        });
+        console.log("pathname: " + pathname + " filename: " + filename);
+        response.end(pug_grid({
+          'is_practice' : CurrentAGame.status & ActiveGame.practice,
+          'port' : CurrentAGame.port,
+          'game': CurrentAGame.game,
+          'Game' : Game,
+          'Word' : Word,
+          'player' : pathname}));
+        }
     }
 
     // error handling

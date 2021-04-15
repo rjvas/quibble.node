@@ -6,6 +6,8 @@ html(lang="en")
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     link(rel='stylesheet', href='views/user.css')
   body
+    input(id="user_display_name" type="hidden" value=user.display_name)
+
     #welcome
       |Welcome to Word Hiest, #{user.display_name}
     #row2
@@ -21,7 +23,7 @@ html(lang="en")
           |No Saved Games
     #buttons
       #practice
-        input(id="practice_btn" type="button" class="button" value="Practice game?" height="35" width="50")
+        input(id="practice_btn" type="button" class="button" value="New Practice Game" height="35" width="50")
       #wait4
         | Wait for other player? Player name: 
         input(id="wait4_user_txt" type="text")
@@ -46,3 +48,5 @@ html(lang="en")
           div.email
             input(type="text" name="email" placeholder="foo@bar.com")
           button(type="submit") Invite!
+
+    script(src="./js/user_home.js")

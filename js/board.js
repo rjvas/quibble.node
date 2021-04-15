@@ -8,7 +8,7 @@
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
-var URL = null;
+var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
 const CELL_SIZE = 35;
@@ -589,9 +589,11 @@ function update_scoreboard(data) {
 }
 
 function handle_the_response(resp) {
+  var has_error = false;
   // error responses
   if (resp[0].err_msg) {
     handle_err_response(resp);
+    has_error = true;
 
   } else { // handle the data response
     let new_data = resp[0].new_data;
@@ -629,6 +631,7 @@ function handle_the_response(resp) {
   }
 
   PlayStarts = [];
+  return has_error;
 }
 
 // jsonify the just-played-tiles and send them back to the server
@@ -637,16 +640,16 @@ function clicked_player_name(event) {
   // if the active player clicked the other player's name
   if (event.currentTarget.textContent == 'Wait ...') return;
 
-  if (!URL) {
+  if (!URL_x) {
     let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (URL == "/player1") {
+  if (URL_x == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
   }
-  else if (URL == "/player2") {
+  else if (URL_x == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
@@ -706,16 +709,16 @@ function repatriate_played_tiles() {
 
 function clicked_tiles_area(event) {
 
-  if (!URL) {
+  if (!URL_x) {
     let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (URL == "/player1") {
+  if (URL_x == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
   }
-  else if (URL == "/player2") {
+  else if (URL_x == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
@@ -769,19 +772,19 @@ function clicked_save_btn(event) {
 }
 
 function clicked_new_btn(event) {
-  if (!URL) {
+  if (!URL_x) {
     let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
   if (window.confirm("New game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL + "/new_game", true);
+    xhr.open("GET", URL_x + "/new_game", true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = URL;;
+          document.location.href = URL_x;;
         }
     }
 
@@ -994,6 +997,25 @@ function handle_pass(resp) {
   }
 }
 
+function toggle_player() {
+
+  let url = window.location.href;
+  url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", URL_x, true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = URL_x;
+      }
+  }
+
+  xhr.send(null);
+
+}
+
 function handle_game_over(resp) {
   // build the game over message
   var p1_msg = "Final Score: Player 1: "
@@ -1017,12 +1039,20 @@ function handle_game_over(resp) {
 
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
+var ws_port = document.getElementById("ws_port").value;
+var is_practice = document.getElementById("is_practice").value;
+
+// const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
+const ws = new WebSocket('ws://localhost:' + ws_port);
+
 ws.onmessage = function(msg) {
 
-  if (!URL) {
+  if (!URL_x) {
     let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL = "/player1" : URL = "/player2";
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
+
+  let err = false;
 
   let resp = JSON.parse(msg.data);
 
@@ -1037,7 +1067,7 @@ ws.onmessage = function(msg) {
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
-  console.log("in onmessage: player = " + player.player + " URL = " + URL);
+  console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
   console.log("in onmessage: msg = " + msg.data);
 
   if (type.type == "game_over") {
@@ -1045,13 +1075,13 @@ ws.onmessage = function(msg) {
   }
 
   else if (type.type == "pass") {
-    if (player.player != URL)
+    if (player.player != URL_x)
       alert(info.info);
     handle_pass(resp);
   }
 
   else if (type.type == "xchange") {
-    if (player.player == URL) {
+    if (player.player == URL_x) {
       handle_exchange(resp);
     }
     else {
@@ -1065,8 +1095,8 @@ ws.onmessage = function(msg) {
   }
 
   else if (type.type == "regular_play") {
-    if (player.player == URL)
-      handle_the_response(resp);
+    if (player.player == URL_x)
+      err = handle_the_response(resp);
     else {
       update_the_board(resp);
       if (info.info != "none")
@@ -1077,12 +1107,12 @@ ws.onmessage = function(msg) {
   else {
     console.log("in onmessage: no play type");
   }
+
+  // in this case a single player is playing both player1 and player2
+  if (is_practice && !err) {
+    toggle_player();
+  }
 }
-
-var ws_port = getElementById("wsport").value;
-
-// const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
-const ws = new WebSocket('ws://localhost:' + ws_port);
 
 ws.onopen = function() {
     // ws.send("daddy's HOOOME!!");
