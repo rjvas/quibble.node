@@ -39,10 +39,12 @@ module.exports = mongoose.model('Game', GameSchema);
 */
 
 class Game {
-  constructor (id, name) {
+  constructor (id, player1_name, player2_name) {
+    // id will be passed in during construction or will be gen'd
+    // by the constuctor. If passed in it will be a Mongo generated
+    // id.
     if (id) {
-      this.id = id;
-      Game.current_id = Math.max(id, Game.current_id);
+      this._id = id;
     }
     else {
       this.id = ++Game.current_id;
@@ -64,21 +66,85 @@ class Game {
     Tile.init_Tile(this);
 
     this.default_name = "Game " + this.id;
-    name ? this.name = name : this.name = this.default_name;
-    this.name_time = this.name + ":" + Date.now();
+    player1_name && player2_name ? this.name = player1_name + " vs " + player2_name :
+      this.name = this.default_name;
+    this.name_time = this.name + ":" + Date();
 
-    Game.current_game = this;
     this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
+    this.player_1.name = player1_name;
     this.player_1_play = new Play(0, this.player_1);
     this.player_1.update_hand(this, true, this.player_1_play);
 
     this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
+    this.player_2.name = player2_name;
     this.player_2_play = new Play(0, this.player_2);
     this.player_2.update_hand(this, true, this.player_2_play);
 
     this.current_play = this.player_1_play;
     this.current_player = this.player_1;
     this.current_play.player = this.player_1;
+  }
+
+  save()  {
+    var game_json = this.get_JSON();
+    //
+    // const q = { user_name: user_name };
+    // const update =
+    //   { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
+    // const options = { upsert: true };
+    // db.get_db().collection('users').updateOne(q, update, options)
+    //   .catch((e) => {
+    //     console.error(e);
+    //   });
+    return this.id;
+  }
+
+  get_JSON() {
+    return {
+      // only submit the passed in id (Mongo generated)
+      // "_id" : this._id,
+
+      "plays" : this.get_plays_JSONS(),
+      "words" : this.get_words_JSONS(),
+      "pass_count" : this.consecutive_pass_count,
+
+      "tile_pool" : this.get_tile_pool_JSONS(),
+      "played_tiles" : this.get_played_tiles_JSONS,
+
+      "name" : this.name,
+      "default_name" : this.default_name,
+      "name_time" : this.name_time,
+
+      "player_1" : this.player_1.get_JSON(),
+      "player_2" : this.player_2.get_JSON()
+    }
+  }
+
+  get_plays_JSONS() {
+    var ret_val = [];
+    this.plays.forEach((item, idx) => {
+      let js = item.get_JSON();
+      ret_val.push(js);
+    });
+    return ret_val;
+  }
+
+  get_words_JSONS() {
+    var ret_val = [];
+    this.words.forEach((item, idx) => {
+      let js = item.get_JSON();
+      ret_val.push(js);
+    });
+    return ret_val;
+  }
+
+  get_tile_pool_JSONS() {
+    var ret_val = [];
+    this.tile_pool.forEach((item, idx) => {
+      let js = item.get_JSON();
+      ret_val.push(js);
+    });
+    return ret_val;
   }
 
   calculate_total_points(player) {
@@ -125,7 +191,7 @@ class Game {
       tiles.unshift(
         {"err_msg" : this.new_word.check_words[err_idx] + " is not a valid word"});
     }
-    console.log("in build_the_response: " + tiles)
+    // console.log("in build_the_response: " + tiles)
     return tiles;
   }
 
@@ -178,7 +244,7 @@ class Game {
       let err_idx = -1;
       if ((err_idx = this.new_word.finalize(this)) == -1) {
         let new_data = this.toggle_player_new_play();
-        let word_tiles = this.words[this.words.length - 1].get_JSON();
+        let word_tiles = this.words[this.words.length - 1].get_tiles_JSON();
         ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
         let msg_words = this.words[this.words.length - 1].check_words.join(" ");
@@ -262,7 +328,7 @@ class Game {
     } else if (play_type.type == "pass")
       ret_val = this.handle_pass(play_data);
 
-    let player_txt = player == Game.current_game.player_1 ? "/player1" :
+    let player_txt = player == this.player_1 ? "/player1" :
       "/player2";
     ret_val.unshift({"player" : player_txt});
 
@@ -272,7 +338,7 @@ class Game {
     if (player.get_tile_count() == 0 || !this.consecutive_pass_count)
       ret_val = this.end_game(player_txt);
 
-    console.log("in finish the play: ", ret_val);
+    // console.log("in finish the play: ", ret_val);
     return JSON.stringify(ret_val);
   }
 
@@ -290,15 +356,15 @@ class Game {
     var new_data = [{"new_tiles" : null}];
     var hand_data = [];
 
-    this.calculate_total_points(Game.current_game.player_1);
-    this.calculate_total_points(Game.current_game.player_2);
+    this.calculate_total_points(this.player_1);
+    this.calculate_total_points(this.player_2);
 
     if (this.current_player == this.player_1) {
       new_data.push({"scoreboard_player_1_name" : "Wait ..."});
-      new_data.push({"scoreboard_player_1_score" : Game.current_game.player_1.total_points});
+      new_data.push({"scoreboard_player_1_score" : this.player_1.total_points});
       new_data.push({"scoreboard_player_2_name" : this.player_2.name});
-      new_data.push({"scoreboard_player_2_score" : Game.current_game.player_2.total_points});
-      new_data.push({"play_data" : this.player_1_play.get_played_JSON()});
+      new_data.push({"scoreboard_player_2_score" : this.player_2.total_points});
+      new_data.push({"play_data" : this.player_1_play.get_played_JSONS()});
       this.plays.push(this.player_1_play);
       this.player_1_play = new Play(0, this.player_1);
       this.player_1.update_hand(this, false, this.player_1_play, hand_data);
@@ -307,10 +373,10 @@ class Game {
       this.current_play = this.player_2_play;
     } else {
       new_data.push({"scoreboard_player_2_name" : "Wait ..."});
-      new_data.push({"scoreboard_player_2_score" : Game.current_game.player_2.total_points});
+      new_data.push({"scoreboard_player_2_score" : this.player_2.total_points});
       new_data.push({"scoreboard_player_1_name" : this.player_1.name});
-      new_data.push({"scoreboard_player_1_score" : Game.current_game.player_1.total_points});
-      new_data.push({"play_data" : this.player_2_play.get_played_JSON()});
+      new_data.push({"scoreboard_player_1_score" : this.player_1.total_points});
+      new_data.push({"play_data" : this.player_2_play.get_played_JSONS()});
       this.plays.push(this.player_2_play);
       this.player_2_play = new Play(0, this.player_2);
       this.player_2.update_hand(this, false, this.player_2_play, hand_data);

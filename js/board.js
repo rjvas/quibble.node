@@ -419,7 +419,7 @@ function tile_clicked(event) {
     }
   }
   */
-  console.log('tile_clicked - row: %d column: %d', clicked_row, clicked_column);
+  // console.log('tile_clicked - row: %d column: %d', clicked_row, clicked_column);
 }
 
 function clicked_player_area(event) {
@@ -512,7 +512,7 @@ function setup_tile_for_play(tile, no_drag) {
     }
   }
 
-  console.log("in setup_tile_for_play: ", PlayerHand.tiles[idx]);
+  // console.log("in setup_tile_for_play: ", PlayerHand.tiles[idx]);
   return svg;
 }
 
@@ -657,10 +657,10 @@ function clicked_player_name(event) {
   let jsons = get_played_JSONS();
   jsons.unshift({"type" : "regular_play"});
 
-  console.log("in clicked_player_name: " + JSON.stringify(jsons));
+  // console.log("in clicked_player_name: " + JSON.stringify(jsons));
   ws.send(JSON.stringify(jsons));
 
-  console.log("clicked on ", event.currentTarget.innerHTML);
+  // console.log("clicked on ", event.currentTarget.innerHTML);
 }
 
 function get_player_hand_JSONS() {
@@ -759,16 +759,30 @@ function clicked_tiles_area(event) {
     ws.send(JSON.stringify(jsons));
   }
 
-  console.log("clicked on " + event.currentTarget.innerHTML);
+  // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
 function clicked_save_btn(event) {
-  let foo = null;
-  let p = prompt("Game name?");
-  // if (!WtDB) {
-  //   delete_WtDB();
-  //   open_db();
-  // }
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (window.confirm("Save game?")) {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", URL_x + "/save_game", true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          document.location.href = URL_x;;
+          console.log("new_btn.callback: port: " + ws_port);
+        }
+    }
+
+    console.log("clicked_save_btn port: " + ws_port);
+    xhr.send(null);
+  }
 }
 
 function clicked_new_btn(event) {
@@ -785,9 +799,11 @@ function clicked_new_btn(event) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           document.location.href = URL_x;;
+          console.log("new_btn.callback: port: " + ws_port);
         }
     }
 
+    console.log("clicked_new_btn port: " + ws_port);
     xhr.send(null);
   }
 }
@@ -811,7 +827,7 @@ function tile_move_start(new_position) {
 
   if (tile) {
     PlayStarts.push(tile);
-    console.log("tile_move_start: ", tile.get_JSON());
+    // console.log("tile_move_start: ", tile.get_JSON());
   }
 }
 
@@ -836,7 +852,7 @@ function tile_moving(new_position) {
   if (row == 1 && col > 16 && col < 24) {
     let cur_location_idx = col - 17;
     PlayerHand.rearrange_hand(svg, cur_location_idx);
-    console.log("tile_moving - player hand idx: " + (col - 17));
+    // console.log("tile_moving - player hand idx: " + (col - 17));
   }
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
@@ -848,8 +864,8 @@ function tile_moving(new_position) {
   svg.setAttributeNS(null, 'x', (col - 1)*CELL_SIZE);
   svg.setAttributeNS(null, 'y', (row - 1)*CELL_SIZE);
 
-  console.log('tile_moving - row: %d column: %d this.rect.width: %f Scale: %f',
-    row, col, this.rect.width, Scale);
+  // console.log('tile_moving - row: %d column: %d this.rect.width: %f Scale: %f',
+    // row, col, this.rect.width, Scale);
 }
 
 function tile_moved(new_position) {
@@ -868,7 +884,7 @@ function tile_moved(new_position) {
   if (tile) {
     tile.move(row, col);
 
-    console.log('finished drag at - row: %d column: %d', row, col);
+    // console.log('finished drag at - row: %d column: %d', row, col);
 
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
@@ -877,13 +893,13 @@ function tile_moved(new_position) {
       if (tile.status & Tile.is_magic_s)
         PlayerHand.rearrange_hand(tile.svg, 7);
       PlayStarts.pop();
-      console.log("tile_moving - rearranged hand to: " + (col - 17));
+      // console.log("tile_moving - rearranged hand to: " + (col - 17));
     }
 
     // TODO ugly
     else if (row >= 3 && row <= 5 &&
       col >= 18 && col <= 20) {
-      console.log("tile to trash ...");
+      // console.log("tile to trash ...");
       tile.state |= Tile.trashed;
       PlayerHand.remove(tile);
       PlayTrash.push(tile);
@@ -901,7 +917,7 @@ function tile_moved(new_position) {
           }
           svg.childNodes[TEXT_POSITION].textContent = letter.trim().toLowerCase();
         }
-        console.log("blank tile moved: " + letter);
+        // console.log("blank tile moved: " + letter);
       }
     }
   }
@@ -967,11 +983,11 @@ function update_the_board(resp) {
     }
   }
 
-  console.log("in update_the_board")
+  // console.log("in update_the_board");
 }
 
 function handle_exchange(resp) {
-  console.log("in handle_exchange: " + JSON.stringify(resp));
+  // console.log("in handle_exchange: " + JSON.stringify(resp));
 
   let new_data = resp[0].new_data;
   let xchanged_tiles = resp[0].xchanged_tiles;
@@ -1043,7 +1059,7 @@ var ws_port = document.getElementById("ws_port").value;
 var is_practice = document.getElementById("is_practice").value;
 
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:3043');
-const ws = new WebSocket('ws://localhost:' + ws_port);
+const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 
 ws.onmessage = function(msg) {
 
@@ -1067,8 +1083,9 @@ ws.onmessage = function(msg) {
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
+  console.log("in onmessage: port = " + ws_port);
   console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  console.log("in onmessage: msg = " + msg.data);
+  // console.log("in onmessage: msg = " + msg.data);
 
   if (type.type == "game_over") {
     handle_game_over(resp);

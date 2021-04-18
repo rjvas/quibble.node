@@ -38,6 +38,28 @@ class Player {
     this.max_tile_trade = 3;
 }
 
+  get_JSON() {
+    return {
+      "id" : this.id,
+      "name" : this.name,
+      "tile_color_risky" : this.tile_color_risky,
+      "tile_color_safe" : this.tile_color_safe,
+      "total_points" : this.total_points,
+      "trade_tiles_count" : this.trade_tiles_count,
+      "max_tile_trade" : this.max_tile_trade,
+      "tiles" : this.get_tiles_JSON()
+    }
+  }
+
+  get_tiles_JSON() {
+    var ret_val = [];
+    this.tiles.forEach((item, idx) => {
+      let js = item.get_JSON();
+      ret_val.push(js);
+    });
+    return ret_val;
+  }
+
   update_hand(game, initial, play, jsons) {
     // this does not hit the 'magic' s - get that after
     var ret_val = true;

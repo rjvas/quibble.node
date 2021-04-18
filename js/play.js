@@ -26,7 +26,15 @@ class Play {
     this.tiles = [];
   }
 
-  get_played_JSON() {
+  get_JSON() {
+    return {
+      "id" : this.id,
+      "player" : this.player.id,
+      "tiles" : this.get_played_JSONS()
+    }
+  }
+
+  get_played_JSONS() {
     var ret_val = [];
     this.tiles.forEach((item, idx) => {
        ret_val.push(item.get_JSON());

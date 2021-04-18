@@ -72,8 +72,6 @@ class User {
             new_user.request_address = request_addr;
             User.current_users.push(new_user);
             id = usr._id;
-            console.dir(usr);
-            console.dir(new_user);
             response.end(pug_user({
               'user': new_user,
               'games': new_user.get_game_list(),

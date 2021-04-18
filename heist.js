@@ -96,6 +96,29 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
       }
+
+      console.log("<new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
+        remote_addr + " user.request_addr");
+    }
+
+    else if (pathname.indexOf("save_game") != -1) {
+      CurrentAGame == null;
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
+      });
+      if (user) {
+        CurrentAGame = ActiveGame.all_active.find(g => {
+          return g.user1 == user || g.user2 == user;
+        });
+      }
+      if (CurrentAGame) {
+        pathname.indexOf("player1") != -1 ? pathname = "/player1" :
+          pathname = "/player2";
+        CurrentAGame.save();
+      }
+
+      console.log("<save_game> port: " + CurrentAGame.port + " remote_addr: " +
+        remote_addr + " user.request_addr: " + user.request_addr);
     }
 
     else if (pathname == "/") {
@@ -137,6 +160,9 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
         }
+
+      console.log("</player> " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
+        remote_addr + " user.request_addr");
     }
 
     // error handling
@@ -145,7 +171,7 @@ function startup() {
       if (pathname == "/json" || pathname == "/json/version") return;
 
       filename = path.join(process.cwd(), pathname);
-      console.log("pathname: " + pathname + " filename: " + filename);
+      // console.log("pathname: " + pathname + " filename: " + filename);
       try {
         fs.accessSync(filename, fs.F_OK);
         var fileStream = fs.createReadStream(filename);
@@ -155,7 +181,7 @@ function startup() {
         });
         fileStream.pipe(response);
       } catch (e) {
-        console.log('File not exists: ' + filename);
+        // console.log('File not exists: ' + filename);
         response.writeHead(404, {
           'Content-Type': 'text/plain'
         });

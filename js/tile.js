@@ -61,6 +61,7 @@ class Tile {
       "row" : this.row,
       "col" : this.column,
       "fill" : fill,
+      "player_id" : this.player ? this.player.id : -1,
       "player_hand_idx" : this.player_hand_idx
     };
   }
