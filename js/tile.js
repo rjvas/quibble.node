@@ -28,7 +28,7 @@ class Tile {
   constructor (id, char, points, safe, row, column, player) {
     if (id != 0) {
       this.id = id;
-      Tile.last_id = Math.max(id, Tile.last_id);
+      // Tile.last_id = Math.max(id, Tile.last_id);
     } else {
       this.id = ++Tile.last_id;
     }
@@ -59,7 +59,7 @@ class Tile {
       "points" : this.points,
       "is_safe" : this.is_safe,
       "row" : this.row,
-      "col" : this.column,
+      "column" : this.column,
       "fill" : fill,
       "player_id" : this.player ? this.player.id : -1,
       "player_hand_idx" : this.player_hand_idx
@@ -167,6 +167,16 @@ class Tile {
   static BLANK_TILE = " ";
 
   static TileState = TileState;
+
+  static new_tile_json(json, player) {
+    let t = new Tile(json.id, json.char, json.points, json.safe, json.row,
+      json.column, player);
+    t.word_id = json.word_id;
+    t.player_hand_idx = json.player_hand_idx;
+    t.player = player;
+
+    return t;
+  }
 
   static init_Tile(game) {
     game.played_tiles = [];

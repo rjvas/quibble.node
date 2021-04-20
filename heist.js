@@ -20,15 +20,16 @@ db.connect()
     });
 
 const http = require('http');
-// const pug = require('pug');
+const pug = require('pug');
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
-const pug = require('pug');
+
 
 // pug is a template engine that can pre-compile template defs
 var pug_grid = pug.compileFile('views/grid.pug');
-var pug_welcome = pug.compileFile('views/welcome.pug')
+var pug_welcome = pug.compileFile('views/welcome.pug');
+var pug_user = pug.compileFile('views/user.pug');
 
 // import the Game and Word classes. Game is needed at this level to
 // help with control and Word contributes data to the pug template.
@@ -121,6 +122,36 @@ function startup() {
         remote_addr + " user.request_addr: " + user.request_addr);
     }
 
+    else if (pathname.indexOf("save_close_game") != -1) {
+      CurrentAGame == null;
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
+      });
+      if (user) {
+        CurrentAGame = ActiveGame.all_active.find(g => {
+          return g.user1 == user || g.user2 == user;
+        });
+      }
+      if (CurrentAGame) {
+        pathname.indexOf("player1") != -1 ? pathname = "/player1" :
+          pathname = "/player2";
+        CurrentAGame.save();
+      }
+
+      console.log("<save_close_game> port: " + CurrentAGame.port + " remote_addr: " +
+        remote_addr + " user.request_addr: " + user.request_addr);
+    }
+
+    else if (pathname.indexOf("load_game") != -1) {
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
+      });
+
+      // query should hold the index to the selected game
+      if (user)
+        ActiveGame.new_active_game_json(user.saved_games[parseInt(query)], response);
+    }
+
     else if (pathname == "/") {
       response.end(pug_welcome());
     }
@@ -133,6 +164,16 @@ function startup() {
     // async
     else if (pathname == "/login") {
       User.login(query, remote_addr, response);
+    }
+
+    else if (pathname.indexOf("home_page") != -1) {
+      let user = User.current_users.find(u => {
+        return u.request_address == remote_addr;
+      });
+      response.end(pug_user({
+        'user': user,
+        'games': user.get_game_list(),
+        'gamers' : User.get_available_gamers()}));
     }
 
     // This will refresh the player's page with the currrent state of CurrentGame
@@ -159,10 +200,10 @@ function startup() {
           'Game' : Game,
           'Word' : Word,
           'player' : pathname}));
-        }
 
-      console.log("</player> " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
-        remote_addr + " user.request_addr");
+        console.log("</player> " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
+          remote_addr + " user.request_addr: " + user.request_addr);
+      }
     }
 
     // error handling

@@ -1,6 +1,7 @@
 var Play = require('./play').Play;
 var Player = require('./player').Player;
 var Tile = require ('./tile').Tile;
+var TileDefs = require ('./tiledefs').TileDefs;
 var Word = require ('./word').Word;
 
 const BLANK_TILE = " ";
@@ -39,7 +40,7 @@ module.exports = mongoose.model('Game', GameSchema);
 */
 
 class Game {
-  constructor (id, player1_name, player2_name) {
+  constructor (id, player1_name, player2_name, clean) {
     // id will be passed in during construction or will be gen'd
     // by the constuctor. If passed in it will be a Mongo generated
     // id.
@@ -63,26 +64,93 @@ class Game {
     this.tile_pool = [];
     this.tile_defs = null; // initialized in Tile.init_Tile()
     this.played_tiles = [];
-    Tile.init_Tile(this);
 
-    this.default_name = "Game " + this.id;
-    player1_name && player2_name ? this.name = player1_name + " vs " + player2_name :
-      this.name = this.default_name;
-    this.name_time = this.name + ":" + Date();
+    if (!clean) {
+      Tile.init_Tile(this);
 
-    this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
-    this.player_1.name = player1_name;
-    this.player_1_play = new Play(0, this.player_1);
-    this.player_1.update_hand(this, true, this.player_1_play);
+      this.default_name = "Game " + this.id;
+      player1_name && player2_name ? this.name = player1_name + " vs " + player2_name :
+        this.name = this.default_name;
 
-    this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
-    this.player_2.name = player2_name;
-    this.player_2_play = new Play(0, this.player_2);
-    this.player_2.update_hand(this, true, this.player_2_play);
+      let date_parts = Date().split(" ");
+      let save_date = date_parts[0] + " " + date_parts[1] + " " + date_parts[2] +
+        " " + date_parts[3] + " " + date_parts[4];
+      this.name_time = this.name + " : " + save_date;
 
-    this.current_play = this.player_1_play;
-    this.current_player = this.player_1;
-    this.current_play.player = this.player_1;
+      this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
+      this.player_1.name = player1_name;
+      this.player_1_play = new Play(0, this.player_1);
+      this.player_1.update_hand(this, true, this.player_1_play);
+
+      this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
+      this.player_2.name = player2_name;
+      this.player_2_play = new Play(0, this.player_2);
+      this.player_2.update_hand(this, true, this.player_2_play);
+
+      this.current_play = this.player_1_play;
+      this.current_player = this.player_1;
+      this.current_play.player = this.player_1;
+    }
+
+  }
+
+  static new_game_json(js) {
+    // do this last
+    let g = new Game(js._id, null, null, true);
+
+    g.new_word = new Word(0, null, null, "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
+
+    // only counts consecutive passes - the player1 passes, player2 does not, then
+    // pass count resets. when both pass, game over. managed on finish_the_play
+    // and handle_pass
+    g.consecutive_pass_count = js.pass_count;
+
+    // tile info for the game
+    js.tile_pool.forEach((item, i) => {
+      g.tile_pool.push(Tile.new_tile_json(item));
+    });
+
+    g.tile_defs = new TileDefs();
+
+    g.default_name = js.default_name;
+    g.name = js.name;
+    g.name_time = js.name_time;
+
+    g.player_1 = Player.new_player_json(js.player_1);
+    g.player_1_play = new Play(-1, g.player_1);
+
+    g.player_2 = Player.new_player_json(js.player_2);
+    g.player_2_play = new Play(-1, g.player_2);
+
+    // sets up new plays
+    if (js.current_player_id == g.player_1.id) {
+      g.current_player = g.player_1;
+      g.current_play = g.player_1_play;
+    }
+    else if (js.current_player_id == g.player_2.id) {
+      g.current_player = g.player_2;
+      g.current_play = g.player_2_play;
+    }
+    g.current_play.player = g.current_player;
+
+    js.plays.forEach((item, i) => {
+      if (item.player == g.player_1.id)
+        g.plays.push(Play.new_play_json(item, g.player_1));
+      else if (item.player == g.player_2.id)
+        g.plays.push(Play.new_play_json(item, g.player_2));
+    });
+
+    js.words.forEach((item, i) => {
+      g.words.push(Word.new_word_json(item, g.player_1, g.player_2, g.plays));
+    });
+
+    g.words.forEach((item, i) => {
+      item.tiles.forEach((t, i) => {
+        g.played_tiles.push(t);
+      });
+    });
+
+    return g;
   }
 
   save()  {
@@ -116,7 +184,9 @@ class Game {
       "name_time" : this.name_time,
 
       "player_1" : this.player_1.get_JSON(),
-      "player_2" : this.player_2.get_JSON()
+      "player_2" : this.player_2.get_JSON(),
+
+      "current_player_id" : this.current_player.id
     }
   }
 

@@ -1,19 +1,26 @@
 var Game = require('./game').Game;
+var User = require('./user').User;
 const db = require('./db');
 
 class ActiveGame {
 
-  constructor(user1, user2, status) {
+  constructor(user1, user2, status, game) {
     this.user1 = user1;
     this.user2 = user2;
 
     this.status = status;
     this.port = ActiveGame.current_port++;
 
-    this.game = new Game(null, user1.display_name, user2.display_name);
-    this.name = this.game.name_time;
+    if (!game) {
+      this.game = new Game(null, user1.display_name, user2.display_name);
+      this.game_id = null;
+    }
+    else {
+      this.game = Game.new_game_json(game);
+      this.game_id = game.id;
+    }
 
-    this.game_id = null;
+    this.name = this.game.name_time;
 
     this.connects = [];
     this.ws_server = this.setup_socket();
@@ -46,6 +53,7 @@ class ActiveGame {
 
     console.dir(agame_result);
   }
+
 
   get_JSON() {
     return {
@@ -92,8 +100,8 @@ class ActiveGame {
         let a_game = ActiveGame.all_active.find(g => {
           return g.ws_server.clients.has(socket);
         });
-        // if (a_game)
-        //   a_game.connects = a_game.connects.filter(s => s !== socket);
+        if (a_game)
+          a_game.connects = a_game.connects.filter(s => s !== socket);
       });
     });
 
@@ -111,6 +119,35 @@ class ActiveGame {
   static practice = 32;
 
   static all_active = [];
+
+  static new_active_game_json(ag_json, response) {
+    let new_ag;
+    let dbq = { "_id": ag_json.game_id };
+    let game = db.get_db().collection('games').findOne(dbq)
+      .then((game) => {
+        if (game) {
+          let u1 = User.current_users.find(u => {
+            return u.id.equals(ag_json.user1_id);
+          });
+          let u2 = User.current_users.find(u => {
+            return u.id.equals(ag_json.user2_id);
+            ActiveGame.all_active.push(new_ag);
+          });
+          new_ag = new ActiveGame(u1, u2, ag_json.status, game);
+          new_ag._id = ag_json._id;
+          ActiveGame.all_active = ActiveGame.all_active.filter(ag => !ag._id.equals(new_ag._id));
+          ActiveGame.all_active.push(new_ag);
+          let player = new_ag.game.current_player == new_ag.game.player_1 ?
+            '/player1' : '/player2';
+          response.writeHead(302 , {
+             'Location' : player
+          });
+          response.end();
+        }
+      })
+      .catch((e) => console.error(e));
+  }
+
 }
 
 exports.ActiveGame = ActiveGame;

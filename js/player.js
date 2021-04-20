@@ -132,6 +132,18 @@ class Player {
 
   static current_id = 0;
   static num_player_tiles = 7;
+
+  static new_player_json(json) {
+    let p = new Player(json.id, json.name, json.tile_color_risky,
+      json.tile_color_safe, json. total_points);
+    p.trade_tiles_count = json.trade_tiles_count;
+    p.max_tile_trade = json.max_tile_trade;
+    json.tiles.forEach((item, i) => {
+      p.tiles.push(Tile.new_tile_json(item, p));
+    });
+    return p;
+  }
+
 }
 
 exports.Player = Player;

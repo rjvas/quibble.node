@@ -292,13 +292,15 @@ function set_button_callbacks() {
   if (btn) {
     btn.addEventListener("click", clicked_save_btn);
   }
-  btn = document.getElementById('open_btn');
+
+  btn = document.getElementById('save_close_btn');
   if (btn) {
-    btn.addEventListener("click", clicked_open_btn);
+    btn.addEventListener("click", clicked_save_close_btn);
   }
-  btn = document.getElementById('new_btn');
+
+  btn = document.getElementById('home_btn');
   if (btn) {
-    btn.addEventListener("click", clicked_new_btn);
+    btn.addEventListener("click", clicked_home_btn);
   }
 }
 
@@ -785,31 +787,51 @@ function clicked_save_btn(event) {
   }
 }
 
-function clicked_new_btn(event) {
+function clicked_home_btn(event) {
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (window.confirm("New game?")) {
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", URL_x + "/home_page", true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/home_page";
+        console.log("home_btn.callback: port: " + ws_port);
+      }
+  }
+
+  console.log("clicked_home_btn port: " + ws_port);
+  xhr.send(null);
+}
+
+function clicked_save_close_btn(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (window.confirm("Save and close game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/new_game", true);
+    xhr.open("GET", URL_x + "/save_close_game", true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = URL_x;;
-          console.log("new_btn.callback: port: " + ws_port);
+          document.location.href = "/home_page"
+          console.log("save_close_btn.callback: port: " + ws_port);
         }
     }
 
-    console.log("clicked_new_btn port: " + ws_port);
+    console.log("clicked_save_close_btn port: " + ws_port);
     xhr.send(null);
   }
-}
 
-function clicked_open_btn(event) {
-  let foo = null;
+  clicked_home_btn(event);
+
 }
 
 function tile_move_start(new_position) {

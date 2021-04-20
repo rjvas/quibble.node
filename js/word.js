@@ -67,6 +67,31 @@ class Word {
     this.is_safe = is_safe;
   }
 
+  static new_word_json(js, player1, player2, plays) {
+    let play = plays.find(p => {
+      return p.id == js.play_id;
+    });
+
+    let w = null;
+    if (js.player_id == player1.id)
+      w = new Word(js.id, play, player1, js.word, js.points,
+        js.start_row, js.start_column, js.orientation, js.is_safe);
+    else if (js.player_id == player2.id)
+      w = new Word(js.id, play, player2, js.word, js.points,
+        js.start_row, js.start_column, js.orientation, js.is_safe);
+
+    w.check_words = js.check_words;
+
+    js.tiles.forEach((item, i) => {
+      if (item.player_id == player1.id)
+        w.tiles.push(Tile.new_tile_json(item, player1));
+      else if (item.player_id == player2.id)
+        w.tiles.push(Tile.new_tile_json(item, player2));
+    });
+
+    return w;
+  }
+
   static ORIENTATIONS = {
     NONE : -1,
     HORIZ : 1,

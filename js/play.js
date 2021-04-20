@@ -11,7 +11,7 @@ var PlaySchema = new Schema(
   }
 );
 */
-
+var Tile = require ('./tile').Tile;
 
 class Play {
   constructor (id, player) {
@@ -48,7 +48,15 @@ class Play {
     }
     return false;
   }
+
   static current_id = 0;
+  static new_play_json(js, player) {
+    let p = new Play(js.id, player);
+    js.tiles.forEach((item, i) => {
+      p.tiles.push(Tile.new_tile_json(item, player));
+    });
+    return p;
+  }
 }
 
 exports.Play = Play;

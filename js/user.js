@@ -2,12 +2,9 @@
 The class that represents a user of the system - currently player and strator
 */
 
-const pug = require('pug');
 const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
-
-var pug_user = pug.compileFile('views/user.pug')
 
 class User {
   constructor(sonj) {
@@ -31,7 +28,13 @@ class User {
   }
 
   get_game_list() {
-    return ["game1", "game2", "game3"];
+    let ret_val = [];
+
+    this.saved_games.forEach((item, i) => {
+      ret_val.push(item.name);
+    });
+
+    return ret_val;
   }
 
   get_user_page() {
@@ -72,10 +75,6 @@ class User {
             new_user.request_address = request_addr;
             User.current_users.push(new_user);
             id = usr._id;
-            response.end(pug_user({
-              'user': new_user,
-              'games': new_user.get_game_list(),
-              'gamers' : User.get_available_gamers()}));
           } else {
             console.log("login error - wrong password");
           }
@@ -83,7 +82,20 @@ class User {
         else {
           console.log("login error - no user with: " + name + "/" + passw);
         }
+        dbq = { $or: [ { "user1_id": id }, { "user2_id": id } ] };
+        return db.get_db().collection('active_games').find(dbq);
+
+      }).then(result => {
+        return result.toArray();
+
+      }).then(result => {
+        new_user.saved_games = result;
+        response.writeHead(302 , {
+           'Location' : '/home_page'
+        });
+        response.end();
       })
+
       .catch((e) => console.error(e));
   }
 

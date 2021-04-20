@@ -16,11 +16,14 @@ html(lang="en")
       #saved_games
         div.label Continue a game?
         if games.length > 0
-          ul
-            each val of games
-              li= val
+          select(id="saved_games_lst")
+            option(value=-1) No Selection
+            each val, idx in games
+              option(value=idx) #{val}
         else 
           |No Saved Games
+        input(id="saved_games_btn" type="button" class="button" value="Go play!" height="35" width="50")
+          
     #buttons
       #practice
         input(id="practice_btn" type="button" class="button" value="New Practice Game" height="35" width="50")
@@ -49,4 +52,4 @@ html(lang="en")
             input(type="text" name="email" placeholder="foo@bar.com")
           button(type="submit") Invite!
 
-    script(src="./js/user_home.js")
+    script(src="/js/user_home.js")
