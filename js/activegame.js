@@ -14,10 +14,12 @@ class ActiveGame {
     if (!game) {
       this.game = new Game(null, user1.display_name, user2.display_name);
       this.game_id = null;
+      this.game_id_str = "temp_game_id_str";
     }
     else {
       this.game = Game.new_game_json(game);
-      this.game_id = game.id;
+      this.game_id = game._id;
+      this.game_id_str = game._id.toHexString();
     }
 
     this.name = this.game.name_time;
@@ -26,26 +28,41 @@ class ActiveGame {
     this.ws_server = this.setup_socket();
   }
 
-  save() {
+  save(and_close) {
     let agame_result = null;
     let a_game_js = null;
     let game_js =  this.game.get_JSON();
     let q = { name_time : game_js.name_time };
-    let update =
-      { $set:  game_js};
+    let update = { $set:  game_js};
+
     const options = { upsert: true };
     var result = db.get_db().collection("games").updateOne(q, update, options)
       .then((result) => {
         if (result) {
           a_game_js = this.get_JSON();
-          a_game_js.game_id = result.upsertedId._id;
+          if (result.upsertedId)
+            a_game_js.game_id = result.upsertedId._id;
           q = { name: a_game_js.name };
           update = {$set : a_game_js};
           return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
         }
       })
       .then((agame_result) => {
+        if (and_close) {
+          // take it out of the active games list
+          ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
+
+          // if it was upserted, stuff the newly saved AGame into the user's saved_games list
+          if (agame_result.upsertedId) {
+            q = {"_id": agame_result.upsertedId._id};
+            return new_agame_res = db.get_db().collection('active_games').findOne(dbq);
+          }
+        }
         console.dir(agame_result);
+      })
+      .then((new_agame_res) => {
+        if (new_agame_res)
+          console.dir(res);
       })
       .catch((e) => {
         console.error(e);
@@ -120,6 +137,9 @@ class ActiveGame {
 
   static all_active = [];
 
+  // builds and active game from json delivered from the db
+  // this differs from newly created active_games that have
+  // no _id
   static new_active_game_json(ag_json, response) {
     let new_ag;
     let dbq = { "_id": ag_json.game_id };
@@ -131,11 +151,15 @@ class ActiveGame {
           });
           let u2 = User.current_users.find(u => {
             return u.id.equals(ag_json.user2_id);
-            ActiveGame.all_active.push(new_ag);
           });
           new_ag = new ActiveGame(u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
-          ActiveGame.all_active = ActiveGame.all_active.filter(ag => !ag._id.equals(new_ag._id));
+
+          // only look at games that have been saved (they have the _id)
+          ActiveGame.all_active = ActiveGame.all_active.filter(
+            ag => ag._id && !ag._id.equals(new_ag._id)
+          );
+
           ActiveGame.all_active.push(new_ag);
           let player = new_ag.game.current_player == new_ag.game.player_1 ?
             '/player1' : '/player2';

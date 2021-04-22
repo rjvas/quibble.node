@@ -124,6 +124,7 @@ class Word {
 
   get_JSON() {
     var ret_val = {
+      "id" : this.id,
       "player_id" : this.player.id,
       "play_id" : this.play ? this.play.id : -1,
       "check_words" : this.check_words,

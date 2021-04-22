@@ -793,19 +793,23 @@ function clicked_home_btn(event) {
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x + "/home_page", true);
-  xhr.setRequestHeader("Content-Type", "text/html");
+  if (window.confirm("Close game without saving?")) {
+    let game_id = document.getElementById("current_game_id").value;
 
-  xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page";
-        console.log("home_btn.callback: port: " + ws_port);
-      }
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", URL_x + "/home_page?" + game_id, true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          document.location.href = "/home_page";
+          console.log("home_btn.callback: port: " + ws_port);
+        }
+    }
+
+    console.log("clicked_home_btn port: " + ws_port);
+    xhr.send(null);
   }
-
-  console.log("clicked_home_btn port: " + ws_port);
-  xhr.send(null);
 }
 
 function clicked_save_close_btn(event) {
@@ -814,9 +818,11 @@ function clicked_save_close_btn(event) {
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
+  let game_id = document.getElementById("current_game_id").value;
+
   if (window.confirm("Save and close game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_close_game", true);
+    xhr.open("GET", URL_x + "/save_close_game?" + game_id, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -1040,13 +1046,15 @@ function toggle_player() {
   let url = window.location.href;
   url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
 
+  let game_id = document.getElementById("current_game_id").value;
+
   let xhr = new XMLHttpRequest();
   xhr.open("GET", URL_x, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = URL_x;
+        document.location.href = URL_x + "?" + game_id;
       }
   }
 

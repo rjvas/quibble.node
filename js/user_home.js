@@ -13,11 +13,7 @@ function new_practice_game() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/player1";
-          else
-            document.location.href = "/player2";
-          // document.location.href = "/player1";
+          document.location.href = "/player1?temp_game_id_str";
         }
     }
 
@@ -36,16 +32,32 @@ function clicked_saved_games_btn(event) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/player1";
+            document.location.href = "/player1?";
           else
-            document.location.href = "/player2";
-          // console.log("clicked_saved_games_btn.callback port: " + ws_port);
+            document.location.href = "/player2?";
         }
     }
 
     // console.log("clicked_saved_games_btn port: " + ws_port);
     xhr.send(null);
   }
+}
+
+function clicked_logout_btn(event) {
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/logout", true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/";
+        // console.log("clicked_logout_btn.callback port: " + ws_port);
+      }
+  }
+
+  // console.log("clicked_logout_btn port: " + ws_port);
+  xhr.send(null);
 }
 
 function init() {
@@ -60,6 +72,10 @@ function init() {
     btn.addEventListener("click", clicked_saved_games_btn);
   }
 
+  btn = document.getElementById('logout_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_logout_btn);
+  }
 }
 
 let un = document.getElementById("user_display_name");

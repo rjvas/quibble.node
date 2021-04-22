@@ -9,12 +9,12 @@ const db = require('./db');
 class User {
   constructor(sonj) {
     this.id = sonj._id;
-    this.active = true;
-    this.deactivate_reason = null;
-    this.description = null;
-    this.failed_login_count = 0;
-    this.last_lockout_date = null;
-    this.last_login_date = null;
+    this.active = sonj.active;
+    this.deactivate_reason = sonj.deactivate_reason;
+    this.description = sonj.description;
+    this.failed_login_count = sonj.failed_login_count;
+    this.last_lockout_date = sonj.last_lockout_date;
+    this.last_login_date = sonj.last_login_date;
     this.user_name = sonj.user_name;
     this.display_name = sonj.display_name;
     this.password = sonj.password;
@@ -23,8 +23,52 @@ class User {
     this.status = User.none;
     this.saved_games = [];
     this.active_games = [];
-    this.friends = [];
-    this.request_address = null;
+    this.friends = sonj.friends;
+    this.request_address = sonj.request_address;
+  }
+
+  get_JSON() {
+    return {
+      "_id" : this.id,
+      "active" : this.active,
+      "deactivate_reason" : this.deactivate_reason,
+      "description" : this.description,
+      "failed_login_count" : this.failed_login_count,
+      "last_lockout_date" : this.last_lockout_date,
+      "last_login_date" : this.last_login_date,
+      "user_name" : this.user_name,
+      "display_name" : this.display_name,
+      "password" : this.password,
+      "role" : this.role,
+      "state" : this.status,
+      "friends" : this.friends,
+      "request_address" : this.request_address
+    }
+  }
+
+  logout(response) {
+    this.save();
+    User.current_users = User.current_users.filter(u => !u.id.equals(this.id));
+    response.writeHead(302 , {
+       'Location' : '/'
+    });
+    response.end();
+  }
+
+  save() {
+    let user_js =  this.get_JSON();
+    let q = { _id : this.id };
+    let update =
+      { $set:  user_js};
+    const options = { upsert: true };
+    var result = db.get_db().collection("users").updateOne(q, update, options)
+      .then((result) => {
+        if (result) {
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   get_game_list() {

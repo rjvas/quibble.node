@@ -169,7 +169,7 @@ class Tile {
   static TileState = TileState;
 
   static new_tile_json(json, player) {
-    let t = new Tile(json.id, json.char, json.points, json.safe, json.row,
+    let t = new Tile(json.id, json.char, json.points, json.is_safe, json.row,
       json.column, player);
     t.word_id = json.word_id;
     t.player_hand_idx = json.player_hand_idx;
