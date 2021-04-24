@@ -81,9 +81,19 @@ class User {
     return ret_val;
   }
 
+  get_a_game_list() {
+    let ret_val = [];
+
+    this.active_games.forEach((item, i) => {
+      ret_val.push(item.name);
+    });
+
+    return ret_val;
+  }
+
   get_user_page() {
     let games = this.getGameList();
-    let gamers = User.get_available_gamers();
+    let gamers = User.get_pickup_gamers();
     let invite = true;
     return pug_user({
       'games' : games,
@@ -92,13 +102,14 @@ class User {
   }
 
   static current_users = [];
+  static pickup_gamers = [];
 
   static none = -1;
-  static looking4game = 1;
+  static pickup_game = 1;
   static in_play = 2;
 
-  static   get_available_gamers() {
-     return ["bob", "alice"];
+  static get_pickup_gamers() {
+     return User.pickup_gamers;
   }
 
   static login (query, request_addr, response) {
@@ -133,11 +144,13 @@ class User {
         return result.toArray();
 
       }).then(result => {
-        new_user.saved_games = result;
-        response.writeHead(302 , {
-           'Location' : '/home_page'
-        });
-        response.end();
+        if (new_user) {
+          new_user.saved_games = result;
+          response.writeHead(302 , {
+             'Location' : '/home_page'
+          });
+          response.end();
+        }
       })
 
       .catch((e) => console.error(e));

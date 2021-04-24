@@ -21,6 +21,51 @@ function new_practice_game() {
   }
 }
 
+function clicked_delete_game_btn(event) {
+
+  var deleted = document.getElementById("saved_games_lst").value;
+
+  if (deleted > -1) {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/delete_game?" + deleted, true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          if (this.responseURL.indexOf("player1") != -1)
+            document.location.href = "/home_page";
+          else
+            document.location.href = "/home_page";
+        }
+    }
+
+    // console.log("clicked_saved_games_btn port: " + ws_port);
+    xhr.send(null);
+  }
+}
+
+function clicked_active_games_btn(event) {
+
+  var active = document.getElementById("active_games_lst").value;
+  if (active > -1) {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/play_active_game?" + active, true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          if (this.responseURL.indexOf("player1") != -1)
+            document.location.href = "/player1";
+          else
+            document.location.href = "/player2";
+        }
+    }
+
+    // console.log("clicked_saved_games_btn port: " + ws_port);
+    xhr.send(null);
+  }
+}
+
 function clicked_saved_games_btn(event) {
 
   var saved = document.getElementById("saved_games_lst").value;
@@ -32,9 +77,9 @@ function clicked_saved_games_btn(event) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/player1?";
+            document.location.href = "/player1";
           else
-            document.location.href = "/player2?";
+            document.location.href = "/player2";
         }
     }
 
@@ -60,6 +105,40 @@ function clicked_logout_btn(event) {
   xhr.send(null);
 }
 
+function clicked_pickup_btn(event) {
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/pickup_game", true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/home_page";
+        // console.log("clicked_logout_btn.callback port: " + ws_port);
+      }
+  }
+  // console.log("clicked_logout_btn port: " + ws_port);
+  xhr.send(null);
+}
+
+function clicked_play_pickup_btn(event) {
+
+  var p_name = document.getElementById("pickup_lst").value;
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/play_pickup_game?" + p_name, true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/player1";
+        // console.log("clicked_logout_btn.callback port: " + ws_port);
+      }
+  }
+  // console.log("clicked_logout_btn port: " + ws_port);
+  xhr.send(null);
+}
+
 function init() {
 
   let btn = document.getElementById('practice_btn');
@@ -67,18 +146,40 @@ function init() {
     btn.addEventListener("click", new_practice_game);
   }
 
+  btn = document.getElementById('active_games_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_active_games_btn);
+  }
+
   btn = document.getElementById('saved_games_btn');
   if (btn) {
     btn.addEventListener("click", clicked_saved_games_btn);
+  }
+
+  btn = document.getElementById('delete_game_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_delete_game_btn);
   }
 
   btn = document.getElementById('logout_btn');
   if (btn) {
     btn.addEventListener("click", clicked_logout_btn);
   }
+
+  btn = document.getElementById('add_pickup_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_pickup_btn);
+  }
+
+  btn = document.getElementById('play_pickup_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_play_pickup_btn);
+  }
+
 }
 
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
+
 
 init();

@@ -527,7 +527,7 @@ function set_tile_props(jtile) {
   }
   else {
     svg = setup_tile_for_play(jtile, true);
-    svg.setAttributeNS(null, 'x', (jtile.col - 1)*CELL_SIZE);
+    svg.setAttributeNS(null, 'x', (jtile.column - 1)*CELL_SIZE);
     svg.setAttributeNS(null, 'y', (jtile.row - 1)*CELL_SIZE);
   }
 }
@@ -793,23 +793,21 @@ function clicked_home_btn(event) {
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (window.confirm("Close game without saving?")) {
-    let game_id = document.getElementById("current_game_id").value;
+  let game_id = document.getElementById("current_game_id").value;
 
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/home_page?" + game_id, true);
-    xhr.setRequestHeader("Content-Type", "text/html");
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", URL_x + "/home_page?" + game_id, true);
+  xhr.setRequestHeader("Content-Type", "text/html");
 
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = "/home_page";
-          console.log("home_btn.callback: port: " + ws_port);
-        }
-    }
-
-    console.log("clicked_home_btn port: " + ws_port);
-    xhr.send(null);
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/home_page";
+        console.log("home_btn.callback: port: " + ws_port);
+      }
   }
+
+  console.log("clicked_home_btn port: " + ws_port);
+  xhr.send(null);
 }
 
 function clicked_save_close_btn(event) {
@@ -962,7 +960,7 @@ function get_tile_json(svg, idx) {
     x : x,
     y : y,
     row : row,
-    col : col,
+    column : col,
     player_hand_idx : idx
   };
 }
@@ -1156,7 +1154,7 @@ ws.onmessage = function(msg) {
   }
 
   // in this case a single player is playing both player1 and player2
-  if (is_practice && !err) {
+  if (is_practice != "0" && !err) {
     toggle_player();
   }
 }

@@ -105,6 +105,7 @@ function startup() {
       if (user) {
         CurrentAGame = new ActiveGame(user, user, ActiveGame.in_play|ActiveGame.practice);
         ActiveGame.all_active.push(CurrentAGame);
+        user.active_games.push(CurrentAGame);
         pathname = "/player1";
         console.log("NEW GAME!!");
         response.end(pug_grid({
@@ -138,7 +139,7 @@ function startup() {
 
     else if (pathname.indexOf("save_close_game") != -1) {
       let ug = get_user_agame(remote_addr, query);
-      CurrentGame = ug.agame;
+      CurrentAGame = ug.agame;
       let user = ug.user;
 
       if (CurrentAGame) {
@@ -151,11 +152,89 @@ function startup() {
         remote_addr + " user.request_addr: " + user.request_addr);
     }
 
+    else if (pathname.indexOf("play_active_game") != -1) {
+      let ug = get_user_agame(remote_addr);
+      // query should hold the index to the selected game
+      if (ug.user) {
+        CurrentAGame = ug.user.active_games[parseInt(query)];
+
+        // if the game is a practice game ug.user is *both* user1 and user2
+        // so, set pathname with game.current_player
+        if (CurrentAGame.status & ActiveGame.practice) {
+          CurrentAGame.game.current_player == CurrentAGame.game.player1 ?
+            pathname = "/player1" : pathname = "/player2";
+        } else {
+          ug.user == CurrentAGame.user1 ? pathname = "/player1" :
+            pathname = "/player2";
+        }
+
+        if (ActiveGame.all_active.indexOf(CurrentAGame) == -1)
+          ActiveGame.all_active.push(CurrentAGame);
+
+        response.end(pug_grid({
+          'game_id' : CurrentAGame.game_id_str,
+          'is_practice' : CurrentAGame.status & ActiveGame.practice,
+          'port' : CurrentAGame.port,
+          'game': CurrentAGame.game,
+          'Game' : Game,
+          'Word' : Word,
+          'player' : pathname}));
+        }
+    }
+
     else if (pathname.indexOf("load_game") != -1) {
       let user = get_user_agame(remote_addr).user;
       // query should hold the index to the selected game
       if (user)
         ActiveGame.new_active_game_json(user.saved_games[parseInt(query)], response);
+    }
+
+    else if (pathname.indexOf("delete_game") != -1) {
+      let user = get_user_agame(remote_addr).user;
+      // query should hold the index to the selected game
+      if  (user)
+        ActiveGame.delete_game(user.saved_games[parseInt(query)], response, user);
+    }
+
+    else if (pathname.indexOf("play_pickup_game") != -1) {
+      let u2 = null;
+      let u1 = get_user_agame(remote_addr).user;
+      if (u1) {
+        u2 = User.current_users.find(u => {
+          return u.display_name == User.pickup_gamers[query];
+        });
+      }
+      if (u1 && u2) {
+        CurrentAGame = new ActiveGame(u1, u2, ActiveGame.in_play);
+        ActiveGame.all_active.push(CurrentAGame);
+        u1.active_games.push(CurrentAGame);
+        u2.active_games.push(CurrentAGame);
+        pathname = "/player1";
+        console.log("NEW GAME!!");
+        response.end(pug_grid({
+          'game_id' : CurrentAGame.game_id_str,
+          'is_practice' : false,
+          'port' : CurrentAGame.port,
+          'game': CurrentAGame.game,
+          'Game' : Game,
+          'Word' : Word,
+          'player' : pathname}));
+      }
+
+      console.log("<new_pickup_game> port: " + CurrentAGame.port + " remote_addr: " +
+        remote_addr + " user.request_addr");
+    }
+
+    else if (pathname.indexOf("pickup_game") != -1) {
+      let user = get_user_agame(remote_addr).user;
+      if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
+        User.pickup_gamers.push(user.display_name);
+        response.end(pug_user({
+          'user': user,
+          'games': user.get_game_list(),
+          'a_games' : user.get_a_game_list(),
+          'gamers' : User.get_pickup_gamers()}));
+      }
     }
 
     else if (pathname == "/") {
@@ -181,12 +260,18 @@ function startup() {
     }
 
     else if (pathname.indexOf("home_page") != -1) {
-      let user = get_user_agame(remote_addr, query).user;
-      if (user) {
-      response.end(pug_user({
-        'user': user,
-        'games': user.get_game_list(),
-        'gamers' : User.get_available_gamers()}));
+      let ug = get_user_agame(remote_addr, query);
+      if (ug.user) {
+        // remove game from current_game lists
+        if (ug.agame) {
+          ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.game_id_str != query);
+        }
+
+        response.end(pug_user({
+          'user': ug.user,
+          'games': ug.user.get_game_list(),
+          'a_games' : ug.user.get_a_game_list(),
+          'gamers' : User.get_pickup_gamers()}));
       }
     }
 

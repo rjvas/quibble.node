@@ -30,6 +30,7 @@ class ActiveGame {
 
   save(and_close) {
     let agame_result = null;
+    let new_agame_res = null;
     let a_game_js = null;
     let game_js =  this.game.get_JSON();
     let q = { name_time : game_js.name_time };
@@ -52,17 +53,23 @@ class ActiveGame {
           // take it out of the active games list
           ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
 
+          // if it's a practice game, only one user/player
+          this.user1.active_games = this.user1.active_games.filter(g => g.name_time != CurrentAGame.name);
+          if (!(this.status & ActiveGame.practice)) {
+            this.user2.active_games = this.user2.active_games.filter(g => g.name_time != CurrentAGame.name);
+          }
+
           // if it was upserted, stuff the newly saved AGame into the user's saved_games list
           if (agame_result.upsertedId) {
             q = {"_id": agame_result.upsertedId._id};
-            return new_agame_res = db.get_db().collection('active_games').findOne(dbq);
+            return new_agame_res = db.get_db().collection('active_games').findOne(q);
           }
         }
         console.dir(agame_result);
       })
       .then((new_agame_res) => {
         if (new_agame_res)
-          console.dir(res);
+          console.dir(new_agame_res);
       })
       .catch((e) => {
         console.error(e);
@@ -137,6 +144,37 @@ class ActiveGame {
 
   static all_active = [];
 
+  static delete_game(ag_json, response, user) {
+    let dbq = { "_id": ag_json.game_id };
+    let result = db.get_db().collection("games").deleteOne(dbq)
+      .then((result) => {
+        if (result && result.deletedCount === 1) {
+          // remove from saved_games list
+          user.saved_games = user.saved_games.filter(
+            g => g.name != ag_json.name
+          );
+          dbq = { "_id": ag_json._id };
+          return result = db.get_db().collection("active_games").deleteOne(dbq);
+        } else {
+          console.log("No documents matched the query. Deleted 0 documents.");
+        }
+      })
+      .then((result) => {
+        if (result && result.deletedCount === 1) {
+          // remove from all_active list (if in)
+          ActiveGame.all_active = ActiveGame.all_active.filter(
+            ag => ag._id && !ag._id.equals(!ag_json._id)
+          );
+          console.dir("Successfully deleted game and active_game document.");
+          response.writeHead(302 , {
+             'Location' : "/home_page"
+          });
+          response.end();
+        }
+      })
+      .catch((e) => console.error(e));
+  }
+
   // builds and active game from json delivered from the db
   // this differs from newly created active_games that have
   // no _id
@@ -154,6 +192,10 @@ class ActiveGame {
           });
           new_ag = new ActiveGame(u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
+
+          u1.active_games.push(new_ag);
+          if (u1 != u2)
+            u2.active_games.push(new_ag);
 
           // only look at games that have been saved (they have the _id)
           ActiveGame.all_active = ActiveGame.all_active.filter(

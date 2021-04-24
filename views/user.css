@@ -14,18 +14,21 @@ div {
 }
 
 #welcome {
+  display : flex;
   justify-content: center;
-  align-items: center;
+  width : 100%;
+  /* align-items: center; */
+}
+#info {
+  width : 40%;
 }
 
 #row2 {
   display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#info {
-  width : 40%;
+  flex-direction: row;
+  /* justify-content: center; */
+  width : 100%;
+  /* align-items: center; */
 }
 
 #saved_games {

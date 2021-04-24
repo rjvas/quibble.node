@@ -10,11 +10,11 @@ html(lang="en")
 
     #welcome
       |Welcome to Word Hiest, #{user.display_name}
-    #row2
       #info
         |Here is some handy info
+    #row2
       #saved_games
-        div.label Continue a game?
+        div.label Saved Games
         if games.length > 0
           select(id="saved_games_lst")
             option(value=-1) No Selection
@@ -23,7 +23,19 @@ html(lang="en")
         else 
           |No Saved Games
         input(id="saved_games_btn" type="button" class="button" value="Go play!" height="35" width="50")
+        input(id="delete_game_btn" type="button" class="button" value="Delete" height="35" width="50")
           
+      #active_games
+        div.label Acitve Games
+        if a_games.length > 0
+          select(id="active_games_lst")
+            option(value=-1) No Selection
+            each val, idx in a_games
+              option(value=idx) #{val}
+        else 
+          |No Active Games
+        input(id="active_games_btn" type="button" class="button" value="Go play!" height="35" width="50")
+            
     #buttons
       #practice
         input(id="practice_btn" type="button" class="button" value="New Practice Game" height="35" width="50")
@@ -38,13 +50,15 @@ html(lang="en")
       #pickups
         div.label Pickup a game
         if gamers.length > 0
-          ul
-            each val of gamers 
-              li= val
+          select(id="pickup_lst")
+            option(value=-1) No Selection
+            each val, idx in gamers
+              option(value=idx) #{val}
         else 
           |No pickups
           
         input(id="add_pickup_btn" type="button" class="button" value="Add your name?" height="35" width="50")
+        input(id="play_pickup_btn" type="button" class="button" value="Play" height="35" width="50")
         
       #invite
         form(action="invite")
