@@ -1,5 +1,5 @@
-var TileState = require('./tileState').TileState;
-var TileDefs = require('./tileDefs').TileDefs;
+var TileState = require('./tilestate').TileState;
+var TileDefs = require('./tiledefs').TileDefs;
 
 /*
 var mongoose = require('mongoose');

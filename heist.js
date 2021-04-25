@@ -255,6 +255,8 @@ function startup() {
       let user = get_user_agame(remote_addr, query).user;
       // give the user a chance to clean up
       if (user) {
+        // if user is in the pickup list take her out
+        User.pickup_gamers = User.pickup_gamers.filter(g => g != user.display_name);
         user.logout(response);
       }
     }

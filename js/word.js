@@ -166,6 +166,12 @@ class Word {
     }
   }
 
+  set_adjacencies(game) {
+    this.tiles.forEach((item, i) => {
+      Tile.set_adjacencies(game, item);
+    });
+  }
+
   all_words_valid() {
     var valid;
 

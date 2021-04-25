@@ -193,7 +193,8 @@ class ActiveGame {
           new_ag = new ActiveGame(u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
 
-          u1.active_games.push(new_ag);
+          if (u1)
+            u1.active_games.push(new_ag);
           if (u1 != u2)
             u2.active_games.push(new_ag);
 

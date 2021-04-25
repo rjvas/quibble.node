@@ -141,13 +141,12 @@ class Game {
     });
 
     js.words.forEach((item, i) => {
-      g.words.push(Word.new_word_json(item, g.player_1, g.player_2, g.plays));
-    });
-
-    g.words.forEach((item, i) => {
-      item.tiles.forEach((t, i) => {
+      let word = Word.new_word_json(item, g.player_1, g.player_2, g.plays);
+      word.tiles.forEach((t, i) => {
         g.played_tiles.push(t);
       });
+      word.set_adjacencies(g);
+      g.words.push(word);
     });
 
     return g;
