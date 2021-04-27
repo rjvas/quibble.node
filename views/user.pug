@@ -8,10 +8,14 @@ html(lang="en")
   body
     input(id="user_display_name" type="hidden" value=user.display_name)
 
-    #welcome
-      |Welcome to Word Hiest, #{user.display_name}
+    #row1
+      #welcome
+        |Welcome to Word Hiest, #{user.display_name}
       #info
         |Here is some handy info
+      #logout 
+        input(id="logout_btn" type="button" class="button" value="Log Out" height="35" width="50")
+        
     #row2
       #saved_games
         div.label Saved Games
@@ -43,8 +47,6 @@ html(lang="en")
         | Wait for other player? Player name: 
         input(id="wait4_user_txt" type="text")
         input(id="wait4_btn" type="button" class="button" value="Submit" height="35" width="50")
-      #logout 
-        input(id="logout_btn" type="button" class="button" value="Log Out" height="35" width="50")
 
     #row4
       #pickups

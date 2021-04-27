@@ -156,7 +156,7 @@ class User {
       .catch((e) => console.error(e));
   }
 
-  static register(query) {
+  static register(query, response) {
     var params = new URLSearchParams(query);
     let user_name = params.get("username");
     let display_name = params.get("displayname")
@@ -171,6 +171,12 @@ class User {
       { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
     const options = { upsert: true };
     db.get_db().collection('users').updateOne(q, update, options)
+      .then(res => {
+        response.writeHead(302 , {
+           'Location' : '/'
+        });
+        response.end();
+      })
       .catch((e) => {
         console.error(e);
       });

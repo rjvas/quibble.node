@@ -14,7 +14,7 @@ class ActiveGame {
     if (!game) {
       this.game = new Game(null, user1.display_name, user2.display_name);
       this.game_id = null;
-      this.game_id_str = "temp_game_id_str";
+      this.game_id_str = "temp_game_id_str_" + this.game.id ;
     }
     else {
       this.game = Game.new_game_json(game);
