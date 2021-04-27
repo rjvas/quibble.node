@@ -40,8 +40,8 @@ var User = require('./js/user').User;
 
 const main_port = 3042;
 // const sock_port = 3043;
-//const hostname = 'www.drawbridgecreativegames.com';
-const hostname = 'localhost';
+const hostname = 'www.drawbridgecreativegames.com';
+// const hostname = 'localhost';
 
 var createServer_count = 0;
 
