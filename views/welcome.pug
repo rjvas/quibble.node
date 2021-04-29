@@ -7,6 +7,9 @@ html(lang="en")
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     link(rel='stylesheet', href='views/welcome.css')
   body
+    #error
+      if error == "error_password"
+        div.label Error with password or user name!
     #both
       #first
         form(action="login")

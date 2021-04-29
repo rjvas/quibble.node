@@ -40,8 +40,8 @@ var User = require('./js/user').User;
 
 const main_port = 3042;
 // const sock_port = 3043;
-const hostname = 'www.drawbridgecreativegames.com';
-// const hostname = 'localhost';
+// const hostname = 'www.drawbridgecreativegames.com';
+const hostname = 'localhost';
 
 var createServer_count = 0;
 
@@ -238,7 +238,7 @@ function startup() {
     }
 
     else if (pathname == "/") {
-      response.end(pug_welcome());
+      response.end(pug_welcome({"error" : query}));
     }
 
     // async
@@ -255,8 +255,38 @@ function startup() {
       let user = get_user_agame(remote_addr, query).user;
       // give the user a chance to clean up
       if (user) {
-        // if user is in the pickup list take her out
+        let remove_ags = [];
+
+        // filter all runtime lists for user
         User.pickup_gamers = User.pickup_gamers.filter(g => g != user.display_name);
+        User.current_users = User.current_users.filter(u => !u.id.equals(user.id));
+
+        // check all active games - if both users are logged out, remove from all_active
+        ActiveGame.all_active.forEach((item, i) => {
+          let u2 = null;
+          if (item.user1.id.equals(user.id)) {
+            u2 = User.current_users.find(u => {
+              return u.id.equals(u2.id);
+            });
+          }
+          else if (item.user2.id.equals(user.id)) {
+            u2 = User.current_users.find(u => {
+              return u.id.equals(u2.id);
+            });
+          }
+          // the second player has logged out - mark ag for removal
+          if (u2 == null) {
+            item.status |= ActiveGame.remove_active;
+            remove_ags.push(item);
+          }
+        });
+
+        remove_ags.forEach((item, i) => {
+          if (item.status & ActiveGame.remove_active)
+            ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag != item);
+        });
+
+
         user.logout(response);
       }
     }

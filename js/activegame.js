@@ -28,6 +28,19 @@ class ActiveGame {
     this.ws_server = this.setup_socket();
   }
 
+  static current_port = 26101;
+
+  static none = -1;
+  static in_play = 1;
+  static finished = 2;
+  static waiting = 4;
+  static invited = 8;
+  static admin = 16;
+  static practice = 32;
+  static remove_active = 64;
+
+  static all_active = [];
+
   save(and_close) {
     let agame_result = null;
     let new_agame_res = null;
@@ -132,18 +145,6 @@ class ActiveGame {
     return ws_server;
   }
 
-  static current_port = 26101;
-
-  static none = -1;
-  static in_play = 1;
-  static finished = 2;
-  static waiting = 4;
-  static invited = 8;
-  static admin = 16;
-  static practice = 32;
-
-  static all_active = [];
-
   static delete_game(ag_json, response, user) {
     let dbq = { "_id": ag_json.game_id };
     let result = db.get_db().collection("games").deleteOne(dbq)
@@ -195,7 +196,7 @@ class ActiveGame {
 
           if (u1)
             u1.active_games.push(new_ag);
-          if (u1 != u2)
+          if (u2 && u1 != u2)
             u2.active_games.push(new_ag);
 
           // only look at games that have been saved (they have the _id)

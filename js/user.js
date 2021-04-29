@@ -27,6 +27,13 @@ class User {
     this.request_address = sonj.request_address;
   }
 
+  static current_users = [];
+  static pickup_gamers = [];
+
+  static none = -1;
+  static pickup_game = 1;
+  static in_play = 2;
+
   get_JSON() {
     return {
       "_id" : this.id,
@@ -101,13 +108,6 @@ class User {
     });
   }
 
-  static current_users = [];
-  static pickup_gamers = [];
-
-  static none = -1;
-  static pickup_game = 1;
-  static in_play = 2;
-
   static get_pickup_gamers() {
      return User.pickup_gamers;
   }
@@ -132,6 +132,10 @@ class User {
             id = usr._id;
           } else {
             console.log("login error - wrong password");
+            response.writeHead(302 , {
+               'Location' : '/?error_password'
+            });
+            response.end();
           }
         }
         else {
