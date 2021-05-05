@@ -13,7 +13,7 @@ function new_practice_game() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = "/player1?temp_game_id_str";
+          document.location.href = "/player1?" + this.responseText;
         }
     }
 
@@ -32,9 +32,6 @@ function clicked_delete_game_btn(event) {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/home_page";
-          else
             document.location.href = "/home_page";
         }
     }
@@ -53,12 +50,7 @@ function clicked_active_games_btn(event) {
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/player1";
-          else
-            document.location.href = "/player2";
-        }
+      document.location.href = this.responseURL;
     }
 
     // console.log("clicked_saved_games_btn port: " + ws_port);
@@ -75,12 +67,7 @@ function clicked_saved_games_btn(event) {
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          if (this.responseURL.indexOf("player1") != -1)
-            document.location.href = "/player1";
-          else
-            document.location.href = "/player2";
-        }
+      document.location.href = this.responseURL;
     }
 
     // console.log("clicked_saved_games_btn port: " + ws_port);

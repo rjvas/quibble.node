@@ -1,5 +1,6 @@
 var TileState = require('./tilestate').TileState;
 var TileDefs = require('./tiledefs').TileDefs;
+var logger = require('./log').logger;
 
 /*
 var mongoose = require('mongoose');
@@ -226,7 +227,7 @@ class Tile {
         // }
       }
     }
-    console.log("Tile initialised");
+    logger.info("Tile initialised");
   }
 
   static clear_adjacencies(game, t) {

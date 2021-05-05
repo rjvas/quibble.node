@@ -3,6 +3,7 @@ var Player = require('./player').Player;
 var Tile = require ('./tile').Tile;
 var TileDefs = require ('./tiledefs').TileDefs;
 var Word = require ('./word').Word;
+var logger = require('./log').logger;
 
 const BLANK_TILE = " ";
 
@@ -256,11 +257,13 @@ class Game {
   }
 
   build_the_response(err_idx, tiles) {
+
     if (err_idx != -1) {
       tiles.unshift(
         {"err_msg" : this.new_word.check_words[err_idx] + " is not a valid word"});
+      logger.debug("game.build_the_response: err_msg : " + tiles[0].err_msg);
     }
-    // console.log("in build_the_response: " + tiles)
+    // logger.info("in build_the_response: " + tiles)
     return tiles;
   }
 
@@ -294,7 +297,7 @@ class Game {
   }
 
   handle_regular_play(player, play_data, played_tiles) {
-    var ret_val;
+    var ret_val = [];
 
     played_tiles.forEach((item, i) => {
       Tile.set_adjacencies(this, item);
@@ -407,7 +410,7 @@ class Game {
     if (player.get_tile_count() == 0 || !this.consecutive_pass_count)
       ret_val = this.end_game(player_txt);
 
-    // console.log("in finish the play: ", ret_val);
+    // logger.info("in finish the play: ", ret_val);
     return JSON.stringify(ret_val);
   }
 
@@ -418,7 +421,8 @@ class Game {
     });
 
     !tl ? this.current_play.tiles.push(tile) :
-      console.log("tile already in list: %d", tile.id);
+      logger.debug("game.update_play: already in list: " + tile.id + "/" +
+        tile.char);
   }
 
   toggle_player_new_play() {
@@ -521,7 +525,7 @@ class Game {
                   "player2" : {"score" : this.player_2.total_points,
                               "remaining_tiles" : this.player_2.get_hand_JSONS()}});
 
-    console.log("Game Over!");
+    logger.info("Game Over!");
 
     return ret_val;
   }

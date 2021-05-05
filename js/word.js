@@ -1,4 +1,5 @@
 var Tile = require('./tile').Tile;
+var logger = require('./log').logger;
 
 var words2letter = require('./2-letter-words');
 var words3letter = require('./3-letter-words');

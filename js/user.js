@@ -5,6 +5,7 @@ The class that represents a user of the system - currently player and strator
 const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
+var logger = require('./log').logger;
 
 class User {
   constructor(sonj) {
@@ -131,7 +132,7 @@ class User {
             User.current_users.push(new_user);
             id = usr._id;
           } else {
-            console.log("login error - wrong password");
+            logger.info("login error - wrong password");
             response.writeHead(302 , {
                'Location' : '/?error_password'
             });
@@ -139,7 +140,7 @@ class User {
           }
         }
         else {
-          console.log("login error - no user with: " + name + "/" + passw);
+          logger.info("login error - no user with: " + name + "/" + passw);
         }
         dbq = { $or: [ { "user1_id": id }, { "user2_id": id } ] };
         return db.get_db().collection('active_games').find(dbq);

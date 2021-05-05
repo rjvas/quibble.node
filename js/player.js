@@ -1,4 +1,5 @@
 var Tile = require('./tile').Tile;
+var logger = require('./log').logger;
 
 /*
 var mongoose = require('mongoose');
@@ -71,7 +72,7 @@ class Player {
         if (t) {
           t.setup_for_play(this, i, play);
           jsons.push(t.get_JSON());
-          console.log("in player.update_hand new tile: " + t.char);
+          logger.info("in player.update_hand new tile: " + t.char);
         }
         else ret_val = false; // unable to fulfill the tile request
       }
@@ -80,7 +81,7 @@ class Player {
         let tile = this.tiles[i];
         if (tile) {
           tile.fixup_tilestates(play);
-          console.log("in player.update_hand existing tile: " + tile.char);
+          logger.info("in player.update_hand existing tile: " + tile.char);
         }
       }
     }

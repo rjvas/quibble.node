@@ -11,7 +11,7 @@
 const db = require('./js/db');
 let db_heist;
 db.connect()
-    .then(() => console.log('database connected'))
+    .then(() => logger.info('database connected'))
     .then(() => startup())
     .catch((e) => {
         console.error(e);
@@ -37,6 +37,7 @@ var ActiveGame = require('./js/activegame').ActiveGame;
 var Game = require('./js/game').Game;
 var Word = require('./js/word').Word;
 var User = require('./js/user').User;
+var logger = require('./js/log').logger;
 
 const main_port = 3042;
 // const sock_port = 3043;
@@ -57,7 +58,10 @@ var mimeTypes = {
   "css": "text/css"
 };
 
-function get_user_agame(remote_addr, id) {
+function get_user_agame(remote_addr, game_id) {
+
+  logger.debug("heist.get_user_agame remote_addr: " + remote_addr +
+    " game_id: " + game_id);
 
   let user = User.current_users.find(u => {
     return u.request_address == remote_addr;
@@ -65,14 +69,21 @@ function get_user_agame(remote_addr, id) {
 
   let agame = null;
   if (user) {
-    if (id)
+    if (game_id)
       agame = ActiveGame.all_active.find(g => {
-        return g.game_id_str == id;
+        return g.game_id_str == game_id;
       });
     else
       agame = ActiveGame.all_active.find(g => {
         return g.user1 == user || g.user2 == user;
       });
+
+    if (agame)
+      logger.debug("heist.get_user_agame: user= " + user.display_name +
+        " agame= " + agame.name);
+    else
+      logger.debug("heist.get_user_agame: user= " + user.display_name);
+
   }
   return {"user" : user, "agame" : agame};
 }
@@ -84,6 +95,8 @@ function startup() {
   var pug_grid = pug.compileFile('views/grid.pug');
   var pug_welcome = pug.compileFile('views/welcome.pug')
   */
+
+  logger.info("heist.startup: starting up Word Heist ...");
 
   // Create the http server and set up the callbacks
   var server = http.createServer((request, response) => {
@@ -107,18 +120,11 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         user.active_games.push(CurrentAGame);
         pathname = "/player1";
-        console.log("NEW GAME!!");
-        response.end(pug_grid({
-          'game_id' : CurrentAGame.game_id_str,
-          'is_practice' : true,
-          'port' : CurrentAGame.port,
-          'game': CurrentAGame.game,
-          'Game' : Game,
-          'Word' : Word,
-          'player' : pathname}));
+        logger.info("NEW GAME!!");
+        response.end(CurrentAGame.game_id_str);
       }
 
-      console.log("<new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
+      logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
         remote_addr + " user.request_addr");
     }
 
@@ -133,7 +139,7 @@ function startup() {
         CurrentAGame.save();
       }
 
-      console.log("<save_game> port: " + CurrentAGame.port + " remote_addr: " +
+      logger.debug("heist.listen: <save_game> port: " + CurrentAGame.port + " remote_addr: " +
         remote_addr + " user.request_addr: " + user.request_addr);
     }
 
@@ -148,7 +154,7 @@ function startup() {
         CurrentAGame.save(true);
       }
 
-      console.log("<save_close_game> port: " + CurrentAGame.port + " remote_addr: " +
+      logger.debug("heist.listen: <save_close_game> port: " + CurrentAGame.port + " remote_addr: " +
         remote_addr + " user.request_addr: " + user.request_addr);
     }
 
@@ -158,10 +164,13 @@ function startup() {
       if (ug.user) {
         CurrentAGame = ug.user.active_games[parseInt(query)];
 
+        logger.debug("heist.listen: <play_active_game> CurrentAGame.name: " +
+          CurrentAGame.name + " query: " + query);
+
         // if the game is a practice game ug.user is *both* user1 and user2
         // so, set pathname with game.current_player
         if (CurrentAGame.status & ActiveGame.practice) {
-          CurrentAGame.game.current_player == CurrentAGame.game.player1 ?
+          CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
             pathname = "/player1" : pathname = "/player2";
         } else {
           ug.user == CurrentAGame.user1 ? pathname = "/player1" :
@@ -179,6 +188,9 @@ function startup() {
           'Game' : Game,
           'Word' : Word,
           'player' : pathname}));
+
+        logger.debug("heist.listen: <play_active_game> port: " + CurrentAGame.port + " remote_addr: " +
+          remote_addr + " user.request_addr: " + ug.user.request_addr);
         }
     }
 
@@ -187,6 +199,8 @@ function startup() {
       // query should hold the index to the selected game
       if (user)
         ActiveGame.new_active_game_json(user.saved_games[parseInt(query)], response);
+
+      logger.debug("heist.listen: <load_game> ActiveGame.all_active list idx: " + query);
     }
 
     else if (pathname.indexOf("delete_game") != -1) {
@@ -194,6 +208,8 @@ function startup() {
       // query should hold the index to the selected game
       if  (user)
         ActiveGame.delete_game(user.saved_games[parseInt(query)], response, user);
+
+      logger.debug("heist.listen: <delete_game> user.saved_games list idx: " + query);
     }
 
     else if (pathname.indexOf("play_pickup_game") != -1) {
@@ -210,7 +226,8 @@ function startup() {
         u1.active_games.push(CurrentAGame);
         u2.active_games.push(CurrentAGame);
         pathname = "/player1";
-        console.log("NEW GAME!!");
+        logger.info("NEW GAME!!");
+        // response.end(CurrentAGame.game_id_str);
         response.end(pug_grid({
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : false,
@@ -219,10 +236,13 @@ function startup() {
           'Game' : Game,
           'Word' : Word,
           'player' : pathname}));
-      }
 
-      console.log("<new_pickup_game> port: " + CurrentAGame.port + " remote_addr: " +
-        remote_addr + " user.request_addr");
+        logger.debug("heist.listen: <new_pickup_game> port: " + CurrentAGame.port + " remote_addr: " +
+          remote_addr + " user.request_addr: " + user.request_addr);
+      }
+      else {
+        logger.error("heist.listen: <new_pickup_game> u1: ", u1, " u2: ", u2);
+      }
     }
 
     else if (pathname.indexOf("pickup_game") != -1) {
@@ -234,21 +254,27 @@ function startup() {
           'games': user.get_game_list(),
           'a_games' : user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
+
+        logger.debug("heist.listen: <pickup_game>" );
       }
     }
 
     else if (pathname == "/") {
       response.end(pug_welcome({"error" : query}));
+      logger.debug("heist.listen: </> remote_addr: " + remote_addr);
     }
 
     // async
     else if (pathname == "/register") {
       User.register(query, response);
+      logger.debug("heist.listen: </register> remote_addr: " + remote_addr +
+        " user.request_addr: " + user.request_addr);
     }
 
     // async
     else if (pathname == "/login") {
       User.login(query, remote_addr, response);
+      logger.debug("heist.listen: </login> remote_addr: " + remote_addr);
     }
 
     else if (pathname == "/logout") {
@@ -288,6 +314,9 @@ function startup() {
 
 
         user.logout(response);
+
+        logger.debug("heist.listen: </logout> remote_addr: " +
+          remote_addr + " user.request_addr: " + user.request_addr);
       }
     }
 
@@ -295,20 +324,31 @@ function startup() {
       let ug = get_user_agame(remote_addr, query);
       if (ug.user) {
         // remove game from current_game lists
-        if (ug.agame) {
-          ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.game_id_str != query);
-        }
+        // NO DON'T - games should only be closed on save & close and logout
+        // if (ug.agame) {
+        //   logger.debug("heist.listen: <home_page> removing a_game from ActiveGame.all_active: " +
+        //     ug.agame.name);
+        //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.game_id_str != query);
+        //   logger.debug("heist.listen: <home_page> removing a_game from user.active_games: " +
+        //     ug.agame.name);
+        //   ug.user.active_games = ug.user.active_games.filter(ag => ag.game_id_str != query);
+        // }
 
         response.end(pug_user({
           'user': ug.user,
           'games': ug.user.get_game_list(),
           'a_games' : ug.user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
+
+        logger.debug("heist.listen: <home_page> remote_addr: " +
+          remote_addr + " user.request_addr: " + ug.user.request_addr);
       }
     }
 
     // This will refresh the player's page with the currrent state of CurrentGame
     else if (pathname === "/player1" || pathname === "/player2") {
+      logger.debug("heist.listen: <regular play> query: " + query);
+
       let ug = get_user_agame(remote_addr, query);
 
       CurrentAGame = ug.agame;
@@ -318,7 +358,7 @@ function startup() {
         response.writeHead(200, {
           'Content-Type': 'text/html'
         });
-        console.log("pathname: " + pathname + " filename: " + filename);
+        logger.info("pathname: " + pathname + " filename: " + filename);
         response.end(pug_grid({
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : CurrentAGame.status & ActiveGame.practice,
@@ -328,7 +368,7 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
 
-        console.log("</player> " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
+        logger.debug("heist.listen: <regular play> /player: " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
           remote_addr + " user.request_addr: " + user.request_addr);
       }
     }
@@ -339,7 +379,6 @@ function startup() {
       if (pathname == "/json" || pathname == "/json/version") return;
 
       filename = path.join(process.cwd(), pathname);
-      // console.log("pathname: " + pathname + " filename: " + filename);
       try {
         fs.accessSync(filename, fs.F_OK);
         var fileStream = fs.createReadStream(filename);
@@ -349,7 +388,7 @@ function startup() {
         });
         fileStream.pipe(response);
       } catch (e) {
-        // console.log('File not exists: ' + filename);
+        logger.error('heist.listen: File does not exist: ' + filename);
         response.writeHead(404, {
           'Content-Type': 'text/plain'
         });
@@ -357,43 +396,9 @@ function startup() {
         response.end();
         return;
       }
+      logger.debug("heist.listen <files> pathname: " + pathname + " filename: " + filename)
       return;
     }
   });
   server.listen(main_port);
 }
-
-/*
-  // Now set up the WebSocket seerver
-  const WebSocket = require('ws');
-  const ws_server = new WebSocket.Server({
-    port: sock_port
-  });
-
-  // this holds a socket for each player
-  let sockets = [];
-
-  // socket call backs - .on fires ONLY on the inital connection or if
-  // the player refreshes the page. If a refresh occurs the original socket
-  // is deleted and a new socket created and 'pushed'.
-  ws_server.on('connection', function(socket) {
-    sockets.push(socket);
-
-    // Both players requests for updates wind up here and are distinguished
-    // by the current_player. CurrentGame processes the request info and then
-    // returns the new state of play in 'resp_data' which is then vectored to
-    // both sockets.
-    socket.on('message', function(msg) {
-      let player = CurrentGame.current_player;
-      var play_data = JSON.parse(msg);
-      let resp_data = CurrentGame.finish_the_play(player, play_data);
-      console.log("socket message: " + resp_data);
-      sockets.forEach(s => s.send(resp_data));
-    });
-
-    // When a socket closes, or disconnects, remove it from the array.
-    socket.on('close', function() {
-      sockets = sockets.filter(s => s !== socket);
-    });
-  });
-*/

@@ -1,6 +1,7 @@
 var Game = require('./game').Game;
 var User = require('./user').User;
 const db = require('./db');
+var logger = require('./log').logger;
 
 class ActiveGame {
 
@@ -67,28 +68,33 @@ class ActiveGame {
           ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
 
           // if it's a practice game, only one user/player
-          this.user1.active_games = this.user1.active_games.filter(g => g.name_time != CurrentAGame.name);
+          this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
           if (!(this.status & ActiveGame.practice)) {
-            this.user2.active_games = this.user2.active_games.filter(g => g.name_time != CurrentAGame.name);
-          }
-
-          // if it was upserted, stuff the newly saved AGame into the user's saved_games list
-          if (agame_result.upsertedId) {
-            q = {"_id": agame_result.upsertedId._id};
-            return new_agame_res = db.get_db().collection('active_games').findOne(q);
+            this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
           }
         }
-        console.dir(agame_result);
+
+        // if it was upserted, stuff the newly saved AGame into the user's saved_games list
+        if (agame_result.upsertedId) {
+          q = {"_id": agame_result.upsertedId._id};
+          return new_agame_res = db.get_db().collection('active_games').findOne(q);
+        }
+
+        // console.dir(agame_result);
       })
       .then((new_agame_res) => {
-        if (new_agame_res)
-          console.dir(new_agame_res);
+        if (new_agame_res) {
+          // if it's a practice game, only one user/player
+          this.user1.saved_games.push(new_agame_res);
+          if (!(this.status & ActiveGame.practice)) {
+            this.user2.saved_games.push(new_agame_res);
+          }
+          logger.debug("activegame.save new_agame_res: ", new_agame_res);
+        }
       })
       .catch((e) => {
-        console.error(e);
+        logger.error("activegame.save: ", e);
       });
-
-    console.dir(agame_result);
   }
 
 
@@ -127,8 +133,7 @@ class ActiveGame {
           var play_data = JSON.parse(msg);
           let resp_data = a_game.game.finish_the_play(player, play_data);
           a_game.ws_server.clients.forEach(s => s.send(resp_data));
-          console.log("<socket.msg> port: " + a_game.port + " player: " + player.name);
-          // console.log("socket message: " + resp_data);
+          logger.debug("activegame.socket.on.message: <socket.msg> port: " + a_game.port + " player: " + player.name);
         }
       });
 
@@ -137,8 +142,11 @@ class ActiveGame {
         let a_game = ActiveGame.all_active.find(g => {
           return g.ws_server.clients.has(socket);
         });
-        if (a_game)
+        if (a_game) {
           a_game.connects = a_game.connects.filter(s => s !== socket);
+          logger.debug("activegame.socket.on.close: a_game.name: " + a_game.name +
+            " port: " + a_game.port + " player: " + player.name);
+        }
       });
     });
 
@@ -157,7 +165,8 @@ class ActiveGame {
           dbq = { "_id": ag_json._id };
           return result = db.get_db().collection("active_games").deleteOne(dbq);
         } else {
-          console.log("No documents matched the query. Deleted 0 documents.");
+          logger.error("activegame.delete_game: No documents matched the query: ag._id: " +
+            ag_jsons._id + " Deleted 0 documents.");
         }
       })
       .then((result) => {
@@ -166,14 +175,17 @@ class ActiveGame {
           ActiveGame.all_active = ActiveGame.all_active.filter(
             ag => ag._id && !ag._id.equals(!ag_json._id)
           );
-          console.dir("Successfully deleted game and active_game document.");
+          logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
+            " and active_game document.");
           response.writeHead(302 , {
              'Location' : "/home_page"
           });
           response.end();
         }
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        logger.error("activegame.delete_game: ", e);
+      });
   }
 
   // builds and active game from json delivered from the db
@@ -204,16 +216,22 @@ class ActiveGame {
             ag => ag._id && !ag._id.equals(new_ag._id)
           );
 
+          logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
+
           ActiveGame.all_active.push(new_ag);
           let player = new_ag.game.current_player == new_ag.game.player_1 ?
             '/player1' : '/player2';
           response.writeHead(302 , {
-             'Location' : player
+             'Location' : player + "?" + new_ag.game_id_str
           });
           response.end();
         }
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        logger.error("activegame.new_active_game_json: ", e);
+      });
+
+    return new_ag;
   }
 
 }
