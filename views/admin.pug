@@ -1,0 +1,62 @@
+doctype html
+html(lang="en")
+  head
+    title Word Heist!
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='/views/admin.css')
+  body
+    input(id="user" type="hidden" value=user.id.toHexString())
+    
+    #row1
+      #welcome
+        |Do the Admin, #{user.display_name}
+      #info
+        |Here is some handy info
+      #logout 
+        input(id="home_btn" type="button" class="button" value="Home" height="35" width="50")
+        input(id="logout_btn" type="button" class="button" value="Log Out" height="35" width="50")
+        
+    #row2
+      #all_users
+        |Logged In
+        if User.current_users.length > 0
+          each val, idx in User.current_users
+            div(class="cur_user")
+              input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
+              label(for="cur_user_"+idx) #{val.display_name}
+        else 
+          |No logged in Users
+          
+      #user_lists
+        #user_saved_games
+          |User's saved games
+          if user_saved_games.length > 0
+            select(id="user_saved_games_lst")
+              option(value=-1) No Selection
+              each val, idx in user_saved_games
+                option(value=idx) #{val}
+          else 
+            |No user saved games
+            
+        #user_active_games
+          |User's active games
+          if user_a_games.length > 0
+            select(id="user_active_games_lst")
+              option(value=-1) No Selection
+              each val, idx in user_a_games
+                option(value=idx) #{val}
+          else 
+            |No user active games
+          
+    #all_active_games
+      |All Active Games
+      if all_active_games.length > 0
+        select(id="all_active_games_lst")
+          option(value=-1) No Selection
+          each val, idx in all_active_games
+            option(value=idx) #{val}
+      else 
+        |No Active Games
+                      
+    script(src="../js/admin.js")

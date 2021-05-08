@@ -20,8 +20,8 @@ class User {
     this.display_name = sonj.display_name;
     this.password = sonj.password;
     // this.roles = [].push(new UserRole(this.id, UserRole.player));
-    this.role = UserRole.player;
-    this.status = User.none;
+    this.role = sonj.role;
+    this.status = sonj.status;
     this.saved_games = [];
     this.active_games = [];
     this.friends = sonj.friends;
@@ -31,6 +31,12 @@ class User {
   static current_users = [];
   static pickup_gamers = [];
 
+  // roles
+  static none = -1;
+  static player = 1;
+  static admin = 2;
+
+  // status
   static none = -1;
   static pickup_game = 1;
   static in_play = 2;
@@ -79,11 +85,11 @@ class User {
       });
   }
 
-  get_game_list() {
+  get_saved_game_list() {
     let ret_val = [];
 
     this.saved_games.forEach((item, i) => {
-      ret_val.push(item.name);
+      ret_val.push({"name" : item.name, "active" : true});
     });
 
     return ret_val;
@@ -120,6 +126,18 @@ class User {
     let name = params.get("username");
     let passw = params.get("password");
 
+    let logged_in = User.current_users.find(u => {
+      return u.user_name == name;
+    });
+    if (logged_in) {
+      logger.error("User.login error - " + name + " is already logged in");
+      response.writeHead(302 , {
+         'Location' : '/?error_login'
+      });
+      response.end();
+      return;
+    }
+
     let id;
     let dbq = { "user_name": name };
     let usr = db.get_db().collection('users').findOne(dbq)
@@ -132,7 +150,7 @@ class User {
             User.current_users.push(new_user);
             id = usr._id;
           } else {
-            logger.info("login error - wrong password");
+            logger.error("login error - wrong password");
             response.writeHead(302 , {
                'Location' : '/?error_password'
             });
@@ -140,7 +158,7 @@ class User {
           }
         }
         else {
-          logger.info("login error - no user with: " + name + "/" + passw);
+          logger.error("login error - no user with: " + name + "/" + passw);
         }
         dbq = { $or: [ { "user1_id": id }, { "user2_id": id } ] };
         return db.get_db().collection('active_games').find(dbq);
@@ -152,7 +170,7 @@ class User {
         if (new_user) {
           new_user.saved_games = result;
           response.writeHead(302 , {
-             'Location' : '/home_page'
+             'Location' : '/home_page?user=' + new_user.id.toHexString()
           });
           response.end();
         }

@@ -36,7 +36,6 @@ class ActiveGame {
   static finished = 2;
   static waiting = 4;
   static invited = 8;
-  static admin = 16;
   static practice = 32;
   static remove_active = 64;
 
@@ -178,7 +177,7 @@ class ActiveGame {
           logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
             " and active_game document.");
           response.writeHead(302 , {
-             'Location' : "/home_page"
+             'Location' : "/home_page?user=" + user.id.toHexString()
           });
           response.end();
         }
@@ -222,7 +221,7 @@ class ActiveGame {
           let player = new_ag.game.current_player == new_ag.game.player_1 ?
             '/player1' : '/player2';
           response.writeHead(302 , {
-             'Location' : player + "?" + new_ag.game_id_str
+             'Location' : player + "?game=" + new_ag.game_id_str
           });
           response.end();
         }

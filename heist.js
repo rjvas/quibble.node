@@ -30,6 +30,7 @@ var path = require('path');
 var pug_grid = pug.compileFile('views/grid.pug');
 var pug_welcome = pug.compileFile('views/welcome.pug');
 var pug_user = pug.compileFile('views/user.pug');
+var pug_admin = pug.compileFile('views/admin.pug');
 
 // import the Game and Word classes. Game is needed at this level to
 // help with control and Word contributes data to the pug template.
@@ -58,13 +59,30 @@ var mimeTypes = {
   "css": "text/css"
 };
 
-function get_user_agame(remote_addr, game_id) {
+function get_user_agame(remote_addr, query) {
+  var params = null;
+  let user_id = null;
+  let game_id = null;
+  let game_idx = -1;
+  let vs = null;
+
+  if (query) {
+    params = new URLSearchParams(query);
+    user_id = params.get("user");
+    game_id = params.get("game");
+    game_idx = params.get("game_idx")
+    vs = params.get("vs");
+  }
 
   logger.debug("heist.get_user_agame remote_addr: " + remote_addr +
-    " game_id: " + game_id);
+    " query: " + query);
 
-  let user = User.current_users.find(u => {
-    return u.request_address == remote_addr;
+  let user = null;
+  user_id ? user = User.current_users.find(u => {
+    return u.request_address == remote_addr &&
+        u.id.toHexString() == user_id
+  }) : user = User.current_users.find(u => {
+    return u.request_address == remote_addr
   });
 
   let agame = null;
@@ -85,9 +103,33 @@ function get_user_agame(remote_addr, game_id) {
       logger.debug("heist.get_user_agame: user= " + user.display_name);
 
   }
-  return {"user" : user, "agame" : agame};
+  return {"user" : user, "agame" : agame, "game_idx" : game_idx, "vs" : vs};
 }
 
+function massage_user_lists(user) {
+  // look at names of all_active and 'disable' those that are Also
+  // in the users saved games list
+
+  // first get the list to be submitted to pug
+  let glist = user.get_saved_game_list();
+  let ag = null;
+  glist.forEach((item, i) => {
+    if (ag = ActiveGame.all_active.find(ag => {return ag.name == item.name})) {
+      item.active = false;
+      if (!user.active_games.find(ag => {return ag.name == item.name})) {
+        user.active_games.push(ag);
+        // if an ag of this user is found in the ActiveGame.all_active list
+        // AND this user is not u1 or u2, stuff it in the empy slot
+        if (!ag.user1)
+          ag.user1 = user;
+        else if (!ag.user2)
+          ag.user2 = user;
+      }
+    }
+  });
+
+  return glist;
+}
 
 function startup() {
   /*
@@ -105,13 +147,6 @@ function startup() {
     var remote_addr = request.client.remoteAddress;
     var filename = null;
 
-    // Start a new game when the 'New' button is pressed and use the
-    // precompiled template to show the inital page.
-    // new Game() builds the entire runtime structure for a single game
-    // either on startup (CurrentGame == null) or upon request and uses
-    // that runtime structure to populate the compiled template, pug_grid.
-    // That template is then returned to the requesting page through
-    // respones.end(pug_grid(...)).
     if (pathname.indexOf("new_practice_game") != -1) {
       CurrentAGame == null;
       let user = get_user_agame(remote_addr, query).user;
@@ -159,10 +194,10 @@ function startup() {
     }
 
     else if (pathname.indexOf("play_active_game") != -1) {
-      let ug = get_user_agame(remote_addr);
+      let ug = get_user_agame(remote_addr, query);
       // query should hold the index to the selected game
       if (ug.user) {
-        CurrentAGame = ug.user.active_games[parseInt(query)];
+        CurrentAGame = ug.user.active_games[ug.game_idx];
 
         logger.debug("heist.listen: <play_active_game> CurrentAGame.name: " +
           CurrentAGame.name + " query: " + query);
@@ -180,14 +215,10 @@ function startup() {
         if (ActiveGame.all_active.indexOf(CurrentAGame) == -1)
           ActiveGame.all_active.push(CurrentAGame);
 
-        response.end(pug_grid({
-          'game_id' : CurrentAGame.game_id_str,
-          'is_practice' : CurrentAGame.status & ActiveGame.practice,
-          'port' : CurrentAGame.port,
-          'game': CurrentAGame.game,
-          'Game' : Game,
-          'Word' : Word,
-          'player' : pathname}));
+        response.writeHead(302 , {
+           'Location' : pathname + "?game=" + CurrentAGame.game_id_str
+        });
+        response.end();
 
         logger.debug("heist.listen: <play_active_game> port: " + CurrentAGame.port + " remote_addr: " +
           remote_addr + " user.request_addr: " + ug.user.request_addr);
@@ -195,29 +226,35 @@ function startup() {
     }
 
     else if (pathname.indexOf("load_game") != -1) {
-      let user = get_user_agame(remote_addr).user;
+      let ugv = get_user_agame(remote_addr, query);
+      let user = ugv.user;
       // query should hold the index to the selected game
       if (user)
-        ActiveGame.new_active_game_json(user.saved_games[parseInt(query)], response);
+        ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], response);
 
       logger.debug("heist.listen: <load_game> ActiveGame.all_active list idx: " + query);
     }
 
     else if (pathname.indexOf("delete_game") != -1) {
-      let user = get_user_agame(remote_addr).user;
+      let ugv = get_user_agame(remote_addr, query);
+      let user = ugv.user;
       // query should hold the index to the selected game
       if  (user)
-        ActiveGame.delete_game(user.saved_games[parseInt(query)], response, user);
+        ActiveGame.delete_game(user.saved_games[ugv.game_id], response, user);
 
       logger.debug("heist.listen: <delete_game> user.saved_games list idx: " + query);
     }
 
     else if (pathname.indexOf("play_pickup_game") != -1) {
       let u2 = null;
-      let u1 = get_user_agame(remote_addr).user;
-      if (u1) {
+      let u1 = null;
+      let ugv = get_user_agame(remote_addr, query);
+
+      if (u1 = ugv.user) {
+        // this is the index of the chosen player in the pickup list
+        let pickup_idx = ugv.vs;
         u2 = User.current_users.find(u => {
-          return u.display_name == User.pickup_gamers[query];
+          return u.display_name == User.pickup_gamers[pickup_idx];
         });
       }
       if (u1 && u2) {
@@ -238,24 +275,25 @@ function startup() {
           'player' : pathname}));
 
         logger.debug("heist.listen: <new_pickup_game> port: " + CurrentAGame.port + " remote_addr: " +
-          remote_addr + " user.request_addr: " + user.request_addr);
+          remote_addr + " user.request_addr: " + ugv.user.request_addr);
       }
       else {
         logger.error("heist.listen: <new_pickup_game> u1: ", u1, " u2: ", u2);
       }
     }
 
-    else if (pathname.indexOf("pickup_game") != -1) {
-      let user = get_user_agame(remote_addr).user;
+    else if (pathname.indexOf("add_pickup_name") != -1) {
+      let user = get_user_agame(remote_addr, query).user;
       if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
         User.pickup_gamers.push(user.display_name);
         response.end(pug_user({
+          'User' : User,
           'user': user,
-          'games': user.get_game_list(),
+          'games': user.get_saved_game_list(),
           'a_games' : user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug("heist.listen: <pickup_game>" );
+        logger.debug("heist.listen: <add_pickup_name>" );
       }
     }
 
@@ -288,30 +326,42 @@ function startup() {
         User.current_users = User.current_users.filter(u => !u.id.equals(user.id));
 
         // check all active games - if both users are logged out, remove from all_active
-        ActiveGame.all_active.forEach((item, i) => {
-          let u2 = null;
-          if (item.user1.id.equals(user.id)) {
-            u2 = User.current_users.find(u => {
-              return u.id.equals(u2.id);
-            });
+        let user_games = ActiveGame.all_active.filter(ag => {
+          return ag.user1 == user || ag.user2 == user;
+        });
+
+        let u2 = null;
+        let u1 = null;
+        user_games.forEach((item, i) => {
+          if (item.user1 == user) {
+            // This user is user1 so try to find user2 in the
+            // current_users list. If not there, can remove ag.
+            if (!(u2 = User.current_users.find(u => {
+              return u == item.user2
+            }))) {
+              item.status |= ActiveGame.remove_active;
+              remove_ags.push(item);
+            }
           }
-          else if (item.user2.id.equals(user.id)) {
-            u2 = User.current_users.find(u => {
-              return u.id.equals(u2.id);
-            });
-          }
-          // the second player has logged out - mark ag for removal
-          if (u2 == null) {
-            item.status |= ActiveGame.remove_active;
-            remove_ags.push(item);
+          else if (item.user2 == user) {
+            // This user is user2 so try to find user1 in the
+            // current_users list. If not there, can remove ag.
+            if (!(u1 = User.current_users.find(u => {
+              return u == item.user1
+            }))) {
+              item.status |= ActiveGame.remove_active;
+              remove_ags.push(item);
+            }
           }
         });
 
         remove_ags.forEach((item, i) => {
-          if (item.status & ActiveGame.remove_active)
+          if (item.status & ActiveGame.remove_active) {
+            // clear the bit
+            item.status ^= ActiveGame.remove_active;
             ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag != item);
+          }
         });
-
 
         user.logout(response);
 
@@ -323,24 +373,41 @@ function startup() {
     else if (pathname.indexOf("home_page") != -1) {
       let ug = get_user_agame(remote_addr, query);
       if (ug.user) {
-        // remove game from current_game lists
-        // NO DON'T - games should only be closed on save & close and logout
-        // if (ug.agame) {
-        //   logger.debug("heist.listen: <home_page> removing a_game from ActiveGame.all_active: " +
-        //     ug.agame.name);
-        //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.game_id_str != query);
-        //   logger.debug("heist.listen: <home_page> removing a_game from user.active_games: " +
-        //     ug.agame.name);
-        //   ug.user.active_games = ug.user.active_games.filter(ag => ag.game_id_str != query);
-        // }
-
+        let glist = massage_user_lists(ug.user);
         response.end(pug_user({
+          'User' : User,
           'user': ug.user,
-          'games': ug.user.get_game_list(),
+          'games': glist,
           'a_games' : ug.user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
         logger.debug("heist.listen: <home_page> remote_addr: " +
+          remote_addr + " user.request_addr: " + ug.user.request_addr);
+      }
+    }
+
+    else if (pathname.indexOf("wh_admin_user") != -1) {
+      let ug = get_user_agame(remote_addr, query);
+      if (ug.user) {
+        response.end(JSON.stringify(ug.user.get_JSON()));
+
+        logger.debug("heist.listen: <wh_admin_user> remote_addr: " +
+          remote_addr + " user.request_addr: " + ug.user.request_addr);
+      }
+    }
+
+    else if (pathname.indexOf("wh_admin") != -1) {
+      let ug = get_user_agame(remote_addr, query);
+      if (ug.user) {
+        response.end(pug_admin({
+          'User' : User,
+          'user': ug.user,
+          'user_saved_games': ug.user.get_saved_game_list(),
+          'user_a_games' : ug.user.get_a_game_list(),
+          'all_active_games' : ActiveGame.all_active
+        }));
+
+        logger.debug("heist.listen: <wh_admin> remote_addr: " +
           remote_addr + " user.request_addr: " + ug.user.request_addr);
       }
     }

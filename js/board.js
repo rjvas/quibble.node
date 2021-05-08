@@ -796,7 +796,7 @@ function clicked_home_btn(event) {
   let game_id = document.getElementById("current_game_id").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x + "/home_page?" + game_id, true);
+  xhr.open("GET", URL_x + "/home_page?game=" + game_id, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
@@ -820,7 +820,7 @@ function clicked_save_close_btn(event) {
 
   if (window.confirm("Save and close game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_close_game?" + game_id, true);
+    xhr.open("GET", URL_x + "/save_close_game?game=" + game_id, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -1052,7 +1052,7 @@ function toggle_player() {
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = URL_x + "?" + game_id;
+        document.location.href = URL_x + "?game=" + game_id;
       }
   }
 

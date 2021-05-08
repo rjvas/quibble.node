@@ -5,10 +5,11 @@
 */
 
 function new_practice_game() {
+  var user = document.getElementById("user").value;
 
   if (window.confirm("New practice game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/new_practice_game", true);
+    xhr.open("GET", "/new_practice_game?user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -24,15 +25,16 @@ function new_practice_game() {
 function clicked_delete_game_btn(event) {
 
   var deleted = document.getElementById("saved_games_lst").value;
+  var user = document.getElementById("user").value;
 
   if (deleted > -1) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/delete_game?" + deleted, true);
+    xhr.open("GET", "/delete_game?game_idx=" + deleted + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            document.location.href = "/home_page";
+            document.location.href = "/home_page?user=" + user;
         }
     }
 
@@ -42,87 +44,97 @@ function clicked_delete_game_btn(event) {
 }
 
 function clicked_active_games_btn(event) {
-
+  var user = document.getElementById("user").value;
   var active = document.getElementById("active_games_lst").value;
+
   if (active > -1) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/play_active_game?" + active, true);
+    xhr.open("GET", "/play_active_game?game_idx=" + active + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
       document.location.href = this.responseURL;
     }
-
-    // console.log("clicked_saved_games_btn port: " + ws_port);
     xhr.send(null);
   }
 }
 
 function clicked_saved_games_btn(event) {
-
+  var user = document.getElementById("user").value;
   var saved = document.getElementById("saved_games_lst").value;
+
   if (saved > -1) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/load_game?" + saved, true);
+    xhr.open("GET", "/load_game?game_idx=" + saved + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
       document.location.href = this.responseURL;
     }
 
-    // console.log("clicked_saved_games_btn port: " + ws_port);
     xhr.send(null);
   }
 }
 
 function clicked_logout_btn(event) {
+  var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/logout", true);
+  xhr.open("GET", "/logout?user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/";
-        // console.log("clicked_logout_btn.callback port: " + ws_port);
+        document.location.href = "/?user=" + user;
       }
   }
 
-  // console.log("clicked_logout_btn port: " + ws_port);
   xhr.send(null);
 }
 
-function clicked_pickup_btn(event) {
+function clicked_add_pickup_name_btn(event) {
+  var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/pickup_game", true);
+  xhr.open("GET", "/add_pickup_name?user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page";
-        // console.log("clicked_logout_btn.callback port: " + ws_port);
+        document.location.href = "/home_page?user=" + user;
       }
   }
-  // console.log("clicked_logout_btn port: " + ws_port);
   xhr.send(null);
 }
 
 function clicked_play_pickup_btn(event) {
-
-  var p_name = document.getElementById("pickup_lst").value;
+  var user = document.getElementById("user").value;
+  var p_idx = document.getElementById("pickup_lst").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/play_pickup_game?" + p_name, true);
+  xhr.open("GET", "/play_pickup_game?vs=" + p_idx + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
         document.location.href = "/player1";
-        // console.log("clicked_logout_btn.callback port: " + ws_port);
       }
   }
-  // console.log("clicked_logout_btn port: " + ws_port);
+  xhr.send(null);
+}
+
+function clicked_admin_btn(event) {
+  var user = document.getElementById("user").value;
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/wh_admin?user=" + user, true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = "/wh_admin?user=" + user;
+      }
+  }
   xhr.send(null);
 }
 
@@ -155,7 +167,7 @@ function init() {
 
   btn = document.getElementById('add_pickup_btn');
   if (btn) {
-    btn.addEventListener("click", clicked_pickup_btn);
+    btn.addEventListener("click", clicked_add_pickup_name_btn);
   }
 
   btn = document.getElementById('play_pickup_btn');
@@ -163,10 +175,14 @@ function init() {
     btn.addEventListener("click", clicked_play_pickup_btn);
   }
 
+  btn = document.getElementById('admin_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_admin_btn);
+  }
+
 }
 
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
-
 
 init();
