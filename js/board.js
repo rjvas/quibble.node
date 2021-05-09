@@ -770,14 +770,19 @@ function clicked_save_btn(event) {
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
+  var user = document.getElementById("user").value;
+  let game_id = document.getElementById("current_game_id").value;
+
   if (window.confirm("Save game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_game", true);
+    xhr.open("GET", URL_x + "/save_game?user=" + user +
+      "&game=" + game_id, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = URL_x;;
+          document.location.href = URL_x + "?user=" + user +
+            "&game=" + game_id;
           console.log("new_btn.callback: port: " + ws_port);
         }
     }
@@ -794,14 +799,15 @@ function clicked_home_btn(event) {
   }
 
   let game_id = document.getElementById("current_game_id").value;
+  var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x + "/home_page?game=" + game_id, true);
+  xhr.open("GET", URL_x + "/home_page?game=" + game_id + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page";
+        document.location.href = "/home_page?user=" + user;
         console.log("home_btn.callback: port: " + ws_port);
       }
   }
@@ -817,15 +823,16 @@ function clicked_save_close_btn(event) {
   }
 
   let game_id = document.getElementById("current_game_id").value;
+  var user = document.getElementById("user").value;
 
   if (window.confirm("Save and close game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_close_game?game=" + game_id, true);
+    xhr.open("GET", URL_x + "/save_close_game?game=" + game_id + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = "/home_page"
+          document.location.href = "/home_page?user=" + user;
           console.log("save_close_btn.callback: port: " + ws_port);
         }
     }
@@ -1111,9 +1118,9 @@ ws.onmessage = function(msg) {
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
-  console.log("in onmessage: port = " + ws_port);
+  console.log("in onmessage: type = " + type.type);
   console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  // console.log("in onmessage: msg = " + msg.data);
+  console.log("in onmessage: info = " + info.info);
 
   if (type.type == "game_over") {
     handle_game_over(resp);
@@ -1147,6 +1154,11 @@ ws.onmessage = function(msg) {
       if (info.info != "none")
         alert(info.info);
     }
+  }
+
+  else if (type.type == "message") {
+    if (player.player != URL_x)
+      alert(info.info);
   }
 
   else {

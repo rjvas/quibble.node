@@ -41,7 +41,7 @@ class ActiveGame {
 
   static all_active = [];
 
-  save(and_close) {
+  save(and_close, player) {
     let agame_result = null;
     let new_agame_res = null;
     let a_game_js = null;
@@ -73,13 +73,14 @@ class ActiveGame {
           }
         }
 
+        this.send_msg("Game saved and closed! Return to home_page!", player);
+
         // if it was upserted, stuff the newly saved AGame into the user's saved_games list
         if (agame_result.upsertedId) {
           q = {"_id": agame_result.upsertedId._id};
           return new_agame_res = db.get_db().collection('active_games').findOne(q);
         }
 
-        // console.dir(agame_result);
       })
       .then((new_agame_res) => {
         if (new_agame_res) {
@@ -105,6 +106,18 @@ class ActiveGame {
       "user2_id" : this.user2.id,
       "status" : this.status,
     }
+  }
+
+  send_msg(msg, player) {
+    let data = [];
+    data.push({"type" : "message"});
+    data.push({"player" : player});
+    data.push({"info" : msg});
+
+    this.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));
+
+    logger.debug("activegame.send_msg: type: message player: " + player +
+      "msg: " + msg);
   }
 
   setup_socket() {
@@ -190,7 +203,7 @@ class ActiveGame {
   // builds and active game from json delivered from the db
   // this differs from newly created active_games that have
   // no _id
-  static new_active_game_json(ag_json, response) {
+  static new_active_game_json(ag_json, user, response) {
     let new_ag;
     let dbq = { "_id": ag_json.game_id };
     let game = db.get_db().collection('games').findOne(dbq)
@@ -221,7 +234,8 @@ class ActiveGame {
           let player = new_ag.game.current_player == new_ag.game.player_1 ?
             '/player1' : '/player2';
           response.writeHead(302 , {
-             'Location' : player + "?game=" + new_ag.game_id_str
+             'Location' : player + "?game=" + new_ag.game_id_str +
+              "&user=" + user.id.toHexString()
           });
           response.end();
         }

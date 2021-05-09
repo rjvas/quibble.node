@@ -186,7 +186,7 @@ function startup() {
       if (CurrentAGame) {
         pathname.indexOf("player1") != -1 ? pathname = "/player1" :
           pathname = "/player2";
-        CurrentAGame.save(true);
+        CurrentAGame.save(true, pathname);
       }
 
       logger.debug("heist.listen: <save_close_game> port: " + CurrentAGame.port + " remote_addr: " +
@@ -216,7 +216,8 @@ function startup() {
           ActiveGame.all_active.push(CurrentAGame);
 
         response.writeHead(302 , {
-           'Location' : pathname + "?game=" + CurrentAGame.game_id_str
+           'Location' : pathname + "?game=" + CurrentAGame.game_id_str +
+            "&user=" + ug.user.id.toHexString()
         });
         response.end();
 
@@ -230,7 +231,7 @@ function startup() {
       let user = ugv.user;
       // query should hold the index to the selected game
       if (user)
-        ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], response);
+        ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
 
       logger.debug("heist.listen: <load_game> ActiveGame.all_active list idx: " + query);
     }
@@ -266,6 +267,7 @@ function startup() {
         logger.info("NEW GAME!!");
         // response.end(CurrentAGame.game_id_str);
         response.end(pug_grid({
+          'user_id' : ugv.user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : false,
           'port' : CurrentAGame.port,
@@ -427,6 +429,7 @@ function startup() {
         });
         logger.info("pathname: " + pathname + " filename: " + filename);
         response.end(pug_grid({
+          'user_id' : user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : CurrentAGame.status & ActiveGame.practice,
           'port' : CurrentAGame.port,
