@@ -1,5 +1,6 @@
 body {
-  background-image: url('./bridge_hero_large.jpg');
+  /* background-image: url('./bridge_hero_large.jpg'); */
+  /* background-color: grey; */
   padding: 0;
   margin: 0px;
   font-family: 'Lato', sans-serif;
@@ -10,6 +11,7 @@ div {
   border: 1px solid black;
   padding: 10px;
   margin: 10px;
+  background-color: #aaaaaa;
   /* opacity: 0.0; */
 }
 

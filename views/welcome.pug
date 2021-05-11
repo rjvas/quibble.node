@@ -10,6 +10,8 @@ html(lang="en")
     #error
       if error == "error_password"
         div.label Error with password or user name!
+      else if error == "error_login"
+        div.label Error - User already logged in.
     #both
       #first
         form(action="login")

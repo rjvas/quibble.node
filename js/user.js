@@ -159,6 +159,10 @@ class User {
         }
         else {
           logger.error("login error - no user with: " + name + "/" + passw);
+          response.writeHead(302 , {
+             'Location' : '/?error_password'
+          });
+          response.end();
         }
         dbq = { $or: [ { "user1_id": id }, { "user2_id": id } ] };
         return db.get_db().collection('active_games').find(dbq);

@@ -254,9 +254,13 @@ function startup() {
       if (u1 = ugv.user) {
         // this is the index of the chosen player in the pickup list
         let pickup_idx = ugv.vs;
+        let pickup_name = User.pickup_gamers[pickup_idx];
         u2 = User.current_users.find(u => {
-          return u.display_name == User.pickup_gamers[pickup_idx];
+          return u.display_name == pickup_name;
         });
+        // if we got u2 remove the pickup gamer from the list
+        if (u2)
+          User.pickup_gamers = User.pickup_gamers.filter(g => g != pickup_name);
       }
       if (u1 && u2) {
         CurrentAGame = new ActiveGame(u1, u2, ActiveGame.in_play);
