@@ -71,9 +71,8 @@ class ActiveGame {
           if (!(this.status & ActiveGame.practice)) {
             this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
           }
+          this.send_msg("Game saved and closed! Return to home_page!", player);
         }
-
-        this.send_msg("Game saved and closed! Return to home_page!", player);
 
         // if it was upserted, stuff the newly saved AGame into the user's saved_games list
         if (agame_result.upsertedId) {
@@ -144,7 +143,19 @@ class ActiveGame {
           let player = a_game.game.current_player;
           var play_data = JSON.parse(msg);
           let resp_data = a_game.game.finish_the_play(player, play_data);
-          a_game.ws_server.clients.forEach(s => s.send(resp_data));
+
+          // look for an error on the play - if not found, save
+          let found = resp_data.find(item => {
+            return item.err_msg
+          });
+          if (!found) {
+            logger.debug("activegame.socket.on.message: saving - " + a_game.name +
+              " player: " + player.name);
+            a_game.save(false, null);
+          }
+
+          let data = JSON.stringify(resp_data);
+          a_game.ws_server.clients.forEach(s => s.send(data));
           logger.debug("activegame.socket.on.message: <socket.msg> port: " + a_game.port + " player: " + player.name);
         }
       });
@@ -204,6 +215,17 @@ class ActiveGame {
   // this differs from newly created active_games that have
   // no _id
   static new_active_game_json(ag_json, user, response) {
+
+    // don't allow a reload of an active game
+    let found = ActiveGame.all_active.find(
+      ag => {return ag._id && ag._id.equals(ag_json._id)}
+    );
+    if (found) {
+      logger.error("activegame.new_active_game_json: Game already loaded: " +
+        ag_json._id);
+      return;
+    }
+
     let new_ag;
     let dbq = { "_id": ag_json.game_id };
     let game = db.get_db().collection('games').findOne(dbq)
@@ -223,16 +245,11 @@ class ActiveGame {
           if (u2 && u1 != u2)
             u2.active_games.push(new_ag);
 
-          // only look at games that have been saved (they have the _id)
-          ActiveGame.all_active = ActiveGame.all_active.filter(
-            ag => ag._id && !ag._id.equals(new_ag._id)
-          );
-
           logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
 
           ActiveGame.all_active.push(new_ag);
-          let player = new_ag.game.current_player == new_ag.game.player_1 ?
-            '/player1' : '/player2';
+          let player = user == u1 ? '/player1' : '/player2';
+
           response.writeHead(302 , {
              'Location' : player + "?game=" + new_ag.game_id_str +
               "&user=" + user.id.toHexString()

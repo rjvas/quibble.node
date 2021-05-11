@@ -411,7 +411,7 @@ class Game {
       ret_val = this.end_game(player_txt);
 
     // logger.info("in finish the play: ", ret_val);
-    return JSON.stringify(ret_val);
+    return ret_val;
   }
 
   update_play(tile) {

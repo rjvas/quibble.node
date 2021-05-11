@@ -1,8 +1,8 @@
 /*
-* Heist
-* Drawbridge Creative https://drawbridgecreative.com
-* copyright 2021
-*/
+ * Heist
+ * Drawbridge Creative https://drawbridgecreative.com
+ * copyright 2021
+ */
 
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
@@ -18,25 +18,88 @@ const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
 const CENTER_FILL = 'rgba(255,153,204,1)';
 
-const SAFE_INDEXES = [
-  {row: 1, col: 1, rect: null},
-  {row: 1, col: NUM_ROWS_COLS, rect: null},
-  {row: 2, col: 2, rect: null},
-  {row: 2, col: NUM_ROWS_COLS - 1, rect: null },
-  {row: 3, col: 3, rect: null},
-  {row: 3, col: NUM_ROWS_COLS - 2, rect: null},
+const SAFE_INDEXES = [{
+    row: 1,
+    col: 1,
+    rect: null
+  },
+  {
+    row: 1,
+    col: NUM_ROWS_COLS,
+    rect: null
+  },
+  {
+    row: 2,
+    col: 2,
+    rect: null
+  },
+  {
+    row: 2,
+    col: NUM_ROWS_COLS - 1,
+    rect: null
+  },
+  {
+    row: 3,
+    col: 3,
+    rect: null
+  },
+  {
+    row: 3,
+    col: NUM_ROWS_COLS - 2,
+    rect: null
+  },
 
-  {row: NUM_ROWS_COLS, col: 1, rect: null},
-  {row: NUM_ROWS_COLS, col: NUM_ROWS_COLS, rect: null},
-  {row: NUM_ROWS_COLS - 1, col: 2, rect: null},
-  {row: NUM_ROWS_COLS - 1, col: NUM_ROWS_COLS - 1, rect: null},
-  {row: NUM_ROWS_COLS - 2, col: 3, rect: null},
-  {row: NUM_ROWS_COLS - 2, col: NUM_ROWS_COLS - 2, rect: null},
+  {
+    row: NUM_ROWS_COLS,
+    col: 1,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS,
+    col: NUM_ROWS_COLS,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS - 1,
+    col: 2,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS - 1,
+    col: NUM_ROWS_COLS - 1,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS - 2,
+    col: 3,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS - 2,
+    col: NUM_ROWS_COLS - 2,
+    rect: null
+  },
 
-  {row: 1, col: Math.round(NUM_ROWS_COLS/2), rect: null},
-  {row: Math.round(NUM_ROWS_COLS/2), col: 1, rect: null},
-  {row: Math.round(NUM_ROWS_COLS/2), col: NUM_ROWS_COLS, rect: null},
-  {row: NUM_ROWS_COLS, col: Math.round(NUM_ROWS_COLS/2), rect: null}
+  {
+    row: 1,
+    col: Math.round(NUM_ROWS_COLS / 2),
+    rect: null
+  },
+  {
+    row: Math.round(NUM_ROWS_COLS / 2),
+    col: 1,
+    rect: null
+  },
+  {
+    row: Math.round(NUM_ROWS_COLS / 2),
+    col: NUM_ROWS_COLS,
+    rect: null
+  },
+  {
+    row: NUM_ROWS_COLS,
+    col: Math.round(NUM_ROWS_COLS / 2),
+    rect: null
+  }
 ];
 
 const NUM_PLAYER_TILES = 7;
@@ -49,14 +112,14 @@ const back_ground = "#f5efe6ff";
 var scoreboard = null;
 
 class Tile {
-  constructor (svg, drag, idx, status) {
+  constructor(svg, drag, idx, status) {
 
     this.id = svg.getAttributeNS(null, "id");
     this.char = svg.childNodes[1].textContent;
     this.x = svg.getAttributeNS(null, "x");
     this.y = svg.getAttributeNS(null, "y");
-    this.row = Math.round(this.y/CELL_SIZE) + 1;
-    this.column = Math.round(this.x/CELL_SIZE) + 1;
+    this.row = Math.round(this.y / CELL_SIZE) + 1;
+    this.column = Math.round(this.x / CELL_SIZE) + 1;
     this.player_hand_idx = idx;
 
     this.svg = svg;
@@ -68,13 +131,13 @@ class Tile {
 
   get_JSON() {
     return {
-      id : this.id,
-      char : this.char,
-      x : this.x,
-      y : this.y,
-      row : this.row,
-      col : this.col,
-      player_hand_idx : this.player_hand_idx
+      id: this.id,
+      char: this.char,
+      x: this.x,
+      y: this.y,
+      row: this.row,
+      col: this.col,
+      player_hand_idx: this.player_hand_idx
     };
   }
 
@@ -82,8 +145,8 @@ class Tile {
 
     this.row = row;
     this.column = col;
-    this.x = (col - 1)*CELL_SIZE;
-    this.y = (row - 1)*CELL_SIZE;
+    this.x = (col - 1) * CELL_SIZE;
+    this.y = (row - 1) * CELL_SIZE;
     this.svg.setAttributeNS(null, "x", this.x);
     this.svg.setAttributeNS(null, "y", this.y);
 
@@ -91,20 +154,18 @@ class Tile {
 
     // TODO: refact to Board.in_board, PlayerHand.in_hand, etc
     if (this.row > 0 && this.row < 16 &&
-        this.column > 0 && this.column < 16) {
+      this.column > 0 && this.column < 16) {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
-    }
-    else if (PlayerHand.in_hand(row, col)) {
+    } else if (PlayerHand.in_hand(row, col)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;
       if (!PlayerHand.add(this)) {
         // probably already in hand - so, do nothing
       }
-    }
-    else if (this.row >= 3 && this.row <= 5 &&
+    } else if (this.row >= 3 && this.row <= 5 &&
       this.column >= 18 && this.column <= 20) {
-        this.status |= Tile.trashed;
-        if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
+      this.status |= Tile.trashed;
+      if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
     }
   }
 
@@ -118,18 +179,40 @@ class Tile {
 }
 
 class PlayerHand {
-  constructor() {
-  }
+  constructor() {}
   static tiles = [];
-  static squares = [
-    { "row" : 1, "column" : 17 },
-    { "row" : 1, "column" : 18 },
-    { "row" : 1, "column" : 19 },
-    { "row" : 1, "column" : 20 },
-    { "row" : 1, "column" : 21 },
-    { "row" : 1, "column" : 22 },
-    { "row" : 1, "column" : 23 },
-    { "row" : 1, "column" : 24 }
+  static squares = [{
+      "row": 1,
+      "column": 17
+    },
+    {
+      "row": 1,
+      "column": 18
+    },
+    {
+      "row": 1,
+      "column": 19
+    },
+    {
+      "row": 1,
+      "column": 20
+    },
+    {
+      "row": 1,
+      "column": 21
+    },
+    {
+      "row": 1,
+      "column": 22
+    },
+    {
+      "row": 1,
+      "column": 23
+    },
+    {
+      "row": 1,
+      "column": 24
+    }
   ];
 
   static rearrange_hand(svg, to_idx) {
@@ -143,13 +226,11 @@ class PlayerHand {
       // simple case - just stuff it in
       if (PlayerHand.tiles[to_idx] == null) {
         PlayerHand.tiles[to_idx] = tile;
-      }
-
-      else if (to_idx > tile.player_hand_idx) {
+      } else if (to_idx > tile.player_hand_idx) {
         for (let i = tile.player_hand_idx; i < to_idx; i++) {
           if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
-            PlayerHand.tiles[i] = PlayerHand.tiles[i+1];
-            PlayerHand.tiles[i].x = (i+16)*CELL_SIZE;
+            PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
+            PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
             PlayerHand.tiles[i].column -= 1;
             PlayerHand.tiles[i].player_hand_idx = i;
             PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
@@ -158,13 +239,11 @@ class PlayerHand {
             PlayerHand.tiles[i].drag.position();
           }
         }
-      }
-
-      else if (to_idx < tile.player_hand_idx) {
+      } else if (to_idx < tile.player_hand_idx) {
         for (let i = tile.player_hand_idx; i > to_idx; i--) {
           if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
-            PlayerHand.tiles[i] = PlayerHand.tiles[i-1];
-            PlayerHand.tiles[i].x = (i+16)*CELL_SIZE;
+            PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
+            PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
             PlayerHand.tiles[i].column += 1;
             PlayerHand.tiles[i].player_hand_idx = i;
             PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
@@ -192,7 +271,7 @@ class PlayerHand {
     return false;
   }
   static get_open_slot() {
-    for (let i = 0; i< PlayerHand.tiles.length; i++) {
+    for (let i = 0; i < PlayerHand.tiles.length; i++) {
       if (!PlayerHand.tiles[i]) return i;
     }
     return -1;
@@ -217,7 +296,7 @@ class PlayerHand {
         PlayerHand.tiles[idx] = tile;
         tile.status = Tile.in_hand;
         tile.hand_idx = idx;
-        tile.x = (16 + idx)*CELL_SIZE;
+        tile.x = (16 + idx) * CELL_SIZE;
         tile.y = 0;
         tile.svg.setAttributeNS(null, "x", tile.x);
         tile.svg.setAttributeNS(null, "y", tile.y);
@@ -233,71 +312,65 @@ class PlayerHand {
 var PlayTrash = [];
 var PlayStarts = [];
 
-const SCOREBOARD_OFFSET = 2*CELL_SIZE;
-const SCOREBOARD_HEIGHT = 3*CELL_SIZE;
-const SCOREBOARD_WIDTH = NUM_PLAYER_TILES*CELL_SIZE;
+const SCOREBOARD_OFFSET = 2 * CELL_SIZE;
+const SCOREBOARD_HEIGHT = 3 * CELL_SIZE;
+const SCOREBOARD_WIDTH = NUM_PLAYER_TILES * CELL_SIZE;
 
-var color_picker = {picker: null, player: ""};
+var color_picker = {
+  picker: null,
+  player: ""
+};
 
 function set_default_colors(color) {
-/* all of the moves to the server
-  var player = color_picker.player;
-  var safe = color.rgbaString;
-  player.tile_color_safe = safe;
-  color._rgba[3] = .2;
-  player.tile_color_risky = color.rgbaString;
-  var risky = player.tile_color_risky;
+  /* all of the moves to the server
+    var player = color_picker.player;
+    var safe = color.rgbaString;
+    player.tile_color_safe = safe;
+    color._rgba[3] = .2;
+    player.tile_color_risky = color.rgbaString;
+    var risky = player.tile_color_risky;
 
 
-  for (let i = 0; i < NUM_PLAYER_TILES; i++) {
-    player.tiles[i].is_safe ?
-      player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-    :
-      player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
-  }
+    for (let i = 0; i < NUM_PLAYER_TILES; i++) {
+      player.tiles[i].is_safe ?
+        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
+      :
+        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
+    }
 
-  // for now set all played tiles to the appropriate risky or safe color
-  for (let i = 0; i < Word.words.length; i++) {
-    for (let j= 0; j < Word.words[i].length; j++) {
-      if (Word.words[i].tiles[j].player == player) {
-        Word.words[i].tiles[j].is_safe ?
-          Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-        :
-          Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
+    // for now set all played tiles to the appropriate risky or safe color
+    for (let i = 0; i < Word.words.length; i++) {
+      for (let j= 0; j < Word.words[i].length; j++) {
+        if (Word.words[i].tiles[j].player == player) {
+          Word.words[i].tiles[j].is_safe ?
+            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
+          :
+            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
+        }
       }
     }
-  }
 
-  var player_rect = document.getElementById(player.name);
-  if (player_rect != null) {
-    player_rect.setAttributeNS(null, 'fill', safe);
-  }
-  else {
-    console.log("in set_default_colors set player_rect color failed");
-  }
-*/
-  console.log("in set_default_colors color: ", color );
+    var player_rect = document.getElementById(player.name);
+    if (player_rect != null) {
+      player_rect.setAttributeNS(null, 'fill', safe);
+    }
+    else {
+      console.log("in set_default_colors set player_rect color failed");
+    }
+  */
+  console.log("in set_default_colors color: ", color);
 }
 
 function init_color_popup() {
   var parent = document.getElementById("color_btn");
   color_picker.picker = new Picker(parent, '#0000ff');
   color_picker.picker.setOptions({
-    popup: 'right'});
+    popup: 'right'
+  });
   color_picker.picker.onDone = set_default_colors;
 }
 
 function set_button_callbacks() {
-  let btn = document.getElementById('save_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_save_btn);
-  }
-
-  btn = document.getElementById('save_close_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_save_close_btn);
-  }
-
   btn = document.getElementById('home_btn');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
@@ -306,9 +379,9 @@ function set_button_callbacks() {
 
 function draw_safe_squares() {
   for (let i = 0; i < SAFE_INDEXES.length; i++) {
-    let r = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    r.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row -1)*CELL_SIZE);
-    r.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1)*CELL_SIZE);
+    let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    r.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
+    r.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE);
     r.setAttributeNS(null, 'width', CELL_SIZE);
     r.setAttributeNS(null, 'height', CELL_SIZE);
     r.setAttributeNS(null, 'fill', back_ground);
@@ -318,15 +391,15 @@ function draw_safe_squares() {
     SAFE_INDEXES[i].rect = r;
     AppSpace.append(r);
 
-    let t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row -1)*CELL_SIZE + CELL_SIZE/2);
-    t.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1)*CELL_SIZE + CELL_SIZE/2);
-    t.setAttributeNS(null, 'width', CELL_SIZE/4);
-    t.setAttributeNS(null, 'height', CELL_SIZE/4);
+    let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2);
+    t.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2);
+    t.setAttributeNS(null, 'width', CELL_SIZE / 4);
+    t.setAttributeNS(null, 'height', CELL_SIZE / 4);
     t.setAttributeNS(null, 'stroke-width', 1);
     t.setAttributeNS(null, 'fill', SAFETY_FILL_LITE);
     t.setAttributeNS(null, 'text-anchor', "middle");
-    t.setAttributeNS(null, 'alignment-baseline',"central");
+    t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'safety_text');
     t.textContent = "SAFE";
     AppSpace.append(t);
@@ -334,11 +407,14 @@ function draw_safe_squares() {
 }
 
 function draw_center_start() {
-  var center = {row: Math.round(NUM_ROWS_COLS/2), col: Math.round(NUM_ROWS_COLS/2)};
+  var center = {
+    row: Math.round(NUM_ROWS_COLS / 2),
+    col: Math.round(NUM_ROWS_COLS / 2)
+  };
   // for now just fill, draw the polygon later
-  let r = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  r.setAttributeNS(null, 'x', (center.row - 1)*CELL_SIZE);
-  r.setAttributeNS(null, 'y', (center.col - 1)*CELL_SIZE);
+  let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  r.setAttributeNS(null, 'x', (center.row - 1) * CELL_SIZE);
+  r.setAttributeNS(null, 'y', (center.col - 1) * CELL_SIZE);
   r.setAttributeNS(null, 'width', CELL_SIZE);
   r.setAttributeNS(null, 'height', CELL_SIZE);
   r.setAttributeNS(null, 'fill', back_ground);
@@ -353,20 +429,20 @@ function draw_board() {
   AppSpace = document.querySelectorAll('#wt_board')[0];
 
   var board_vert = document.querySelectorAll('.line_vertical');
-  for (let i = 0; i <= NUM_ROWS_COLS; i++){
-    board_vert[i].setAttributeNS(null, 'x1', i*CELL_SIZE);
+  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+    board_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
     board_vert[i].setAttributeNS(null, 'y1', 0);
-    board_vert[i].setAttributeNS(null, 'x2', i*CELL_SIZE);
-    board_vert[i].setAttributeNS(null, 'y2', CELL_SIZE*NUM_ROWS_COLS);
+    board_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
+    board_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
     board_vert[i].setAttributeNS(null, 'stroke_width', 1);
   }
 
   var board_horiz = document.querySelectorAll('.line_horizontal');
-  for (let i = 0; i <= NUM_ROWS_COLS; i++){
+  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
     board_horiz[i].setAttributeNS(null, 'x1', 0);
-    board_horiz[i].setAttributeNS(null, 'y1', i*CELL_SIZE);
-    board_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE*NUM_ROWS_COLS);
-    board_horiz[i].setAttributeNS(null, 'y2', i*CELL_SIZE);
+    board_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
+    board_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
+    board_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
     board_horiz[i].setAttributeNS(null, 'stroke_width', 1);
   }
 
@@ -388,39 +464,39 @@ function tile_clicked(event) {
     //   clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y'))/CELL_SIZE) + 1;
     //   clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x'))/CELL_SIZE) + 1;
     // } else {
-      clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y'))/CELL_SIZE);
-      clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x'))/CELL_SIZE);
+    clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y')) / CELL_SIZE);
+    clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x')) / CELL_SIZE);
     // }
   }
 
   // Clicked on a board tile - cycle through player colors
   // But first = make sure we're in between plays (new_word length == 0)
   // and there are actually words on the board to work with.
-/*
-  if (Word.new_word.tiles.length == 0 &&
-      Word.words.length != 0 &&
-      clicked_column <= NUM_ROWS_COLS &&
-      clicked_row <= NUM_ROWS_COLS) {
-    for (let i = 0; i < Word.words.length; i++) {
-      for (let j = 0; j < Word.words[i].tiles.length; j++) {
-        // these tiles must be in words, not player hands
-        if (Word.words[i].tiles[j].row == clicked_row &&
-            Word.words[i].tiles[j].column == clicked_column) {
-          word = Word.words[i];
-          tile = Word.words[i].tiles[j];
-          player = tile.player;
-          break;
+  /*
+    if (Word.new_word.tiles.length == 0 &&
+        Word.words.length != 0 &&
+        clicked_column <= NUM_ROWS_COLS &&
+        clicked_row <= NUM_ROWS_COLS) {
+      for (let i = 0; i < Word.words.length; i++) {
+        for (let j = 0; j < Word.words[i].tiles.length; j++) {
+          // these tiles must be in words, not player hands
+          if (Word.words[i].tiles[j].row == clicked_row &&
+              Word.words[i].tiles[j].column == clicked_column) {
+            word = Word.words[i];
+            tile = Word.words[i].tiles[j];
+            player = tile.player;
+            break;
+          }
         }
       }
-    }
 
-    if (cycle_colors && word && tile) {
-      cycle_tile_colors(word, tile);
-    } else if (word && word.check_words.length > 0) {
-        window.alert(word.check_words.join(" "));
+      if (cycle_colors && word && tile) {
+        cycle_tile_colors(word, tile);
+      } else if (word && word.check_words.length > 0) {
+          window.alert(word.check_words.join(" "));
+      }
     }
-  }
-  */
+    */
   // console.log('tile_clicked - row: %d column: %d', clicked_row, clicked_column);
 }
 
@@ -428,35 +504,35 @@ function clicked_player_area(event) {
   var player = null;
   if (event.currentTarget.id == "player_1_area") {
     color_picker.player = "player_1";
-  }
-  else if (event.currentTarget.id == "player_2_area") {
+  } else if (event.currentTarget.id == "player_2_area") {
     color_picker.player = "player_2";
   }
   var clr = event.currentTarget.getAttributeNS(null, "fill");
   color_picker.picker.setOptions({
     popup: 'right',
-    color: clr});
+    color: clr
+  });
   color_picker.picker.show();
 }
 
 function setup_tile_for_play(tile, no_drag) {
 
-  let board_width = NUM_ROWS_COLS*CELL_SIZE;
+  let board_width = NUM_ROWS_COLS * CELL_SIZE;
   let startx = board_width + CELL_SIZE;
   let idx = -1;
 
-  let svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   if (svg) {
     idx = PlayerHand.get_open_slot();
     if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
     svg.setAttributeNS(null, 'id', "tile_" + tile.id);
-    svg.setAttributeNS(null, 'x', startx + idx*CELL_SIZE);
+    svg.setAttributeNS(null, 'x', startx + idx * CELL_SIZE);
     svg.setAttributeNS(null, 'y', 0);
     svg.setAttributeNS(null, 'width', CELL_SIZE);
     svg.setAttributeNS(null, 'height', CELL_SIZE);
 
     // rect and text position attributes are always relative to the svg
-    let r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     r.setAttributeNS(null, 'x', 0);
     r.setAttributeNS(null, 'y', 0);
     r.setAttributeNS(null, 'width', CELL_SIZE);
@@ -466,29 +542,29 @@ function setup_tile_for_play(tile, no_drag) {
     r.setAttributeNS(null, 'stroke', '#000');
     r.setAttributeNS(null, 'class', 'tile_rect');
 
-    let t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttributeNS(null, 'x', CELL_SIZE/2);
-    t.setAttributeNS(null, 'y', CELL_SIZE/2);
+    let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttributeNS(null, 'x', CELL_SIZE / 2);
+    t.setAttributeNS(null, 'y', CELL_SIZE / 2);
     t.setAttributeNS(null, 'width', CELL_SIZE);
     t.setAttributeNS(null, 'height', CELL_SIZE);
     t.setAttributeNS(null, 'stroke_width', 2);
     t.setAttributeNS(null, 'stroke', '#000');
     t.setAttributeNS(null, 'text-anchor', "middle");
-    t.setAttributeNS(null, 'alignment-baseline',"central");
+    t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
     t.textContent = tile.char;
     t.addEventListener("click", tile_clicked);
 
-    let p = document.createElementNS('http://www.w3.org/2000/svg','text');
+    let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     p.setAttributeNS(null, 'x', CELL_SIZE - 2);
     p.setAttributeNS(null, 'y', CELL_SIZE - 10);
     // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
-    p.setAttributeNS(null, 'width', CELL_SIZE/10);
-    p.setAttributeNS(null, 'height', CELL_SIZE/10);
+    p.setAttributeNS(null, 'width', CELL_SIZE / 10);
+    p.setAttributeNS(null, 'height', CELL_SIZE / 10);
     p.setAttributeNS(null, 'stroke_width', 1);
     p.setAttributeNS(null, 'stroke', '#000');
     p.setAttributeNS(null, 'text-anchor', "end");
-    p.setAttributeNS(null, 'alignment-baseline',"central");
+    p.setAttributeNS(null, 'alignment-baseline', "central");
     p.setAttributeNS(null, 'class', 'tile_points');
     p.textContent = tile.points;
 
@@ -505,10 +581,22 @@ function setup_tile_for_play(tile, no_drag) {
       drag_rec.onDragEnd = tile_moved;
       drag_rec.onDragStart = tile_move_start;
 
-      drag_rec.containment = {left: 0, top: 0,
+      drag_rec.containment = {
+        left: 0,
+        top: 0,
         width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-        height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
-      drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
+        height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+      };
+      drag_rec.snap = {
+        x: {
+          start: 0,
+          step: "4.17%"
+        },
+        y: {
+          start: 0,
+          step: "6.25%"
+        }
+      };
 
       PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
     }
@@ -524,32 +612,31 @@ function set_tile_props(jtile) {
     let r = svg.childNodes[0];
     r.setAttributeNS(null, 'fill', jtile.fill);
     svg.classList.remove('player_tile_svg');
-  }
-  else {
+  } else {
     svg = setup_tile_for_play(jtile, true);
-    svg.setAttributeNS(null, 'x', (jtile.column - 1)*CELL_SIZE);
-    svg.setAttributeNS(null, 'y', (jtile.row - 1)*CELL_SIZE);
+    svg.setAttributeNS(null, 'x', (jtile.column - 1) * CELL_SIZE);
+    svg.setAttributeNS(null, 'y', (jtile.row - 1) * CELL_SIZE);
   }
 }
 
 function get_played_JSONS() {
   let jsons = [];
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  tile_svgs.forEach( item => {
+  tile_svgs.forEach(item => {
     let x = item.getAttributeNS(null, "x");
     let y = item.getAttributeNS(null, "y");
-    let col = Math.round(x/CELL_SIZE) + 1;
-    let row = Math.round(y/CELL_SIZE) + 1;
+    let col = Math.round(x / CELL_SIZE) + 1;
+    let row = Math.round(y / CELL_SIZE) + 1;
     // if these are the played tiles ...
     if (x >= 0 && y >= 0 &&
-        x < NUM_ROWS_COLS*CELL_SIZE && y < NUM_ROWS_COLS*CELL_SIZE) {
+      x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
       jsons.push({
-        id : item.id,
-        char : item.childNodes[1].textContent,
-        x : x,
-        y : y,
-        row : row,
-        col : col
+        id: item.id,
+        char: item.childNodes[1].textContent,
+        x: x,
+        y: y,
+        row: row,
+        col: col
       });
     }
   });
@@ -568,20 +655,16 @@ function update_scoreboard(data) {
   if (data.scoreboard_player_1_name) {
     item = document.getElementById("scoreboard_player_1");
     if (item) item.textContent = data.scoreboard_player_1_name;
-  }
-  else if (data.scoreboard_player_1_score) {
+  } else if (data.scoreboard_player_1_score) {
     item = document.getElementById("scoreboard_player_1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
-  }
-  else if (data.scoreboard_player_2_name) {
+  } else if (data.scoreboard_player_2_name) {
     item = document.getElementById("scoreboard_player_2");
     if (item) item.textContent = data.scoreboard_player_2_name;
-  }
-  else if (data.scoreboard_player_2_score) {
+  } else if (data.scoreboard_player_2_score) {
     item = document.getElementById("scoreboard_player_2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
-  }
-  else if (data.tiles_left_value >= 0) {
+  } else if (data.tiles_left_value >= 0) {
     item = document.getElementById("scoreboard_tiles_left_value");
     if (item) item.textContent = data.tiles_left_value;
   } else
@@ -617,8 +700,9 @@ function handle_the_response(resp) {
     // now update the play data
     let item = null;
     for (let i = 0; i < new_data.length; i++) {
-      if (update_scoreboard(new_data[i])) {;}
-      else if (new_data[i].play_data) {
+      if (update_scoreboard(new_data[i])) {
+        ;
+      } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
           set_tile_props(item);
         });
@@ -650,14 +734,15 @@ function clicked_player_name(event) {
   if (URL_x == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
-  }
-  else if (URL_x == "/player2") {
+  } else if (URL_x == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
 
   let jsons = get_played_JSONS();
-  jsons.unshift({"type" : "regular_play"});
+  jsons.unshift({
+    "type": "regular_play"
+  });
 
   // console.log("in clicked_player_name: " + JSON.stringify(jsons));
   ws.send(JSON.stringify(jsons));
@@ -677,7 +762,7 @@ function get_player_hand_JSONS() {
 function erase_player_hand() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
   let back_fill = AppSpace.getAttributeNS(null, "fill");
-  for (let i= 0; i < tile_svgs.length; i++) {
+  for (let i = 0; i < tile_svgs.length; i++) {
     let item = tile_svgs[i];
     // don't get the magic S
     if (i != 7) {
@@ -690,7 +775,7 @@ function erase_player_hand() {
 
 function get_played_trash_JSONS() {
   var jsons = [];
-  PlayTrash.forEach( item => {
+  PlayTrash.forEach(item => {
     jsons.push(item.get_JSON());
   });
   return jsons;
@@ -719,8 +804,7 @@ function clicked_tiles_area(event) {
   if (URL_x == "/player1") {
     let txt = document.getElementById("scoreboard_player_1");
     if (txt.textContent == "Wait ...") return;
-  }
-  else if (URL_x == "/player2") {
+  } else if (URL_x == "/player2") {
     let txt = document.getElementById("scoreboard_player_2");
     if (txt.textContent == "Wait ...") return;
   }
@@ -730,66 +814,39 @@ function clicked_tiles_area(event) {
   // if not enough tiles to complete, consider this a pass
   let tiles_left = parseInt(document.getElementById("scoreboard_tiles_left_value").textContent);
   if (PlayTrash.length == 0 && tiles_left < NUM_PLAYER_TILES ||
-      PlayTrash.length > tiles_left) {
+    PlayTrash.length > tiles_left) {
     window.alert("Not enough tiles left to complete the play - THIS IS A PASS")
     repatriate_played_tiles();
-    jsons =[{"type" : "pass"}];
-  }
-
-  else {
+    jsons = [{
+      "type": "pass"
+    }];
+  } else {
     if (PlayTrash.length == 0 &&
-        window.confirm("Are you sure you want to trade all of your tiles?")) {
+      window.confirm("Are you sure you want to trade all of your tiles?")) {
       jsons = get_player_hand_JSONS();
       erase_player_hand();
 
     } else if (PlayTrash.length > 0) {
-        // roll back if no confirm
-        if (window.confirm("Are you sure you want to trade " + PlayTrash.length + " of your tiles?")) {
-          jsons = get_played_trash_JSONS();
-        }
-        // move the trashed tiles back to the player tile area
-        else {
-          repatriate_played_tiles();
-        }
+      // roll back if no confirm
+      if (window.confirm("Are you sure you want to trade " + PlayTrash.length + " of your tiles?")) {
+        jsons = get_played_trash_JSONS();
       }
-    else return;
+      // move the trashed tiles back to the player tile area
+      else {
+        repatriate_played_tiles();
+      }
+    } else return;
   }
 
   if (jsons.length > 0) {
     if (!jsons[0].type)
-      jsons.unshift({"type" : "xchange"});
+      jsons.unshift({
+        "type": "xchange"
+      });
     ws.send(JSON.stringify(jsons));
   }
 
   // console.log("clicked on " + event.currentTarget.innerHTML);
-}
-
-function clicked_save_btn(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
-  var user = document.getElementById("user").value;
-  let game_id = document.getElementById("current_game_id").value;
-
-  if (window.confirm("Save game?")) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_game?user=" + user +
-      "&game=" + game_id, true);
-    xhr.setRequestHeader("Content-Type", "text/html");
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = URL_x + "?user=" + user +
-            "&game=" + game_id;
-          console.log("new_btn.callback: port: " + ws_port);
-        }
-    }
-
-    console.log("clicked_save_btn port: " + ws_port);
-    xhr.send(null);
-  }
 }
 
 function clicked_home_btn(event) {
@@ -805,44 +862,15 @@ function clicked_home_btn(event) {
   xhr.open("GET", URL_x + "/home_page?game=" + game_id + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
-  xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page?user=" + user;
-        console.log("home_btn.callback: port: " + ws_port);
-      }
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      document.location.href = "/home_page?user=" + user;
+      console.log("home_btn.callback: port: " + ws_port);
+    }
   }
 
   console.log("clicked_home_btn port: " + ws_port);
   xhr.send(null);
-}
-
-function clicked_save_close_btn(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
-  let game_id = document.getElementById("current_game_id").value;
-  var user = document.getElementById("user").value;
-
-  if (window.confirm("Save and close game?")) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", URL_x + "/save_close_game?game=" + game_id + "&user=" + user, true);
-    xhr.setRequestHeader("Content-Type", "text/html");
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = "/home_page?user=" + user;
-          console.log("save_close_btn.callback: port: " + ws_port);
-        }
-    }
-
-    console.log("clicked_save_close_btn port: " + ws_port);
-    xhr.send(null);
-  }
-
-  clicked_home_btn(event);
-
 }
 
 function tile_move_start(new_position) {
@@ -876,8 +904,8 @@ function tile_moving(new_position) {
   let row = -1;
   let col = -1;
 
-  row = Math.round(Scale*new_position.top/CELL_SIZE + 1);
-  col = Math.round(Scale*new_position.left/CELL_SIZE + 1);
+  row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
+  col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
 
   let svg = this.element;
 
@@ -894,11 +922,11 @@ function tile_moving(new_position) {
   // with cycling through the player colors because setting the rect color
   // directly doesn't use the css translate. So, fix up the svg coords here.d
   svg.setAttributeNS(null, 'transform', "");
-  svg.setAttributeNS(null, 'x', (col - 1)*CELL_SIZE);
-  svg.setAttributeNS(null, 'y', (row - 1)*CELL_SIZE);
+  svg.setAttributeNS(null, 'x', (col - 1) * CELL_SIZE);
+  svg.setAttributeNS(null, 'y', (row - 1) * CELL_SIZE);
 
   // console.log('tile_moving - row: %d column: %d this.rect.width: %f Scale: %f',
-    // row, col, this.rect.width, Scale);
+  // row, col, this.rect.width, Scale);
 }
 
 function tile_moved(new_position) {
@@ -909,10 +937,12 @@ function tile_moved(new_position) {
   var letter;
 
   let svg = this.element;
-  let tile = PlayerHand.tiles.find(t => { return t && t.svg == svg });
+  let tile = PlayerHand.tiles.find(t => {
+    return t && t.svg == svg
+  });
 
-  col = Math.round(Scale*new_position.left/CELL_SIZE) + 1;
-  row = Math.round(Scale*new_position.top/CELL_SIZE) + 1;
+  col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
+  row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
 
   if (tile) {
     tile.move(row, col);
@@ -939,7 +969,7 @@ function tile_moved(new_position) {
     }
     // the tile may have been moved off the board
     else if (row <= NUM_ROWS_COLS && row > 0 &&
-            col <= NUM_ROWS_COLS && col > 0) {
+      col <= NUM_ROWS_COLS && col > 0) {
       tile.status |= Tile.on_board;
       PlayerHand.remove(tile);
       if (tile.status & Tile.is_blank) {
@@ -959,33 +989,45 @@ function tile_moved(new_position) {
 function get_tile_json(svg, idx) {
   let x = svg.getAttributeNS(null, "x");
   let y = svg.getAttributeNS(null, "y");
-  let col = Math.round(x/CELL_SIZE) + 1;
-  let row = Math.round(y/CELL_SIZE) + 1;
+  let col = Math.round(x / CELL_SIZE) + 1;
+  let row = Math.round(y / CELL_SIZE) + 1;
   return {
-    id : svg.id,
-    char : svg.childNodes[1].textContent,
-    x : x,
-    y : y,
-    row : row,
-    column : col,
-    player_hand_idx : idx
+    id: svg.id,
+    char: svg.childNodes[1].textContent,
+    x: x,
+    y: y,
+    row: row,
+    column: col,
+    player_hand_idx: idx
   };
 }
 
 // Only called on a page load
 function setup_tiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  tile_svgs.forEach( (item, idx) => {
+  tile_svgs.forEach((item, idx) => {
     let drag_rec = new PlainDraggable(item);
 
     drag_rec.onMove = tile_moving;
     drag_rec.onDragEnd = tile_moved;
     drag_rec.onDragStart = tile_move_start;
 
-    drag_rec.containment = {left: 0, top: 0,
+    drag_rec.containment = {
+      left: 0,
+      top: 0,
       width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-      height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')};
-    drag_rec.snap = {x: {start: 0, step:"4.17%"}, y:{start:0, step:"6.25%"}};
+      height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+    };
+    drag_rec.snap = {
+      x: {
+        start: 0,
+        step: "4.17%"
+      },
+      y: {
+        start: 0,
+        step: "6.25%"
+      }
+    };
 
     // this is the magic s - keep track of it
     if (idx == 7)
@@ -1007,8 +1049,9 @@ function update_the_board(resp) {
     // now update the play data
     let item = null;
     for (let i = 0; i < new_data.length; i++) {
-      if (update_scoreboard(new_data[i])) {;}
-      else if (new_data[i].play_data) {
+      if (update_scoreboard(new_data[i])) {
+        ;
+      } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
           set_tile_props(item);
         });
@@ -1027,7 +1070,9 @@ function handle_exchange(resp) {
 
   // update the scoreboard
   for (let i = 0; i < new_data.length; i++) {
-    if (update_scoreboard(new_data[i])) {;}
+    if (update_scoreboard(new_data[i])) {
+      ;
+    }
   }
 
   // new tiles
@@ -1042,7 +1087,9 @@ function handle_exchange(resp) {
 function handle_pass(resp) {
   // update the scoreboard
   for (let i = 0; i < resp[0].new_data.length; i++) {
-    if (update_scoreboard(resp[0].new_data[i])) {;}
+    if (update_scoreboard(resp[0].new_data[i])) {
+      ;
+    }
   }
 }
 
@@ -1057,10 +1104,10 @@ function toggle_player() {
   xhr.open("GET", URL_x, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
-  xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = URL_x + "?game=" + game_id;
-      }
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      document.location.href = URL_x + "?game=" + game_id;
+    }
   }
 
   xhr.send(null);
@@ -1074,7 +1121,7 @@ function handle_game_over(resp) {
 
   var p1_tiles_inhand = [];
   resp[0].player1.remaining_tiles.forEach((item, i) => {
-    p1_tiles_inhand.push(item.char +  "/" + item.points);
+    p1_tiles_inhand.push(item.char + "/" + item.points);
   });
   p1_msg += resp[0].player1.score + '\n' + "Unplayed tiles: \n" +
     p1_tiles_inhand.join(" ");
@@ -1083,7 +1130,7 @@ function handle_game_over(resp) {
   resp[0].player2.remaining_tiles.forEach((item, i) => {
     p2_tiles_inhand.push(item.char + "/" + item.points);
   });
-  p2_msg += resp[0].player2.score + '\n' + "Unplayed tiles: \n"  + p2_tiles_inhand.join(" ");
+  p2_msg += resp[0].player2.score + '\n' + "Unplayed tiles: \n" + p2_tiles_inhand.join(" ");
 
   window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
 }
@@ -1124,29 +1171,24 @@ ws.onmessage = function(msg) {
 
   if (type.type == "game_over") {
     handle_game_over(resp);
-  }
-
-  else if (type.type == "pass") {
+  } else if (type.type == "pass") {
     if (player.player != URL_x)
       alert(info.info);
     handle_pass(resp);
-  }
-
-  else if (type.type == "xchange") {
+  } else if (type.type == "xchange") {
     if (player.player == URL_x) {
       handle_exchange(resp);
-    }
-    else {
+    } else {
       // update the scoreboard
       let new_data = resp[0].new_data;
       for (let i = 0; i < new_data.length; i++) {
-        if (update_scoreboard(new_data[i])) {;}
+        if (update_scoreboard(new_data[i])) {
+          ;
+        }
       }
       alert(info.info);
     }
-  }
-
-  else if (type.type == "regular_play") {
+  } else if (type.type == "regular_play") {
     if (player.player == URL_x)
       err = handle_the_response(resp);
     else {
@@ -1154,14 +1196,10 @@ ws.onmessage = function(msg) {
       if (info.info != "none")
         alert(info.info);
     }
-  }
-
-  else if (type.type == "message") {
+  } else if (type.type == "message") {
     if (player.player != URL_x)
       alert(info.info);
-  }
-
-  else {
+  } else {
     console.log("in onmessage: no play type");
   }
 
@@ -1172,7 +1210,7 @@ ws.onmessage = function(msg) {
 }
 
 ws.onopen = function() {
-    // ws.send("daddy's HOOOME!!");
+  // ws.send("daddy's HOOOME!!");
 };
 ws.onerror = function(msg) {
   console.log("in get socket: error " + msg);
