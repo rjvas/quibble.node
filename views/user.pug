@@ -49,12 +49,6 @@ html(lang="en")
     #buttons
       #practice
         input(id="practice_btn" type="button" class="button" value="New Practice Game" height="35" width="50")
-      #wait4
-        | Wait for other player? Player name: 
-        input(id="wait4_user_txt" type="text")
-        input(id="wait4_btn" type="button" class="button" value="Submit" height="35" width="50")
-
-    #row4
       #pickups
         div.label Pickup a game
         if gamers.length > 0
@@ -67,7 +61,14 @@ html(lang="en")
           
         input(id="add_pickup_btn" type="button" class="button" value="Add your name?" height="35" width="50")
         input(id="play_pickup_btn" type="button" class="button" value="Play" height="35" width="50")
-        
+          
+ 
+    // #row4
+      #wait4
+        | Wait for other player? Player name: 
+        input(id="wait4_user_txt" type="text")
+        input(id="wait4_btn" type="button" class="button" value="Submit" height="35" width="50")
+
       #invite
         form(action="invite")
           div.label Or, invite a frienemy to play!
@@ -76,5 +77,6 @@ html(lang="en")
           div.email
             input(type="text" name="email" placeholder="foo@bar.com")
           button(type="submit") Invite!
+
 
     script(src="/js/user_home.js")

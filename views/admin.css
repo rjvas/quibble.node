@@ -9,6 +9,8 @@ div {
   border: 1px solid black;
   padding: 10px;
   margin: 10px;
+  background-color: #aaaaaa;
+  opacity: 50.0; 
 }
 
 #row1 {

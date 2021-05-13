@@ -55,8 +55,8 @@ class Player {
   get_tiles_JSON() {
     var ret_val = [];
     this.tiles.forEach((item, idx) => {
-      let js = item.get_JSON();
-      ret_val.push(js);
+      let js = item ? item.get_JSON() : null;
+      if (js) ret_val.push(js);
     });
     return ret_val;
   }
