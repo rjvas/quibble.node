@@ -311,8 +311,6 @@ function startup() {
     // async
     else if (pathname == "/register") {
       User.register(query, response);
-      logger.debug("heist.listen: </register> remote_addr: " + remote_addr +
-        " user.request_addr: " + user.request_addr);
     }
 
     // async
