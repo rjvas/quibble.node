@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
 var logger = require('./log').logger;
+var Admin = require('./admin_srv').Admin
 
 class User {
   constructor(sonj) {
@@ -26,6 +27,7 @@ class User {
     this.active_games = [];
     this.friends = sonj.friends;
     this.request_address = sonj.request_address;
+    this.admin = null;
   }
 
   static current_users = [];
@@ -61,6 +63,7 @@ class User {
   }
 
   logout(response) {
+    this.admin ? this.admin.logout(this) : this.admin = null;
     this.save();
     User.current_users = User.current_users.filter(u => !u.id.equals(this.id));
     response.writeHead(302 , {
@@ -148,6 +151,10 @@ class User {
             new_user.last_login_date = Date();
             new_user.request_address = request_addr;
             User.current_users.push(new_user);
+            if (new_user.role & User.admin) {
+              // give Admin a reference to all the active users
+              new_user.admin = new Admin(new_user, User.current_users);
+            }
             id = usr._id;
           } else {
             logger.error("login error - wrong password");

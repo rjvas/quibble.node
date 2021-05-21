@@ -10,7 +10,7 @@ div {
   padding: 10px;
   margin: 10px;
   background-color: #aaaaaa;
-  opacity: 50.0; 
+  opacity: 50.0;
 }
 
 #row1 {
@@ -49,6 +49,8 @@ div {
 .cur_user {
   display: flex;
   flex-direction: row;
+  padding: 2px;
+  margin: 2px;
 }
 #user_lists {
   display: flex;

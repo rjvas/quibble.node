@@ -1137,9 +1137,9 @@ function handle_game_over(resp) {
 
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
-var ws_port = document.getElementById("ws_port").value;
 var is_practice = document.getElementById("is_practice").value;
 
+var ws_port = document.getElementById("ws_port").value;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 

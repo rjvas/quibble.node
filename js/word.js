@@ -320,7 +320,7 @@ class Word {
     var w = [];
 
     // a stack of orthogonal tiles to test for wordishness
-    var tmp = [];
+    var ortho = [];
 
     // always go left to right, top down
     if (orientation == Word.ORIENTATIONS.HORIZ) {
@@ -332,15 +332,15 @@ class Word {
         // and build the words - BUT - don't follow the other
         // player's tiles
         if (!dont_follow && t.word_id == this.id) {
-          if (t.up || t.down) {tmp.push(t);}
+          if (t.up || t.down) {ortho.push(t);}
         }
         this.update_tile_safety(game, t, dont_follow);
         t = t.right;
       }
       // by now the first word is done
       this.check_words.push(w.join(""));
-      while (tmp.length > 0) {
-        t = tmp.pop();
+      while (ortho.length > 0) {
+        t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)
         // then all adjacencies must be followed an safetyed. (by contrast, a tile
         // like 'A' isn't a 'source of safeness' and only becomes safe through
@@ -360,15 +360,15 @@ class Word {
         // and build the words - BUT - don't follow the other
         // player's tiles
         if (!dont_follow && t.word_id == this.id) {
-          if (t.left || t.right) {tmp.push(t);}
+          if (t.left || t.right) {ortho.push(t);}
         }
         this.update_tile_safety(game, t, dont_follow);
         t = t.down;
       }
       // by now the first word is done
       this.check_words.push(w.join(""));
-      while (tmp.length > 0) {
-        t = tmp.pop();
+      while (ortho.length > 0) {
+        t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)
         // then all adjacencies must be followed an safetyed. (by contrast, a tile
         // like 'A' isn't a 'source of safeness' and only becomes safe through
@@ -381,10 +381,10 @@ class Word {
     }
     else if (orientation == Word.ORIENTATIONS.NONE) {
       if (tile.right || tile.left) {
-        this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, tile, false);
+        this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, tile, true);
       }
       if (tile.up || tile.down) {
-        this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, tile, false);
+        this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, tile, true);
       }
     }
   }

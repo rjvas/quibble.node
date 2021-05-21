@@ -38,6 +38,7 @@ var ActiveGame = require('./js/activegame').ActiveGame;
 var Game = require('./js/game').Game;
 var Word = require('./js/word').Word;
 var User = require('./js/user').User;
+// var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
 
 const main_port = 3042;
@@ -404,6 +405,7 @@ function startup() {
       let ug = get_user_agame(remote_addr, query);
       if (ug.user) {
         response.end(pug_admin({
+          'admin' : ug.user.admin,
           'User' : User,
           'user': ug.user,
           'user_saved_games': ug.user.get_saved_game_list(),

@@ -7,10 +7,11 @@ html(lang="en")
     link(rel='stylesheet', href='/views/admin.css')
   body
     input(id="user" type="hidden" value=user.id.toHexString())
+    input(id="ws_port" type="hidden" value=admin.port)
     
     #row1
       #welcome
-        |Do the Admin, #{user.display_name}
+        |Do the Admin, #{user.user_name}
       #info
         |Here is some handy info
       #logout 
@@ -24,11 +25,29 @@ html(lang="en")
           each val, idx in User.current_users
             div(class="cur_user")
               input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
-              label(for="cur_user_"+idx) #{val.display_name}
+              label(for="cur_user_"+idx) #{val.user_name}
         else 
           |No logged in Users
           
       #user_lists
+        #user_props
+          div.roles 
+            if user.role & User.player
+              input(id="user_role_player" type="checkbox" name="user_role" class="user_role" 
+                height="35" width="50" checked)
+            else
+              input(id="user_role_player" type="checkbox" name="user_role" class="user_role" 
+                height="35" width="50")
+            label(for="user_role_player") Player
+            
+            if user.role & User.admin
+              input(id="user_role_admin" type="checkbox" name="user_role" class="user_role" 
+                height="35" width="50" checked)
+            else
+              input(id="user_role_admin" type="checkbox" name="user_role" class="user_role" 
+                height="35" width="50")
+            label(for="user_role_admin") Admin
+            
         #user_saved_games
           |User's saved games
           if user_saved_games.length > 0

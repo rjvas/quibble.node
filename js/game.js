@@ -420,9 +420,9 @@ class Game {
       return t == tile;
     });
 
-    !tl ? this.current_play.tiles.push(tile) :
-      logger.debug("game.update_play: already in list: " + tile.id + "/" +
-        tile.char);
+    if (!tl) this.current_play.tiles.push(tile);
+      // logger.debug("game.update_play: already in list: " + tile.id + "/" +
+      //   tile.char);
   }
 
   toggle_player_new_play() {

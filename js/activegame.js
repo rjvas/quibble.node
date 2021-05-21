@@ -58,23 +58,28 @@ class ActiveGame {
             a_game_js.game_id = result.upsertedId._id;
           q = { name: a_game_js.name };
           update = {$set : a_game_js};
+
+          logger.debug("activegame.save (1) result: ", result);
+
           return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
         }
       })
       .then((agame_result) => {
-        if (and_close) {
-          // take it out of the active games list
-          ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
-
-          // if it's a practice game, only one user/player
-          this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
-          if (!(this.status & ActiveGame.practice)) {
-            this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
-          }
-          this.send_msg("Game saved and closed! Return to home_page!", player);
-        }
+        // if (and_close) {
+        //   // take it out of the active games list
+        //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
+        //
+        //   // if it's a practice game, only one user/player
+        //   this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
+        //   if (!(this.status & ActiveGame.practice)) {
+        //     this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
+        //   }
+        //   this.send_msg("Game saved and closed! Return to home_page!", player);
+        // }
 
         // if it was upserted, stuff the newly saved AGame into the user's saved_games list
+        logger.debug("activegame.save (2) agame_result: ", agame_result);
+
         if (agame_result.upsertedId) {
           q = {"_id": agame_result.upsertedId._id};
           return new_agame_res = db.get_db().collection('active_games').findOne(q);
@@ -88,7 +93,7 @@ class ActiveGame {
           if (!(this.status & ActiveGame.practice)) {
             this.user2.saved_games.push(new_agame_res);
           }
-          logger.debug("activegame.save new_agame_res: ", new_agame_res);
+          logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
         }
       })
       .catch((e) => {
