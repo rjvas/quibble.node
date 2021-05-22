@@ -160,7 +160,9 @@ class TileDefs {
       },
       {
         char: " ",
-        count: 4,
+        // as per email 20210522
+        // count: 4,
+        count: 2,
         is_safe : false,
         points: 0
       }

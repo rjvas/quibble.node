@@ -38,6 +38,7 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
+/* out as per email on 20210522
   {
     row: 3,
     col: 3,
@@ -48,7 +49,7 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 2,
     rect: null
   },
-
+*/
   {
     row: NUM_ROWS_COLS,
     col: 1,
@@ -69,6 +70,7 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
+/* out as per email on 20210522
   {
     row: NUM_ROWS_COLS - 2,
     col: 3,
@@ -79,7 +81,7 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 2,
     rect: null
   },
-
+*/
   {
     row: 1,
     col: Math.round(NUM_ROWS_COLS / 2),
@@ -103,11 +105,9 @@ const SAFE_INDEXES = [{
 ];
 
 const NUM_PLAYER_TILES = 7;
-
 const TEXT_POSITION = 1;
 const BLANK_TILE = " ";
 const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
-
 const back_ground = "#f5efe6ff";
 var scoreboard = null;
 

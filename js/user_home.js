@@ -24,6 +24,9 @@ function new_practice_game() {
 
 function clicked_delete_game_btn(event) {
 
+  if (!window.confirm("Are you sure you want to delete this game? It cannot be undone!"))
+    return;
+    
   var deleted = document.getElementById("saved_games_lst").value;
   var user = document.getElementById("user").value;
 
