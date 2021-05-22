@@ -54,7 +54,7 @@ html(lang="en")
             select(id="user_saved_games_lst")
               option(value=-1) No Selection
               each val, idx in user_saved_games
-                option(value=idx) #{val}
+                option(value=idx) #{val.name}
           else 
             |No user saved games
             

@@ -1114,23 +1114,26 @@ function toggle_player() {
 
 }
 
-function handle_game_over(resp) {
+function handle_game_over(info) {
+  let p1_name = info.player1.name;
+  let p2_name = info.player2.name;
+
   // build the game over message
-  var p1_msg = "Final Score: Player 1: "
-  var p2_msg = "Final Score: Player 2: "
+  var p1_msg = "Final Score: " + p1_name + ": ";
+  var p2_msg = "Final Score: " + p2_name + ": ";
 
   var p1_tiles_inhand = [];
-  resp[0].player1.remaining_tiles.forEach((item, i) => {
+  info.player1.remaining_tiles.forEach((item, i) => {
     p1_tiles_inhand.push(item.char + "/" + item.points);
   });
-  p1_msg += resp[0].player1.score + '\n' + "Unplayed tiles: \n" +
+  p1_msg += info.player1.score + '\n' + "Unplayed tiles: \n" +
     p1_tiles_inhand.join(" ");
 
   var p2_tiles_inhand = [];
-  resp[0].player2.remaining_tiles.forEach((item, i) => {
+  info.player2.remaining_tiles.forEach((item, i) => {
     p2_tiles_inhand.push(item.char + "/" + item.points);
   });
-  p2_msg += resp[0].player2.score + '\n' + "Unplayed tiles: \n" + p2_tiles_inhand.join(" ");
+  p2_msg += info.player2.score + '\n' + "Unplayed tiles: \n" + p2_tiles_inhand.join(" ");
 
   window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
 }
@@ -1170,7 +1173,7 @@ ws.onmessage = function(msg) {
   console.log("in onmessage: info = " + info.info);
 
   if (type.type == "game_over") {
-    handle_game_over(resp);
+    handle_game_over(info);
   } else if (type.type == "pass") {
     if (player.player != URL_x)
       alert(info.info);

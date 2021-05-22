@@ -398,7 +398,7 @@ class Game {
       this.consecutive_pass_count = 2;
       ret_val = this.handle_exchange(player, play_data, played_tiles);
     } else if (play_type.type == "pass")
-      ret_val = this.handle_pass(play_data);
+      ret_val = this.handle_pass(player, play_data);
 
     let player_txt = player == this.player_1 ? "/player1" :
       "/player2";
@@ -407,7 +407,7 @@ class Game {
     // use the passed play_type to decode the response in board.js
     ret_val.unshift(play_type);
 
-    if (player.get_tile_count() == 0 || !this.consecutive_pass_count)
+    if (player.get_tile_count() == 0 || this.consecutive_pass_count < 1)
       ret_val = this.end_game(player_txt);
 
     // logger.info("in finish the play: ", ret_val);
@@ -520,9 +520,11 @@ class Game {
     ret_val.push({"type" : "game_over"});
     ret_val.push({"player" : player});
 
-    ret_val.push({"player1" : {"score" : this.player_1.total_points,
+    ret_val.push({"player1" : {"name" : this.player_1.name,
+                              "score" : this.player_1.total_points,
                               "remaining_tiles" : this.player_1.get_hand_JSONS()},
-                  "player2" : {"score" : this.player_2.total_points,
+                  "player2" : {"name" : this.player_2.name,
+                              "score" : this.player_2.total_points,
                               "remaining_tiles" : this.player_2.get_hand_JSONS()}});
 
     logger.info("Game Over!");
