@@ -1236,7 +1236,7 @@ ws.onmessage = function(msg) {
   }
 
   // in this case a single player is playing both player1 and player2
-  if (is_practice != "0" && !err) {
+  if (is_practice != "0" && !err && type.type != "chat") {
     toggle_player();
   }
 }
