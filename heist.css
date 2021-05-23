@@ -31,7 +31,8 @@ form {
 }
 
 .grid_background {
-   fill: #f9aefe6ff;
+  fill: #dddddd;
+   /* fill: #feecdd; */
  }
 .safety_square {
   fill: #f5efe6ff;
@@ -51,7 +52,7 @@ form {
 }
 .safety_text {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 80%;
+  font-size: 70%;
   stroke : '#44bb55';
   font-style: italic;
 }
@@ -62,4 +63,22 @@ form {
 .scoreboard_tiles_left_value {
   font: 16px italic;
   stroke: red;
+}
+
+#chat_send_text {
+  resize : none;
+  background-color: #dddddd;
+}
+
+#chat_text {
+  font-family:    Arial, Helvetica, sans-serif;
+  font-size:      10pt;
+  /* font-weight:    bold; */
+  background-color: #dddddd;
+  width: 280px;
+  height: 250px;
+  overflow-x: auto;
+  overflow-y: auto;
+  text-align: left;
+  padding: 2px;
 }

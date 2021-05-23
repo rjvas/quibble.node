@@ -114,7 +114,7 @@ html
         button(id="color_btn" height = "50" width = "100" style="border: none")
         
       // the scoreboard
-      svg(id="scoreboard" class="scoreboard" x="560" y="100" width="245" height="105"
+      svg(id="scoreboard" class="scoreboard" x="560" y="65" width="245" height="105"
           stroke='#000' stroke_width="1")
         text(class="scoreboard_title" id="scoreboard_title" x="123" y="18" width="245" height="18"
           stroke_width="2" stroke="#000" text-anchor="middle" alignment-baseline="central")
@@ -155,7 +155,13 @@ html
           stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left")
           |#{game.player_2.total_points}
 
-      
+      foreignobject(id="chat_fo" class="node" x="560" y="185" width="250" height="250")
+        div(id="chat_text" height = "250" width = "250") //style="border: none")
+      foreignobject(id="chat_send_fo" class="node" x="560" y="440" width="200" height="50")
+        textarea(id="chat_send_text" rows="2" cols="30" wrap="soft" placeholder="Type here ...")
+      foreignobject(id="chat_send_btn_fo" class="node" x="762" y="440" width="50" height="50")
+        input(id="chat_send_btn" type="button" class="button" value="Send" height="50" width="50")
+            
     // this should be a comment
     script(src="./js/vanilla-picker.js")
     script(src="./js/plain-draggable.min.js")

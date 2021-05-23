@@ -133,7 +133,7 @@ class ActiveGame {
 
     // socket call backs - .on fires ONLY on the inital connection or if
     // the player refreshes the page. If a refresh occurs the original socket
-    // is deleted and a new socket created and 'pushed'.
+    // is deleted and a new socket created and 'pushed'2
     ws_server.on('connection', function(socket) {
 
       // Both players requests for updates wind up here and are distinguished
@@ -145,18 +145,33 @@ class ActiveGame {
           return g.ws_server.clients.has(socket);
         });
         if (a_game) {
+          let resp_data = null;
           let player = a_game.game.current_player;
           var play_data = JSON.parse(msg);
-          let resp_data = a_game.game.finish_the_play(player, play_data);
 
-          // look for an error on the play - if not found, save
-          let found = resp_data.find(item => {
-            return item.err_msg
-          });
-          if (!found) {
-            logger.debug("activegame.socket.on.message: saving - " + a_game.name +
-              " player: " + player.name);
-            a_game.save(false, null);
+          // got a chat message
+          if (play_data[0] && play_data[0].type && play_data[0].type == "chat") {
+            let player_name = null;
+            let user = play_data[1].player;
+            if (a_game.user1.id.toHexString() == user)
+              player_name = a_game.user1.display_name;
+            else
+              player_name = a_game.user2.display_name;
+            play_data[1].player = player_name;
+            resp_data = play_data;
+          }
+          else {
+            resp_data = a_game.game.finish_the_play(player, play_data);
+
+            // look for an error on the play - if not found, save
+            let found = resp_data.find(item => {
+              return item.err_msg
+            });
+            if (!found) {
+              logger.debug("activegame.socket.on.message: saving - " + a_game.name +
+                " player: " + player.name);
+              a_game.save(false, null);
+            }
           }
 
           let data = JSON.stringify(resp_data);

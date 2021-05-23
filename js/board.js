@@ -371,9 +371,14 @@ function init_color_popup() {
 }
 
 function set_button_callbacks() {
-  btn = document.getElementById('home_btn');
+  let btn = document.getElementById('home_btn');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('chat_send_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_chat_send_btn);
   }
 }
 
@@ -849,6 +854,20 @@ function clicked_tiles_area(event) {
   // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
+function clicked_chat_send_btn(event) {
+  let txt = document.getElementById("chat_send_text");
+  var user = document.getElementById("user").value;
+  if (txt && user) {
+    let msg = [];
+    msg.push({"type" : "chat"});
+    msg.push({"player" : user});
+    msg.push({"info" : txt.value});
+    txt.value = "";
+
+    ws.send(JSON.stringify(msg));
+  }
+}
+
 function clicked_home_btn(event) {
   if (!URL_x) {
     let url = window.location.href;
@@ -1114,6 +1133,10 @@ function toggle_player() {
 
 }
 
+function handle_chat(player, msg) {
+  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
+}
+
 function handle_game_over(info) {
   let p1_name = info.player1.name;
   let p2_name = info.player2.name;
@@ -1139,6 +1162,9 @@ function handle_game_over(info) {
 }
 
 AppSpace = document.querySelectorAll('#wt_board')[0];
+
+var chat = document.getElementById("chat_text");
+chat.innerHTML = "<b>Hello Gamer!</b>";
 
 var is_practice = document.getElementById("is_practice").value;
 
@@ -1202,7 +1228,10 @@ ws.onmessage = function(msg) {
   } else if (type.type == "message") {
     if (player.player != URL_x)
       alert(info.info);
-  } else {
+  }
+  else if (type.type == "chat") {
+    handle_chat(player.player, info.info);
+  }else {
     console.log("in onmessage: no play type");
   }
 
