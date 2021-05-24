@@ -161,6 +161,12 @@ html
         textarea(id="chat_send_text" rows="2" cols="30" wrap="soft" placeholder="Type here ...")
       foreignobject(id="chat_send_btn_fo" class="node" x="762" y="440" width="50" height="50")
         input(id="chat_send_btn" type="button" class="button" value="Send" height="50" width="50")
+      if is_admin
+        foreignobject(id="chat_cheat_fo" class="node" x="560" y="480" width="200" height="30")
+          textarea(id="chat_cheat_text" rows="2" cols="30" wrap="soft" placeholder="Cheat here ...")
+        foreignobject(id="chat_cheat_send_btn_fo" class="node" x="762" y="480" width="50" height="30")
+          input(id="chat_cheat_send_btn" type="button" class="button" value="Send" height="30" width="50")
+      
             
     // this should be a comment
     script(src="./js/vanilla-picker.js")

@@ -433,6 +433,7 @@ function startup() {
         });
         logger.info("pathname: " + pathname + " filename: " + filename);
         response.end(pug_grid({
+          'is_admin' : user.role & User.admin,
           'user_id' : user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : CurrentAGame.status & ActiveGame.practice,

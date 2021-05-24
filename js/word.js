@@ -342,13 +342,16 @@ class Word {
       while (ortho.length > 0) {
         t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)
-        // then all adjacencies must be followed an safetyed. (by contrast, a tile
+        // then all adjacencies must be followed and safetyed. (by contrast, a tile
         // like 'A' isn't a 'source of safeness' and only becomes safe through
         // adjacency with a 'source of safeness' - a TileDefs safe tile or a safe
         // square on the board).
-        game.tile_defs.is_safe_tile(t) ?
-          this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, t, false)
-        : this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, t, true);
+        //              later that year ...
+        // if we're following orthos then we don't care if t is_safe_tile, we
+        // never want to follow. So ...
+        // game.tile_defs.is_safe_tile(t) ?
+          // this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, t, false) :
+        this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, t, true);
       }
     }
     else if (orientation == Word.ORIENTATIONS.VERT) {
@@ -374,9 +377,12 @@ class Word {
         // like 'A' isn't a 'source of safeness' and only becomes safe through
         // adjacency with a 'source of safeness' - a TileDefs safe tile or a safe
         // square on the board).
-        game.tile_defs.is_safe_tile(t) ?
-          this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, t, false)
-        : this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, t, true);
+        //              later that year ...
+        // if we're following orthos then we don't care if t is_safe_tile, we
+        // never want to follow. So ...
+        // game.tile_defs.is_safe_tile(t) ?
+        //   this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, t, false) :
+        this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, t, true);
       }
     }
     else if (orientation == Word.ORIENTATIONS.NONE) {

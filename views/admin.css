@@ -1,7 +1,7 @@
 body {
   /* background-image: url('./bridge_hero_large.jpg'); */
-  padding: 0;
-  margin: 0px;
+  padding: 10;
+  margin: 10px;
   font-family: 'Lato', sans-serif;
 }
 
@@ -17,7 +17,7 @@ div {
   display: flex;
   flex-direction: row;
   /* justify-content: center; */
-  width : 100%;
+  width : 90%;
   /* align-items: center; */
 }
 
@@ -38,7 +38,7 @@ div {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  width : 100%;
+  width : 90%;
 }
 
 #all_users {
@@ -49,27 +49,42 @@ div {
 .cur_user {
   display: flex;
   flex-direction: row;
-  padding: 2px;
-  margin: 2px;
+  padding: 0;
+  margin: 0;
 }
+.cur_user_radio {
+  width : 50%;
+  justify-content: left;
+  border: none;
+  padding: 0;
+}
+.cur_user_delete {
+  width : 50%;
+  display: flex;
+  justify-content: right;
+  border: none;
+  padding: 0;
+}
+
 #user_lists {
   display: flex;
+  flex-direction: column;
   width : 60%;
 }
 #user_saved_games {
   display: flex;
-  width : 50%;
-  justify: left;
+  width : 90%;
+  justify: center;
 }
 
 #user_active_games {
   display: flex;
-  width : 50%;
-  justify: right;
+  width : 90%;
+  justify: center;
 }
 
 #all_active_games {
   display: flex;
-  width : 100%;
+  width : 90%;
   justify: center;
 }

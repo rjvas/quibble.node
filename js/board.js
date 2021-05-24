@@ -1164,7 +1164,7 @@ function handle_game_over(info) {
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
 var chat = document.getElementById("chat_text");
-chat.innerHTML = "<b>Hello Gamer!</b>";
+chat.innerHTML = "<b>Salutations Worderists!</b>";
 
 var is_practice = document.getElementById("is_practice").value;
 
@@ -1231,7 +1231,8 @@ ws.onmessage = function(msg) {
   }
   else if (type.type == "chat") {
     handle_chat(player.player, info.info);
-  }else {
+  }
+  else {
     console.log("in onmessage: no play type");
   }
 

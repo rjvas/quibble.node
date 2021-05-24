@@ -24,8 +24,13 @@ html(lang="en")
         if User.current_users.length > 0
           each val, idx in User.current_users
             div(class="cur_user")
-              input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
-              label(for="cur_user_"+idx) #{val.user_name}
+              div(class="cur_user_radio")
+                input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
+                label(for="cur_user_"+idx) #{val.user_name}
+              div(class="cur_user_delete")
+                input(id="user_save_btn_"+idx type="button" class="user_save_btn" value="Save" height="35" width="50")
+                input(id="user_delete_btn_"+idx type="button" class="user_delete_btn" value="Delete" height="35" width="50")
+              
         else 
           |No logged in Users
           
@@ -50,23 +55,17 @@ html(lang="en")
             
         #user_saved_games
           |User's saved games
-          if user_saved_games.length > 0
-            select(id="user_saved_games_lst")
-              option(value=-1) No Selection
-              each val, idx in user_saved_games
-                option(value=idx) #{val.name}
-          else 
-            |No user saved games
+          select(id="user_saved_games_lst")
+            option(value=-1) No Selection
+            each val, idx in user_saved_games
+              option(value=idx) #{val.name}
             
         #user_active_games
           |User's active games
-          if user_a_games.length > 0
-            select(id="user_active_games_lst")
-              option(value=-1) No Selection
-              each val, idx in user_a_games
-                option(value=idx) #{val}
-          else 
-            |No user active games
+          select(id="user_active_games_lst")
+            option(value=-1) No Selection
+            each val, idx in user_a_games
+              option(value=idx) #{val}
           
     #all_active_games
       |All Active Games
@@ -74,7 +73,7 @@ html(lang="en")
         select(id="all_active_games_lst")
           option(value=-1) No Selection
           each val, idx in all_active_games
-            option(value=idx) #{val}
+            option(value=idx) #{val.name}
       else 
         |No Active Games
                       
