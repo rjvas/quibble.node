@@ -423,6 +423,7 @@ function startup() {
       logger.debug("heist.listen: <regular play> query: " + query);
 
       let ug = get_user_agame(remote_addr, query);
+      let player = pathname;
 
       CurrentAGame = ug.agame;
       let user = ug.user;
@@ -431,17 +432,27 @@ function startup() {
         response.writeHead(200, {
           'Content-Type': 'text/html'
         });
+        let is_practice = CurrentAGame.status & ActiveGame.practice;
+
+        // this block is called for regular games an practice games. If it's a
+        // regular game the 'player' is set by the pathname. Otherwise, the
+        // player needs to be set to the CurrentAGame's active player.
+        if (is_practice) {
+          CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
+            player = "/player1" : player = "/player2";
+        }
+
         logger.info("pathname: " + pathname + " filename: " + filename);
         response.end(pug_grid({
           'is_admin' : user.role & User.admin,
           'user_id' : user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
-          'is_practice' : CurrentAGame.status & ActiveGame.practice,
+          'is_practice' : is_practice,
           'port' : CurrentAGame.port,
           'game': CurrentAGame.game,
           'Game' : Game,
           'Word' : Word,
-          'player' : pathname}));
+          'player' : player}));
 
         logger.debug("heist.listen: <regular play> /player: " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
           remote_addr + " user.request_addr: " + user.request_addr);

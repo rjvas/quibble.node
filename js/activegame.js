@@ -2,6 +2,7 @@ var Game = require('./game').Game;
 var User = require('./user').User;
 const db = require('./db');
 var logger = require('./log').logger;
+const {exec} = require('child_process');
 
 class ActiveGame {
 
@@ -124,6 +125,74 @@ class ActiveGame {
       "msg: " + msg);
   }
 
+
+  cheat(socket, play_data) {
+    let user = play_data[1].player;
+    let tpl = play_data[2].info;
+    let player = null;
+
+    if (this.status & ActiveGame.practice) {
+      player = this.game.current_player;
+      play_data[1].player = this.user1.display_name;
+    }
+    else if (this.user1.id.toHexString() == user) {
+      player = this.game.player_1;
+      play_data[1].player = this.user1.display_name;
+    }
+    else {
+      player = this.game.player_2;
+      play_data[1].player = this.user2.display_name;
+    }
+
+    // the 'tpl' - template - is for a regex of a specific form:
+    // . matches any char in the user's hand
+    // a-z are literals
+    let exec_str = "grep -o -E '\"";
+    let ph = "[";
+    player.tiles.forEach((item, i) => {
+      ph += item.char.toLowerCase();
+    });
+    ph += "]";
+
+    for (let i=0; i<tpl.length; i++) {
+      if (tpl[i] == '*') {
+        exec_str += ph + '*';
+      }
+      else if (tpl[i] == '.') {
+        exec_str += ph;
+      }
+      else if (tpl[i] == " ")
+        exec_str += "[a-z]";
+      else {
+        exec_str += tpl[i];
+      }
+    };
+
+    exec_str += "\"\'" + " ./js/*.json";
+    console.log(exec_str);
+
+    exec(exec_str, (err, stdout, stderr) => {
+      if (err) {
+        console.error(err)
+      } else {
+       // the *entire* stdout and stderr (buffered)
+       if (stdout) {
+         play_data[2].info = stdout;
+         socket.send(JSON.stringify(play_data));
+       } else {
+         play_data[2].info = "No match for " + exec_str;
+         socket.send(JSON.stringify(play_data));
+       }
+       console.log(`stdout: ${stdout}`);
+       console.log(`stderr: ${stderr}`);
+      }
+    });
+    // const child = exec(exec_str, ['./js']);
+    // console.log('error', child.error);
+    // console.log('stdout ', child.stdout);
+    // console.log('stderr ', child.stderr);
+  }
+
   setup_socket() {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
@@ -159,6 +228,10 @@ class ActiveGame {
               player_name = a_game.user2.display_name;
             play_data[1].player = player_name;
             resp_data = play_data;
+          }
+          else if (play_data[0] && play_data[0].type && play_data[0].type == "cheat") {
+            a_game.cheat(this, play_data);
+            return;
           }
           else {
             resp_data = a_game.game.finish_the_play(player, play_data);
@@ -266,9 +339,15 @@ class ActiveGame {
             u2.active_games.push(new_ag);
 
           logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
-
+          let player = null;
           ActiveGame.all_active.push(new_ag);
-          let player = user == u1 ? '/player1' : '/player2';
+          if (new_ag.status && ActiveGame.practice) {
+            new_ag.game.current_player == new_ag.game.player_1 ?
+              player = "/player1" : player = "/player2";
+          }
+          else {
+            player = user == u1 ? '/player1' : '/player2';
+          }
 
           response.writeHead(302 , {
              'Location' : player + "?game=" + new_ag.game_id_str +

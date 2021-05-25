@@ -387,10 +387,10 @@ class Word {
     }
     else if (orientation == Word.ORIENTATIONS.NONE) {
       if (tile.right || tile.left) {
-        this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, tile, true);
+        this.follow_adjacencies(game, Word.ORIENTATIONS.HORIZ, tile, false);
       }
       if (tile.up || tile.down) {
-        this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, tile, true);
+        this.follow_adjacencies(game, Word.ORIENTATIONS.VERT, tile, false);
       }
     }
   }

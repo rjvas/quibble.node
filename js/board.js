@@ -380,6 +380,11 @@ function set_button_callbacks() {
   if (btn) {
     btn.addEventListener("click", clicked_chat_send_btn);
   }
+
+  btn = document.getElementById('chat_cheat_send_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_chat_cheat_send_btn);
+  }
 }
 
 function draw_safe_squares() {
@@ -854,6 +859,18 @@ function clicked_tiles_area(event) {
   // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
+function clicked_chat_cheat_send_btn(event) {
+  var cheat = document.getElementById("chat_cheat_text");
+  var user = document.getElementById("user").value;
+  if (cheat && user) {
+    let msg = [];
+    msg.push({"type" : "cheat"});
+    msg.push({"player" : user});
+    msg.push({"info" : cheat.value});
+    ws.send(JSON.stringify(msg));
+  }
+}
+
 function clicked_chat_send_btn(event) {
   let txt = document.getElementById("chat_send_text");
   var user = document.getElementById("user").value;
@@ -1133,6 +1150,15 @@ function toggle_player() {
 
 }
 
+function handle_cheat(player, msg) {
+  let matches = msg.split('\n');
+  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
+  for (let i = 0; i<matches.length; i++) {
+    let idx = matches[i].indexOf(':');
+    chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
+  };
+}
+
 function handle_chat(player, msg) {
   chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
 }
@@ -1232,12 +1258,16 @@ ws.onmessage = function(msg) {
   else if (type.type == "chat") {
     handle_chat(player.player, info.info);
   }
+  else if (type.type == "cheat") {
+    handle_cheat(player.player, info.info);
+  }
   else {
     console.log("in onmessage: no play type");
   }
 
   // in this case a single player is playing both player1 and player2
-  if (is_practice != "0" && !err && type.type != "chat") {
+  if (is_practice != "0" && !err &&
+    type.type != "chat" && type.type != "cheat") {
     toggle_player();
   }
 }
