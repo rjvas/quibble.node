@@ -150,7 +150,8 @@ class ActiveGame {
     let exec_str = "grep -o -E '\"";
     let ph = "[";
     player.tiles.forEach((item, i) => {
-      ph += item.char.toLowerCase();
+      if (item)
+        ph += item.char.toLowerCase();
     });
     ph += "]";
 
@@ -173,24 +174,19 @@ class ActiveGame {
 
     exec(exec_str, (err, stdout, stderr) => {
       if (err) {
+        play_data[2].info = "No match for " + exec_str;
+        socket.send(JSON.stringify(play_data));
         console.error(err)
       } else {
        // the *entire* stdout and stderr (buffered)
        if (stdout) {
          play_data[2].info = stdout;
          socket.send(JSON.stringify(play_data));
-       } else {
-         play_data[2].info = "No match for " + exec_str;
-         socket.send(JSON.stringify(play_data));
        }
        console.log(`stdout: ${stdout}`);
        console.log(`stderr: ${stderr}`);
       }
     });
-    // const child = exec(exec_str, ['./js']);
-    // console.log('error', child.error);
-    // console.log('stdout ', child.stdout);
-    // console.log('stderr ', child.stderr);
   }
 
   setup_socket() {

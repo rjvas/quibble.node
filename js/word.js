@@ -105,15 +105,17 @@ class Word {
     {row: 1, col: Word.NUM_ROWS_COLS, rect: null},
     {row: 2, col: 2, rect: null},
     {row: 2, col: Word.NUM_ROWS_COLS - 1, rect: null },
-    {row: 3, col: 3, rect: null},
-    {row: 3, col: Word.NUM_ROWS_COLS - 2, rect: null},
+    // out as per email 20220522
+    // {row: 3, col: 3, rect: null},
+    // {row: 3, col: Word.NUM_ROWS_COLS - 2, rect: null},
 
     {row: Word.NUM_ROWS_COLS, col: 1, rect: null},
     {row: Word.NUM_ROWS_COLS, col: Word.NUM_ROWS_COLS, rect: null},
     {row: Word.NUM_ROWS_COLS - 1, col: 2, rect: null},
     {row: Word.NUM_ROWS_COLS - 1, col: Word.NUM_ROWS_COLS - 1, rect: null},
-    {row: Word.NUM_ROWS_COLS - 2, col: 3, rect: null},
-    {row: Word.NUM_ROWS_COLS - 2, col: Word.NUM_ROWS_COLS - 2, rect: null},
+    // out as per email 20220522
+    // {row: Word.NUM_ROWS_COLS - 2, col: 3, rect: null},
+    // {row: Word.NUM_ROWS_COLS - 2, col: Word.NUM_ROWS_COLS - 2, rect: null},
 
     {row: 1, col: Math.round(Word.NUM_ROWS_COLS/2), rect: null},
     {row: Math.round(Word.NUM_ROWS_COLS/2), col: 1, rect: null},
