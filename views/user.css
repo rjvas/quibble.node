@@ -19,14 +19,14 @@ div {
   display: flex;
   flex-direction: row;
   /* justify-content: center; */
-  width : 100%;
+  width : 90%;
   /* align-items: center; */
 }
 
 #welcome {
   display : flex;
   justify-content: center;
-  width : 100%;
+  width : 90%;
   /* align-items: center; */
 }
 #info {
@@ -37,7 +37,7 @@ div {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  width : 100%;
+  width : 90%;
   /* align-items: center; */
 }
 
@@ -58,11 +58,16 @@ div {
 #row4 {
   display: flex;
   justify-content: center;
-  width: 100%;
+  width: 90%;
   /* align-items: center; */
 }
 
 #practice {
+  width : 40%;
+  justify-content: center;
+}
+
+#pickups {
   width : 40%;
   justify-content: center;
 }

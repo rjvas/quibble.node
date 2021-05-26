@@ -241,8 +241,8 @@ function startup() {
       let ugv = get_user_agame(remote_addr, query);
       let user = ugv.user;
       // query should hold the index to the selected game
-      if  (user)
-        ActiveGame.delete_game(user.saved_games[query], response, user);
+      if  (user && user.saved_games[ugv.game_idx])
+        ActiveGame.delete_game(user.saved_games[ugv.game_idx], response, user);
 
       logger.debug("heist.listen: <delete_game> user.saved_games list idx: " + query);
     }
