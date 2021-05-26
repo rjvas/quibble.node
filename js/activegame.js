@@ -135,11 +135,11 @@ class ActiveGame {
       player = this.game.current_player;
       play_data[1].player = this.user1.display_name;
     }
-    else if (this.user1.id.toHexString() == user) {
+    else if (this.user1 && this.user1.id.toHexString() == user) {
       player = this.game.player_1;
       play_data[1].player = this.user1.display_name;
     }
-    else {
+    else if (this.user2) {
       player = this.game.player_2;
       play_data[1].player = this.user2.display_name;
     }
@@ -218,9 +218,9 @@ class ActiveGame {
           if (play_data[0] && play_data[0].type && play_data[0].type == "chat") {
             let player_name = null;
             let user = play_data[1].player;
-            if (a_game.user1.id.toHexString() == user)
+            if (a_game.user1 && a_game.user1.id.toHexString() == user)
               player_name = a_game.user1.display_name;
-            else
+            else if (a_game.user2)
               player_name = a_game.user2.display_name;
             play_data[1].player = player_name;
             resp_data = play_data;
