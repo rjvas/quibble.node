@@ -94,6 +94,36 @@ function clicked_chat_send_btn(event) {
   }
 }
 
+function clicked_broadcast_btn(event) {
+
+  // get all active_games
+  if (!cur_chat_port) {
+    document.alert("No chat port set up!")
+    return;
+  }
+
+  let ags = document.getElementById("all_active_games_lst");
+  let txt = document.getElementById("chat_send_text");
+
+  if (txt) {
+    ags.options.forEach((item, i) => {
+      cur_chat_port = item.value;
+
+      // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
+      cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port);
+
+      let msg = [];
+      msg.push({"type" : "chat"});
+      msg.push({"player" : "sysadmin"});
+      msg.push({"info" : txt.value});
+      txt.value = "";
+
+      cur_chat_ws.send(JSON.stringify(msg));
+    });
+
+  }
+}
+
 // sysadmin can chat with players in an active game
 // set in the changed_active_game call back
 var cur_chat_port;
@@ -194,6 +224,11 @@ function init() {
   el = document.getElementById("chat_send_btn");
   if (el) {
     el.addEventListener("click", clicked_chat_send_btn);
+  }
+
+  el = document.getElementById("broadcast_btn");
+  if (el) {
+    el.addEventListener("click", clicked_broadcast_btn);
   }
 
 }

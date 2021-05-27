@@ -69,8 +69,9 @@ html(lang="en")
 
       #chat
         #chat_text
-        textarea(id="chat_send_text" rows="2" cols="30" wrap="hard" placeholder="Type here ...")
+        textarea(id="chat_send_text" rows="2" cols="25" wrap="hard" placeholder="Type here ...")
         input(id="chat_send_btn" type="button" class="button" value="Send")
+        input(id="broadcast_btn" type="button" class="button" value="'Cast")
 
           
     #all_active_games
@@ -79,7 +80,7 @@ html(lang="en")
         select(id="all_active_games_lst")
           option(value=-1) No Selection
           each val, idx in all_active_games
-            option(value=idx) #{val.name}
+            option(value=val.port) #{val.name}
       else 
         |No Active Games
                       
