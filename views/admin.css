@@ -69,7 +69,7 @@ div {
 #user_lists {
   display: flex;
   flex-direction: column;
-  width : 60%;
+  width : 30%;
 }
 #user_saved_games {
   display: flex;
@@ -81,6 +81,24 @@ div {
   display: flex;
   width : 90%;
   justify: center;
+}
+
+#chat_send_text {
+  resize : none;
+  background-color: #dddddd;
+}
+
+#chat_text {
+  font-family:    Arial, Helvetica, sans-serif;
+  font-size:      10pt;
+  /* font-weight:    bold; */
+  background-color: #dddddd;
+  width: 95%;
+  height: 250px;
+  overflow-x: auto;
+  overflow-y: auto;
+  text-align: left;
+  padding: 2px;
 }
 
 #all_active_games {

@@ -216,13 +216,15 @@ class ActiveGame {
 
           // got a chat message
           if (play_data[0] && play_data[0].type && play_data[0].type == "chat") {
-            let player_name = null;
-            let user = play_data[1].player;
-            if (a_game.user1 && a_game.user1.id.toHexString() == user)
-              player_name = a_game.user1.display_name;
-            else if (a_game.user2)
-              player_name = a_game.user2.display_name;
-            play_data[1].player = player_name;
+            if (play_data[1] && play_data[1].player != "sysadmin") {
+              let player_name = null;
+              let user = play_data[1].player;
+              if (a_game.user1 && a_game.user1.id.toHexString() == user)
+                player_name = a_game.user1.display_name;
+              else if (a_game.user2)
+                player_name = a_game.user2.display_name;
+              play_data[1].player = player_name;
+            }
             resp_data = play_data;
           }
           else if (play_data[0] && play_data[0].type && play_data[0].type == "cheat") {

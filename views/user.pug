@@ -41,7 +41,7 @@ html(lang="en")
           select(id="active_games_lst")
             option(value=-1) No Selection
             each val, idx in a_games
-              option(value=idx) #{val}
+              option(value=idx) #{val.name}
         else 
           |No Active Games
         input(id="active_games_btn" type="button" class="button" value="Go play!" height="35" width="50")

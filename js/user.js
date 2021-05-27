@@ -102,7 +102,7 @@ class User {
     let ret_val = [];
 
     this.active_games.forEach((item, i) => {
-      ret_val.push(item.name);
+      ret_val.push({"name" : item.name, "port" : item.port});
     });
 
     return ret_val;

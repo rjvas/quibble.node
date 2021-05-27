@@ -28,8 +28,8 @@ html(lang="en")
                 input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
                 label(for="cur_user_"+idx) #{val.user_name}
               div(class="cur_user_delete")
-                input(id="user_save_btn_"+idx type="button" class="user_save_btn" value="Save" height="35" width="50")
-                input(id="user_delete_btn_"+idx type="button" class="user_delete_btn" value="Delete" height="35" width="50")
+                input(id="user_save_btn_"+idx type="button" class="button" value="Save" height="35" width="50")
+                input(id="user_delete_btn_"+idx type="button" class="button" value="Delete" height="35" width="50")
               
         else 
           |No logged in Users
@@ -66,6 +66,12 @@ html(lang="en")
             option(value=-1) No Selection
             each val, idx in user_a_games
               option(value=idx) #{val}
+
+      #chat
+        #chat_text
+        textarea(id="chat_send_text" rows="2" cols="30" wrap="hard" placeholder="Type here ...")
+        input(id="chat_send_btn" type="button" class="button" value="Send")
+
           
     #all_active_games
       |All Active Games

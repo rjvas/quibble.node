@@ -660,7 +660,7 @@ function handle_err_response(resp) {
   repatriate_played_tiles();
 }
 
-function update_scoreboard(data) {
+function update_scoreboard(item, data) {
   let ret_val = true;
   if (data.scoreboard_player_1_name) {
     item = document.getElementById("scoreboard_player_1");
@@ -675,6 +675,8 @@ function update_scoreboard(data) {
     item = document.getElementById("scoreboard_player_2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   } else if (data.tiles_left_value >= 0) {
+    item = document.getElementById("tiles_area");
+    item.setAttributeNS(null, "fill", "white");
     item = document.getElementById("scoreboard_tiles_left_value");
     if (item) item.textContent = data.tiles_left_value;
   } else
@@ -710,7 +712,7 @@ function handle_the_response(resp) {
     // now update the play data
     let item = null;
     for (let i = 0; i < new_data.length; i++) {
-      if (update_scoreboard(new_data[i])) {
+      if (update_scoreboard(item, new_data[i])) {
         ;
       } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
@@ -1085,7 +1087,7 @@ function update_the_board(resp) {
     // now update the play data
     let item = null;
     for (let i = 0; i < new_data.length; i++) {
-      if (update_scoreboard(new_data[i])) {
+      if (update_scoreboard(item, new_data[i])) {
         ;
       } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
@@ -1106,7 +1108,8 @@ function handle_exchange(resp) {
 
   // update the scoreboard
   for (let i = 0; i < new_data.length; i++) {
-    if (update_scoreboard(new_data[i])) {
+    let item;
+    if (update_scoreboard(item, new_data[i])) {
       ;
     }
   }
@@ -1123,7 +1126,8 @@ function handle_exchange(resp) {
 function handle_pass(resp) {
   // update the scoreboard
   for (let i = 0; i < resp[0].new_data.length; i++) {
-    if (update_scoreboard(resp[0].new_data[i])) {
+    let item;
+    if (update_scoreboard(item, resp[0].new_data[i])) {
       ;
     }
   }
@@ -1237,7 +1241,8 @@ ws.onmessage = function(msg) {
       // update the scoreboard
       let new_data = resp[0].new_data;
       for (let i = 0; i < new_data.length; i++) {
-        if (update_scoreboard(new_data[i])) {
+        let item;
+        if (update_scoreboard(item, new_data[i])) {
           ;
         }
       }
