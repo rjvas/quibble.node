@@ -51,7 +51,7 @@ function changed_active_game(event) {
   cur_chat_port = event.currentTarget.selectedOptions[0].value;
 
   if (cur_chat_port) {
-    // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
+    // cur_chat_ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
     cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port);
 
     cur_chat_ws.onmessage = function(msg) {

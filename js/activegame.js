@@ -50,56 +50,62 @@ class ActiveGame {
     let q = { name_time : game_js.name_time };
     let update = { $set:  game_js};
 
-    const options = { upsert: true };
-    var result = db.get_db().collection("games").updateOne(q, update, options)
-      .then((result) => {
-        if (result) {
-          a_game_js = this.get_JSON();
-          if (result.upsertedId)
-            a_game_js.game_id = result.upsertedId._id;
-          q = { name: a_game_js.name };
-          update = {$set : a_game_js};
+    try {
+      const options = { upsert: true };
+      var result = db.get_db().collection("games").updateOne(q, update, options)
+        .then((result) => {
+          if (result) {
+            a_game_js = this.get_JSON();
+            if (result.upsertedId)
+              a_game_js.game_id = result.upsertedId._id;
+            q = { name: a_game_js.name };
+            update = {$set : a_game_js};
 
-          logger.debug("activegame.save (1) result: ", result);
+            logger.debug("activegame.save (1) " + a_game_js.name + " result: ", result);
 
-          return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
-        }
-      })
-      .then((agame_result) => {
-        // if (and_close) {
-        //   // take it out of the active games list
-        //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
-        //
-        //   // if it's a practice game, only one user/player
-        //   this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
-        //   if (!(this.status & ActiveGame.practice)) {
-        //     this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
-        //   }
-        //   this.send_msg("Game saved and closed! Return to home_page!", player);
-        // }
-
-        // if it was upserted, stuff the newly saved AGame into the user's saved_games list
-        logger.debug("activegame.save (2) agame_result: ", agame_result);
-
-        if (agame_result.upsertedId) {
-          q = {"_id": agame_result.upsertedId._id};
-          return new_agame_res = db.get_db().collection('active_games').findOne(q);
-        }
-
-      })
-      .then((new_agame_res) => {
-        if (new_agame_res) {
-          // if it's a practice game, only one user/player
-          this.user1.saved_games.push(new_agame_res);
-          if (!(this.status & ActiveGame.practice)) {
-            this.user2.saved_games.push(new_agame_res);
+            return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
           }
-          logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
-        }
-      })
-      .catch((e) => {
-        logger.error("activegame.save: ", e);
-      });
+        })
+        .then((agame_result) => {
+          // if (and_close) {
+          //   // take it out of the active games list
+          //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
+          //
+          //   // if it's a practice game, only one user/player
+          //   this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
+          //   if (!(this.status & ActiveGame.practice)) {
+          //     this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
+          //   }
+          //   this.send_msg("Game saved and closed! Return to home_page!", player);
+          // }
+
+          // if it was upserted, stuff the newly saved AGame into the user's saved_games list
+          logger.debug("activegame.save (2) agame_result: ", agame_result);
+
+          if (agame_result.upsertedId) {
+            q = {"_id": agame_result.upsertedId._id};
+            return new_agame_res = db.get_db().collection('active_games').findOne(q);
+          }
+
+        })
+        .then((new_agame_res) => {
+          if (new_agame_res) {
+            // if it's a practice game, only one user/player
+            this.user1.saved_games.push(new_agame_res);
+            if (!(this.status & ActiveGame.practice)) {
+              this.user2.saved_games.push(new_agame_res);
+            }
+            logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
+          }
+        })
+        .catch((e) => {
+          logger.error("activegame.save: " + a_game_js.name, e);
+        });
+    }
+    catch (exception_var) {
+      console.log("exception thrown in SAVE!! " + a_game_js.name);
+      console.dir(exception_var);
+    }
   }
 
 
@@ -107,8 +113,8 @@ class ActiveGame {
     return {
       "name" : this.name,
       "game_id" : this.game_id,
-      "user1_id" : this.user1.id,
-      "user2_id" : this.user2.id,
+      "user1_id" : this.user1 ? this.user1.id : -1,
+      "user2_id" : this.user2 ? this.user2.id : -1,
       "status" : this.status,
     }
   }
