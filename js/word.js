@@ -324,6 +324,8 @@ class Word {
     // a stack of orthogonal tiles to test for wordishness
     var ortho = [];
 
+    var cword;
+
     // always go left to right, top down
     if (orientation == Word.ORIENTATIONS.HORIZ) {
       let t = tile;
@@ -340,7 +342,9 @@ class Word {
         t = t.right;
       }
       // by now the first word is done
-      this.check_words.push(w.join(""));
+      cword = w.join("");
+      if (!this.check_words.includes(cword))
+        this.check_words.push(cword);
       while (ortho.length > 0) {
         t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)
@@ -371,7 +375,9 @@ class Word {
         t = t.down;
       }
       // by now the first word is done
-      this.check_words.push(w.join(""));
+      cword = w.join("");
+      if (!this.check_words.includes(cword))
+        this.check_words.push(cword);
       while (ortho.length > 0) {
         t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)

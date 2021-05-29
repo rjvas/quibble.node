@@ -42,6 +42,35 @@ class ActiveGame {
 
   static all_active = [];
 
+  update_all_agame_lists(new_agame_res) {
+    // update this
+    this.game_id = new_agame_res.game_id;
+    this.game_id_str = this.game_id.toHexString();
+    this.game.id = this.game_id;
+
+    // ActiveGame.all_active = ActiveGame.all_active.filter(ag => {
+    //   return ag.name != new_agame_res.name;
+    // });
+    // ActiveGame.all_active.push(new_agame_res);
+    //
+    // // user1 lists
+    // this.user1.active_games = this.user1.active_games.filter(ag => {
+    //   return ag.name != new_agame_res.name;
+    // });
+    // this.user1.active_games.push(new_agame_res);
+    // this.user1.saved_games.push(new_agame_res);
+    //
+    // // user2 lists
+    // this.user2.active_games = this.user2.active_games.filter(ag => {
+    //   return ag.name != new_agame_res.name;
+    // });
+    // this.user2.active_games.push(new_agame_res);
+    // // if it's a practice game, only one user/player
+    // if (!(this.status & ActiveGame.practice)) {
+    //   this.user2.saved_games.push(new_agame_res);
+    // }
+  }
+
   save(and_close, player) {
     let agame_result = null;
     let new_agame_res = null;
@@ -90,11 +119,7 @@ class ActiveGame {
         })
         .then((new_agame_res) => {
           if (new_agame_res) {
-            // if it's a practice game, only one user/player
-            this.user1.saved_games.push(new_agame_res);
-            if (!(this.status & ActiveGame.practice)) {
-              this.user2.saved_games.push(new_agame_res);
-            }
+            this.update_all_agame_lists(new_agame_res);
             logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
           }
         })
@@ -259,14 +284,6 @@ class ActiveGame {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
-        let a_game = ActiveGame.all_active.find(g => {
-          return g.ws_server.clients.has(socket);
-        });
-        if (a_game) {
-          a_game.connects = a_game.connects.filter(s => s !== socket);
-          logger.debug("activegame.socket.on.close: a_game.name: " + a_game.name +
-            " port: " + a_game.port + " player: " + player.name);
-        }
       });
     });
 

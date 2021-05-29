@@ -78,7 +78,7 @@ function changed_active_game(event) {
 function clicked_chat_send_btn(event) {
 
   if (!cur_chat_port) {
-    document.alert("No chat port set up!")
+    window.alert("No chat port set up!")
     return;
   }
 
@@ -94,34 +94,46 @@ function clicked_chat_send_btn(event) {
   }
 }
 
+let broadcast_msg = null;
+
 function clicked_broadcast_btn(event) {
 
   // get all active_games
-  if (!cur_chat_port) {
-    document.alert("No chat port set up!")
-    return;
-  }
-
   let ags = document.getElementById("all_active_games_lst");
   let txt = document.getElementById("chat_send_text");
+  let tmp_port;
+  let tmp_ws;
+  let msg = [];
 
-  if (txt) {
-    ags.options.forEach((item, i) => {
-      cur_chat_port = item.value;
+  if (txt && ags) {
+    for (i=1; i< ags.options.length; i++) {
+      tmp_port = ags.options[i].value;
+      broadcast_msg = [];
+      broadcast_msg.push({"type" : "chat"});
+      broadcast_msg.push({"player" : "sysadmin"});
+      broadcast_msg.push({"info" : txt.value});
 
-      // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
-      cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port);
-
-      let msg = [];
-      msg.push({"type" : "chat"});
-      msg.push({"player" : "sysadmin"});
-      msg.push({"info" : txt.value});
-      txt.value = "";
-
-      cur_chat_ws.send(JSON.stringify(msg));
-    });
-
+      // tmp_ws = new WebSocket('ws://drawbridgecreativegames.com:' + tmp_port);
+      tmp_ws = new WebSocket('ws://192.168.0.16:' + tmp_port);
+    }
   }
+
+  tmp_ws.onmessage = function(msg) {
+    let chat = document.getElementById("chat_text");
+    let resp = JSON.parse(msg.data);
+    chat.innerHTML += "<br><br><b>" + resp[1].player + "</b>:<br>" + resp[2].info;
+    console.log("tmp_ws in onmessage: data = " + msg.data);
+  }
+
+  tmp_ws.onopen = function() {
+    tmp_ws.send(JSON.stringify(msg));
+  };
+  tmp_ws.onerror = function(msg) {
+    console.log("tmp_ws in get socket: error " + msg);
+  };
+  tmp_ws.onclose = function(msg) {
+    console.log("tmp_ws in get socket: close " + msg);
+  };
 }
 
 // sysadmin can chat with players in an active game
