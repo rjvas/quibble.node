@@ -136,7 +136,8 @@ class Tile {
       x: this.x,
       y: this.y,
       row: this.row,
-      col: this.col,
+      col: this.column,
+      status : this.status,
       player_hand_idx: this.player_hand_idx
     };
   }
@@ -631,25 +632,29 @@ function set_tile_props(jtile) {
 
 function get_played_JSONS() {
   let jsons = [];
-  let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  tile_svgs.forEach(item => {
-    let x = item.getAttributeNS(null, "x");
-    let y = item.getAttributeNS(null, "y");
-    let col = Math.round(x / CELL_SIZE) + 1;
-    let row = Math.round(y / CELL_SIZE) + 1;
-    // if these are the played tiles ...
-    if (x >= 0 && y >= 0 &&
-      x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
-      jsons.push({
-        id: item.id,
-        char: item.childNodes[1].textContent,
-        x: x,
-        y: y,
-        row: row,
-        col: col
-      });
-    }
+  PlayStarts.forEach((item, i) => {
+    jsons.push(item.get_JSON());
   });
+
+  // let tile_svgs = document.querySelectorAll('.player_tile_svg');
+  // tile_svgs.forEach(item => {
+  //   let x = item.getAttributeNS(null, "x");
+  //   let y = item.getAttributeNS(null, "y");
+  //   let col = Math.round(x / CELL_SIZE) + 1;
+  //   let row = Math.round(y / CELL_SIZE) + 1;
+  //   // if these are the played tiles ...
+  //   if (x >= 0 && y >= 0 &&
+  //     x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
+  //     jsons.push({
+  //       id: item.id,
+  //       char: item.childNodes[1].textContent,
+  //       x: x,
+  //       y: y,
+  //       row: row,
+  //       col: col
+  //     });
+  //   }
+  // });
   return jsons;
 }
 
@@ -1005,7 +1010,7 @@ function tile_moved(new_position) {
       PlayerHand.remove(tile);
       PlayTrash.push(tile);
     }
-    // the tile may have been moved off the board
+    // on the board
     else if (row <= NUM_ROWS_COLS && row > 0 &&
       col <= NUM_ROWS_COLS && col > 0) {
       tile.status |= Tile.on_board;
@@ -1022,22 +1027,6 @@ function tile_moved(new_position) {
       }
     }
   }
-}
-
-function get_tile_json(svg, idx) {
-  let x = svg.getAttributeNS(null, "x");
-  let y = svg.getAttributeNS(null, "y");
-  let col = Math.round(x / CELL_SIZE) + 1;
-  let row = Math.round(y / CELL_SIZE) + 1;
-  return {
-    id: svg.id,
-    char: svg.childNodes[1].textContent,
-    x: x,
-    y: y,
-    row: row,
-    column: col,
-    player_hand_idx: idx
-  };
 }
 
 // Only called on a page load

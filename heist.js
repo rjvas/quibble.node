@@ -263,6 +263,7 @@ function startup() {
         if (u2)
           User.pickup_gamers = User.pickup_gamers.filter(g => g != pickup_name);
       }
+
       if (u1 && u2) {
         CurrentAGame = new ActiveGame(u1, u2, ActiveGame.in_play);
         ActiveGame.all_active.push(CurrentAGame);
@@ -281,8 +282,8 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
 
-        logger.debug("heist.listen: <new_pickup_game> port: " + CurrentAGame.port + " remote_addr: " +
-          remote_addr + " user.request_addr: " + ugv.user.request_addr);
+        logger.debug("heist.listen: <new_pickup_game> " + CurrentAGame.name + " port: "
+          + CurrentAGame.port + " remote_addr: " + remote_addr);
       }
       else {
         logger.error("heist.listen: <new_pickup_game> u1: ", u1, " u2: ", u2);

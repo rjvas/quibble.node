@@ -42,35 +42,6 @@ class ActiveGame {
 
   static all_active = [];
 
-  update_all_agame_lists(new_agame_res) {
-    // update this
-    this.game_id = new_agame_res.game_id;
-    this.game_id_str = this.game_id.toHexString();
-    this.game.id = this.game_id;
-
-    // ActiveGame.all_active = ActiveGame.all_active.filter(ag => {
-    //   return ag.name != new_agame_res.name;
-    // });
-    // ActiveGame.all_active.push(new_agame_res);
-    //
-    // // user1 lists
-    // this.user1.active_games = this.user1.active_games.filter(ag => {
-    //   return ag.name != new_agame_res.name;
-    // });
-    // this.user1.active_games.push(new_agame_res);
-    // this.user1.saved_games.push(new_agame_res);
-    //
-    // // user2 lists
-    // this.user2.active_games = this.user2.active_games.filter(ag => {
-    //   return ag.name != new_agame_res.name;
-    // });
-    // this.user2.active_games.push(new_agame_res);
-    // // if it's a practice game, only one user/player
-    // if (!(this.status & ActiveGame.practice)) {
-    //   this.user2.saved_games.push(new_agame_res);
-    // }
-  }
-
   save(and_close, player) {
     let agame_result = null;
     let new_agame_res = null;
@@ -79,67 +50,55 @@ class ActiveGame {
     let q = { name_time : game_js.name_time };
     let update = { $set:  game_js};
 
-    try {
-      const options = { upsert: true };
-      var result = db.get_db().collection("games").updateOne(q, update, options)
-        .then((result) => {
-          if (result) {
-            a_game_js = this.get_JSON();
-            if (result.upsertedId)
-              a_game_js.game_id = result.upsertedId._id;
-            q = { name: a_game_js.name };
-            update = {$set : a_game_js};
+    const options = { upsert: true };
+    var result = db.get_db().collection("games").updateOne(q, update, options)
+      .then((result) => {
+        if (result) {
+          a_game_js = this.get_JSON();
+          if (result.upsertedId)
+            a_game_js.game_id = result.upsertedId._id;
+          q = { name: a_game_js.name };
+          update = {$set : a_game_js};
 
-            logger.debug("activegame.save (1) " + a_game_js.name + " result: ", result);
+          logger.debug("activegame.save (1) " + a_game_js.name + " result: ", result);
 
-            return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
-          }
-        })
-        .then((agame_result) => {
-          // if (and_close) {
-          //   // take it out of the active games list
-          //   ActiveGame.all_active = ActiveGame.all_active.filter(ag => ag.name != this.name);
-          //
-          //   // if it's a practice game, only one user/player
-          //   this.user1.active_games = this.user1.active_games.filter(ag => ag.name != this.name);
-          //   if (!(this.status & ActiveGame.practice)) {
-          //     this.user2.active_games = this.user2.active_games.filter(ag => ag.name != this.name);
-          //   }
-          //   this.send_msg("Game saved and closed! Return to home_page!", player);
-          // }
+          return agame_result = db.get_db().collection("active_games").updateOne(q, update, options)
+        }
+      })
+      .then((agame_result) => {
+        // if it was upserted, stuff the newly saved AGame into the user's saved_games list
+        logger.debug("activegame.save (2) agame_result: ", agame_result);
 
-          // if it was upserted, stuff the newly saved AGame into the user's saved_games list
-          logger.debug("activegame.save (2) agame_result: ", agame_result);
+        if (agame_result.upsertedId) {
+          q = {"_id": agame_result.upsertedId._id};
+          return new_agame_res = db.get_db().collection('active_games').findOne(q);
+        }
 
-          if (agame_result.upsertedId) {
-            q = {"_id": agame_result.upsertedId._id};
-            return new_agame_res = db.get_db().collection('active_games').findOne(q);
-          }
-
-        })
-        .then((new_agame_res) => {
-          if (new_agame_res) {
-            this.update_all_agame_lists(new_agame_res);
-            logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
-          }
-        })
-        .catch((e) => {
-          logger.error("activegame.save: " + a_game_js.name, e);
-        });
-    }
-    catch (exception_var) {
-      console.log("exception thrown in SAVE!! " + a_game_js.name);
-      console.dir(exception_var);
-    }
+      })
+      .then((new_agame_res) => {
+        if (new_agame_res) {
+          // update this
+          this.game_id = new_agame_res.game_id;
+          this.game_id_str = this.game_id.toHexString();
+          this.game.id = this.game_id;
+          this.user1.saved_games.push(new_agame_res);
+          // if it's a practice game, only one user/player
+          if (!(this.status & ActiveGame.practice))
+            this.user2.saved_games.push(new_agame_res);
+          logger.debug("activegame.save (3) new_agame_res: ", new_agame_res);
+        }
+      })
+      .catch((e) => {
+        logger.error("activegame.save: " + a_game_js.name, e);
+      });
   }
-
 
   get_JSON() {
     return {
       "name" : this.name,
       "game_id" : this.game_id,
-      "user1_id" : this.user1 ? this.user1.id : -1,
-      "user2_id" : this.user2 ? this.user2.id : -1,
+      "user1_id" : this.user1 ? this.user1.id : null,
+      "user2_id" : this.user2 ? this.user2.id : null,
       "status" : this.status,
     }
   }
@@ -263,7 +222,11 @@ class ActiveGame {
             return;
           }
           else {
+            console.log("activegame.onmessage pre-finish_the_play player: ", player);
+            console.dir(play_data);
             resp_data = a_game.game.finish_the_play(player, play_data);
+            console.log("activegame.onmessage post-finish_the_play player: ", player);
+            console.dir(resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {

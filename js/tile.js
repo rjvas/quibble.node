@@ -26,7 +26,7 @@ module.exports = mongoose.model('Tile', TileSchema);
 */
 
 class Tile {
-  constructor (id, char, points, safe, row, column, player) {
+  constructor (id, char, points, safe, row, column, status, player) {
     if (id != 0) {
       this.id = id;
       // Tile.last_id = Math.max(id, Tile.last_id);
@@ -46,6 +46,7 @@ class Tile {
     this.left = null;
     this.right = null;
     this.states = [];
+    this.status = status;
   }
 
   get_JSON() {
@@ -61,6 +62,7 @@ class Tile {
       "is_safe" : this.is_safe,
       "row" : this.row,
       "column" : this.column,
+      "status" : this.status,
       "fill" : fill,
       "player_id" : this.player ? this.player.id : -1,
       "player_hand_idx" : this.player_hand_idx
@@ -150,16 +152,6 @@ class Tile {
     return this.states.pop();
   }
 
-  set_tool_tips(words) {
-    // let tile_rect = this.svg.childNodes[Tile.RECT_POSITION];
-    // tile_rect.setAttributeNS(null, 'class', "tooltip")
-    // this.svg.setAttributeNS(null, 'class', "tooltip")
-    // this.svg.childNodes[Tile.TEXT_POSITION].setAttributeNS(null, 'class', 'tooltiptext');
-    // this.svg.childNodes[Tile.TEXT_POSITION].setAttributeNS(null, 'innerHTML', words);
-    // this.svg.childNodes[Tile.TEXT_POSITION].append("<title>A blue box</title>");
-    // this.svg.childNodes[Tile.RECT_POSITION].append("<title>A blue box</title>");
-  }
-
   static last_id = 0;
   static RECT_POSITION = 0;
   static TEXT_POSITION = 1;
@@ -169,9 +161,16 @@ class Tile {
 
   static TileState = TileState;
 
+  static none = -1;
+  static in_hand = 1;
+  static on_board = 2;
+  static trashed = 4;
+  static is_blank = 8;
+  static is_magic_s = 16;
+
   static new_tile_json(json, player) {
     let t = new Tile(json.id, json.char, json.points, json.is_safe, json.row,
-      json.column, player);
+      json.column, json.status, player);
     t.word_id = json.word_id;
     t.player_hand_idx = json.player_hand_idx;
     t.player = player;
@@ -197,7 +196,6 @@ class Tile {
     // DEBUG: remove this line!!!
     // tmp_count = 17;
 
-    // TODO: the randomization here is stupid - make it better
     while (tmp_count != 0) {
       var rand_idx = Math.floor(Math.random() * (max - min)) + min;
 
@@ -212,19 +210,6 @@ class Tile {
       else {
         tmp_tile_defs.defs.splice(rand_idx, 1);
         max = (tmp_tile_defs.defs.length - 1);
-
-        // Getting hits is less and less likely as the counts go to 0. If the
-        // tmp_count is less than 15 just stuff the rest in the tile_pool
-        // if (tmp_count < 15) {
-        //   for (let i = 0; i < tmp_tile_defs.defs.length; i++) {
-        //     while (tmp_tile_defs.defs[i].count > 0) {
-        //       tmp_tile_defs.defs[i].count--;
-        //       game.tile_pool.push(new Tile(0, tmp_tile_defs.defs[i].char,
-        //         tmp_tile_defs.defs[i].points, tmp_tile_defs.defs[i].is_safe, -1, -1, null));
-        //     }
-        //   }
-        //   break;
-        // }
       }
     }
     logger.info("Tile initialised");

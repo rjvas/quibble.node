@@ -274,10 +274,14 @@ class Game {
     if (this.current_play && this.current_player == player) {
       data.forEach((item, i) => {
         let id = parseInt(item.id.split("_")[1]);
-        let t = player.tiles.find(tile => {
+        let t = player.tiles.find((tile, i) => {
           if (tile == null) return;
-          else if (tile.id == id)
+          else if (tile.id == id) {
+            // have to convert player_hand_idx between client and Server
+            // due to ability to rearrange tiles in the player-hand
+            tile.player_hand_idx = i;
             return tile;
+          }
         });
         // remove from player's hand place on the board
         if (t) {
@@ -285,7 +289,7 @@ class Game {
           t.row = item.row;
           t.column = item.col;
           // if this is a blank tile, set the character (sent in the play_data)
-          if (t.char == BLANK_TILE) {
+          if (t.status && Tile.is_blank) {
             t.char = item.char;
           }
           played_tiles.push(t);
@@ -300,8 +304,8 @@ class Game {
     var ret_val = [];
 
     played_tiles.forEach((item, i) => {
-      Tile.set_adjacencies(this, item);
       this.played_tiles.push(item);
+      Tile.set_adjacencies(this, item);
       this.update_play(item);
       this.new_word.addLetter(item, this.current_player);
     });
