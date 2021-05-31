@@ -325,7 +325,7 @@ class ActiveGame {
           logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
           let player = null;
           ActiveGame.all_active.push(new_ag);
-          if (new_ag.status && ActiveGame.practice) {
+          if (new_ag.status & ActiveGame.practice) {
             new_ag.game.current_player == new_ag.game.player_1 ?
               player = "/player1" : player = "/player2";
           }

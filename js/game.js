@@ -242,9 +242,12 @@ class Game {
     let ret_val = [];
     let play = this.current_play;
     play.tiles.forEach((item, i) => {
+      if (item.status && Tile.is_blank) {
+        item.char = BLANK_TILE;
+      }
       // need to revert state BEFORE Getting
       // the json state for the client - this keeps
-      // stolen tiles from reverting to the wrongs
+      // stolen tiles from reverting to the wrong
       // player hand. Also, the revert_state returns false
       // if there is no valid revert for this play.
       if (item.revert_state(this, play) && item.player == this.current_player) {

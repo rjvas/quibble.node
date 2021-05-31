@@ -776,16 +776,17 @@ function get_player_hand_JSONS() {
   return jsons;
 }
 
-function erase_player_hand() {
-  let tile_svgs = document.querySelectorAll('.player_tile_svg');
+function erase_player_hand(jsons) {
   let back_fill = AppSpace.getAttributeNS(null, "fill");
-  for (let i = 0; i < tile_svgs.length; i++) {
-    let item = tile_svgs[i];
+
+  for (let i = 0; i < jsons.length; i++) {
+    let tile = PlayerHand.tiles[jsons[i].player_hand_idx];
     // don't get the magic S
-    if (i != 7) {
-      item.childNodes[0].setAttributeNS(null, "fill", "white");
-      item.childNodes[1].setAttributeNS(null, "stroke", "white");
-      item.childNodes[2].setAttributeNS(null, "stroke", "white");
+    if (tile && jsons[i].player_hand_idx != 7) {
+      tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
+      tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
+      tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
+      PlayerHand.tiles[jsons[i].player_hand_idx] = null;
     }
   }
 }
@@ -841,12 +842,13 @@ function clicked_tiles_area(event) {
     if (PlayTrash.length == 0 &&
       window.confirm("Are you sure you want to trade all of your tiles?")) {
       jsons = get_player_hand_JSONS();
-      erase_player_hand();
+      erase_player_hand(jsons);
 
     } else if (PlayTrash.length > 0) {
       // roll back if no confirm
       if (window.confirm("Are you sure you want to trade " + PlayTrash.length + " of your tiles?")) {
         jsons = get_played_trash_JSONS();
+        erase_player_hand(jsons);
       }
       // move the trashed tiles back to the player tile area
       else {

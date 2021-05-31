@@ -107,22 +107,15 @@ class Tile {
         if (s.ctrl & TileState.setcol) {this.column = s.column;}
         if (s.ctrl & TileState.setplayer) {
           this.player = s.player;
-          // this.is_safe ? this.set_tile_color(this.player.tile_color_safe) :
-          //   this.set_tile_color(this.player.tile_color_risky);
         }
         if (s.ctrl & TileState.setissafe) {
           this.is_safe = s.is_safe;
-          // update the graphics
-          // this.is_safe ? this.set_tile_color(this.player.tile_color_safe) :
-          //   this.set_tile_color(this.player.tile_color_risky);
         }
         if (s.ctrl & TileState.setplayerhandidx) {
           // stuff it back in the player hand
           this.row = -1;
           this.column = -1;
           Tile.clear_adjacencies(game, this);
-          // this.svg.setAttributeNS(null, 'transform', "");
-          // this.drag = this.drag.position();
           this.player.tiles[this.player_hand_idx] = this;
           // make sure it has default 'is_safe'
           let def = game.tile_defs.defs.find(item => {
