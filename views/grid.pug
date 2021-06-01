@@ -156,7 +156,9 @@ html
           |#{game.player_2.total_points}
 
       foreignobject(id="chat_fo" class="node" x="560" y="185" width="250" height="250")
-        div(id="chat_text" height = "250" width = "250") //style="border: none")
+        div(id="chat_text" height="250" width="250" )
+          p(id=chat_para)
+            |!{a_game_chat_text}
       foreignobject(id="chat_send_fo" class="node" x="560" y="440" width="200" height="50")
         textarea(id="chat_send_text" rows="2" cols="30" wrap="hard" placeholder="Type here ...")
       foreignobject(id="chat_send_btn_fo" class="node" x="762" y="440" width="50" height="50")

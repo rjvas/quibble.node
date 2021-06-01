@@ -69,6 +69,8 @@ html(lang="en")
 
       #chat
         #chat_text
+          p(id=chat_para)
+            |!{a_game_chat_text}
         textarea(id="chat_send_text" rows="2" cols="25" wrap="hard" placeholder="Type here ...")
         input(id="chat_send_btn" type="button" class="button" value="Send")
         input(id="broadcast_btn" type="button" class="button" value="'Cast")

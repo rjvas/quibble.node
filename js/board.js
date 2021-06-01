@@ -1185,7 +1185,6 @@ function handle_game_over(info) {
 AppSpace = document.querySelectorAll('#wt_board')[0];
 
 var chat = document.getElementById("chat_text");
-chat.innerHTML = "<b>Salutations Worderists!</b>";
 
 var is_practice = document.getElementById("is_practice").value;
 

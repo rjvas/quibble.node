@@ -17,13 +17,14 @@ class ActiveGame {
       this.game = new Game(null, user1.display_name, user2.display_name);
       this.game_id = null;
       this.game_id_str = "temp_game_id_str_" + this.game.id ;
-    }
+      }
     else {
       this.game = Game.new_game_json(game);
       this.game_id = game._id;
       this.game_id_str = game._id.toHexString();
     }
 
+    this.chat_text = "<b>Salutations Worderists!</b>";
     this.name = this.game.name_time;
 
     this.connects = [];
@@ -188,7 +189,7 @@ class ActiveGame {
 
     // socket call backs - .on fires ONLY on the inital connection or if
     // the player refreshes the page. If a refresh occurs the original socket
-    // is deleted and a new socket created and 'pushed'2
+    // is deleted and a new socket created and 'pushed'
     ws_server.on('connection', function(socket) {
 
       // Both players requests for updates wind up here and are distinguished
@@ -203,18 +204,22 @@ class ActiveGame {
           let resp_data = null;
           let player = a_game.game.current_player;
           var play_data = JSON.parse(msg);
+          let player_name = "";
 
           // got a chat message
           if (play_data[0] && play_data[0].type && play_data[0].type == "chat") {
             if (play_data[1] && play_data[1].player != "sysadmin") {
-              let player_name = null;
               let user = play_data[1].player;
               if (a_game.user1 && a_game.user1.id.toHexString() == user)
                 player_name = a_game.user1.display_name;
               else if (a_game.user2)
                 player_name = a_game.user2.display_name;
               play_data[1].player = player_name;
+            } else {
+              player_name = play_data[1].player;
             }
+
+            a_game.chat_text += "<br><br><b> " + player_name + " </b>:<br> " + play_data[2].info;
             resp_data = play_data;
           }
           else if (play_data[0] && play_data[0].type && play_data[0].type == "cheat") {
