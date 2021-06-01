@@ -1130,14 +1130,15 @@ function toggle_player() {
   url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
 
   let game_id = document.getElementById("current_game_id").value;
+  let user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x, true);
+  xhr.open("GET", URL_x + "?game=" + game_id + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = URL_x + "?game=" + game_id;
+      document.location.href = URL_x + "?game=" + game_id + "&user=" + user;
     }
   }
 

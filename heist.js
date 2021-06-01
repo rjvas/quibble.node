@@ -90,7 +90,8 @@ function get_user_agame(remote_addr, query) {
   if (user) {
     if (game_id)
       agame = ActiveGame.all_active.find(g => {
-        return g.game_id_str == game_id;
+        return g.game_id_str == game_id ||
+              g.name == game_id;
       });
     else
       agame = ActiveGame.all_active.find(g => {
@@ -157,7 +158,11 @@ function startup() {
         user.active_games.push(CurrentAGame);
         pathname = "/player1";
         logger.info("NEW GAME!!");
-        response.end(CurrentAGame.game_id_str);
+        response.writeHead(302 , {
+           'Location' : pathname + "?game=" + CurrentAGame.name +
+            "&user=" + user.id.toHexString()
+        });
+        response.end();
       }
 
       logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +

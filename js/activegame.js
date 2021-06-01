@@ -16,7 +16,7 @@ class ActiveGame {
     if (!game) {
       this.game = new Game(null, user1.display_name, user2.display_name);
       this.game_id = null;
-      this.game_id_str = "temp_game_id_str_" + this.game.id ;
+      this.game_id_str = this.game.name_time;
       }
     else {
       this.game = Game.new_game_json(game);
@@ -227,11 +227,11 @@ class ActiveGame {
             return;
           }
           else {
-            console.log("activegame.onmessage pre-finish_the_play player: ", player);
-            console.dir(play_data);
+            // console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
+            // console.dir(play_data);
             resp_data = a_game.game.finish_the_play(player, play_data);
-            console.log("activegame.onmessage post-finish_the_play player: ", player);
-            console.dir(resp_data);
+            // console.log("activegame.onmessage post-finish_the_play player: ", player_name);
+            // console.dir(resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {

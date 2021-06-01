@@ -14,7 +14,7 @@ function new_practice_game() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          document.location.href = "/player1?" + this.responseText;
+          document.location.href = xhr.responseURL;
         }
     }
 
