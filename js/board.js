@@ -680,8 +680,6 @@ function update_scoreboard(item, data) {
     item = document.getElementById("scoreboard_player_2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   } else if (data.tiles_left_value >= 0) {
-    item = document.getElementById("tiles_area");
-    item.setAttributeNS(null, "fill", "white");
     item = document.getElementById("scoreboard_tiles_left_value");
     if (item) item.textContent = data.tiles_left_value;
   } else
@@ -986,6 +984,14 @@ function tile_moved(new_position) {
     return t && t.svg == svg
   });
 
+  // if the tile wasn't in the PlayerHand, it's in the
+  // PlayStarts array.
+  if (!tile) {
+    tile = PlayStarts.find(t => {
+      return t && t.svg == svg
+    });
+  }
+
   col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
   row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
 
@@ -1097,7 +1103,10 @@ function handle_exchange(resp) {
   let new_data = resp[0].new_data;
   let xchanged_tiles = resp[0].xchanged_tiles;
 
-  // update the scoreboard
+  // update the scoreboard - but first clear the tile
+  // image residue
+  let ta = document.getElementById("tiles_area");
+  ta.setAttributeNS(null, "fill", "white");
   for (let i = 0; i < new_data.length; i++) {
     let item;
     if (update_scoreboard(item, new_data[i])) {

@@ -161,21 +161,21 @@ class ActiveGame {
     };
 
     exec_str += "\"\'" + " ./js/*.json";
-    console.log(exec_str);
+    // console.log(exec_str);
 
     exec(exec_str, (err, stdout, stderr) => {
       if (err) {
         play_data[2].info = "No match for " + exec_str;
         socket.send(JSON.stringify(play_data));
-        console.error(err)
+        // console.error(err)
       } else {
        // the *entire* stdout and stderr (buffered)
        if (stdout) {
          play_data[2].info = stdout;
          socket.send(JSON.stringify(play_data));
        }
-       console.log(`stdout: ${stdout}`);
-       console.log(`stderr: ${stderr}`);
+       // console.log(`stdout: ${stdout}`);
+       // console.log(`stderr: ${stderr}`);
       }
     });
   }
@@ -227,11 +227,11 @@ class ActiveGame {
             return;
           }
           else {
-            // console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
-            // console.dir(play_data);
+            console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
+            console.dir(play_data);
             resp_data = a_game.game.finish_the_play(player, play_data);
-            // console.log("activegame.onmessage post-finish_the_play player: ", player_name);
-            // console.dir(resp_data);
+            console.log("activegame.onmessage post-finish_the_play player: ", player_name);
+            console.dir(resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {
