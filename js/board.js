@@ -231,39 +231,45 @@ class PlayerHand {
         for (let i = tile.player_hand_idx; i < to_idx; i++) {
           if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
             PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
-            PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
-            PlayerHand.tiles[i].column -= 1;
-            PlayerHand.tiles[i].player_hand_idx = i;
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
-            PlayerHand.tiles[i].drag.position();
+            if (PlayerHand.tiles[i]) {
+              PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
+              PlayerHand.tiles[i].column -= 1;
+              PlayerHand.tiles[i].player_hand_idx = i;
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
+              PlayerHand.tiles[i].drag.position();
+            }
           }
         }
       } else if (to_idx < tile.player_hand_idx) {
         for (let i = tile.player_hand_idx; i > to_idx; i--) {
           if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
             PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
-            PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
-            PlayerHand.tiles[i].column += 1;
-            PlayerHand.tiles[i].player_hand_idx = i;
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
-            PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
-            PlayerHand.tiles[i].drag.position();
+            if (PlayerHand.tiles[i]) {
+              PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
+              PlayerHand.tiles[i].column += 1;
+              PlayerHand.tiles[i].player_hand_idx = i;
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
+              PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
+              PlayerHand.tiles[i].drag.position();
+            }
           }
         }
       }
 
       PlayerHand.tiles[to_idx] = tile;
-      PlayerHand.tiles[to_idx].x = (to_idx + 16) * CELL_SIZE; // 0-based
-      PlayerHand.tiles[to_idx].column = to_idx + 17; // 1-based
-      PlayerHand.tiles[to_idx].y = 0;
-      PlayerHand.tiles[to_idx].player_hand_idx = to_idx;
-      PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[to_idx].x);
-      PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[to_idx].y);
-      PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "transfom", "");
-      PlayerHand.tiles[to_idx].drag.position();
+      if (PlayerHand.tiles[to_idx]) {
+        PlayerHand.tiles[to_idx].x = (to_idx + 16) * CELL_SIZE; // 0-based
+        PlayerHand.tiles[to_idx].column = to_idx + 17; // 1-based
+        PlayerHand.tiles[to_idx].y = 0;
+        PlayerHand.tiles[to_idx].player_hand_idx = to_idx;
+        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[to_idx].x);
+        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[to_idx].y);
+        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "transfom", "");
+        PlayerHand.tiles[to_idx].drag.position();
+      }
     }
   }
 
@@ -295,7 +301,7 @@ class PlayerHand {
     if (!exists) {
       if ((idx = PlayerHand.get_open_slot()) != -1) {
         PlayerHand.tiles[idx] = tile;
-        tile.status = Tile.in_hand;
+        tile.status |= Tile.in_hand;
         tile.hand_idx = idx;
         tile.x = (16 + idx) * CELL_SIZE;
         tile.y = 0;
@@ -1006,7 +1012,10 @@ function tile_moved(new_position) {
       // if it's the magic s being rearranged, don't let it
       if (tile.status & Tile.is_magic_s)
         PlayerHand.rearrange_hand(tile.svg, 7);
-      PlayStarts.pop();
+      // take it out of the PlayStarts
+      PlayStarts = PlayStarts.filter(ps => {
+        return ps.id != tile.id;
+      });
       // console.log("tile_moving - rearranged hand to: " + (col - 17));
     }
 
@@ -1119,8 +1128,6 @@ function handle_exchange(resp) {
     setup_tile_for_play(item, false);
   });
 
-  PlayStarts = [];
-  PlayTrash = [];
 }
 
 function handle_pass(resp) {
@@ -1269,6 +1276,10 @@ ws.onmessage = function(msg) {
   else {
     console.log("in onmessage: no play type");
   }
+
+  // leave a clean environment
+  PlayStarts = [];
+  PlayTrash = [];
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&

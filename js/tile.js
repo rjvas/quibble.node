@@ -81,6 +81,7 @@ class Tile {
   setup_for_play(player, pos, play) {
 
     this.player = player;
+    this.status = Tile.in_hand;
 
     player.tiles[pos] = this;
     this.player_hand_idx = pos;

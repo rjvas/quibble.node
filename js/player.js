@@ -100,7 +100,10 @@ class Player {
 
     if (initial) {
       let tile = game.get_tile("S");
-      if (tile) tile.setup_for_play(this, Player.num_player_tiles);
+      if (tile) {
+        tile.setup_for_play(this, Player.num_player_tiles);
+        tile.status |= Tile.is_magic_s;
+      }
     }
 
     return ret_val;

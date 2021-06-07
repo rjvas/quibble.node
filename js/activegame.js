@@ -133,16 +133,21 @@ class ActiveGame {
     });
     console.log("new_tiles:");
     logger.debug("new_tiles");
-    data[3].new_data[1].new_tiles.forEach((item, i) => {
-      console.dir(item);
-      logger.debug(item);
-    });
+    if (data[3] && data[3].new_data &&
+        data[3].new_data[1] && data[3].new_data[1].new_tiles)
+      data[3].new_data[1].new_tiles.forEach((item, i) => {
+        console.dir(item);
+        logger.debug(item);
+      });
+
     console.log("play_data:");
     logger.debug("play_data");
-    data[3].new_data[6].play_data.forEach((item, i) => {
-      console.dir(item);
-      logger.debug(item);
-    });
+    if (data[3] && data[3].new_data &&
+        data[3].new_data[6] && data[3].new_data[6].play_data)
+      data[3].new_data[6].play_data.forEach((item, i) => {
+        console.dir(item);
+        logger.debug(item);
+      });
   }
 
   cheat(socket, play_data) {
