@@ -116,6 +116,34 @@ class ActiveGame {
       "msg: " + msg);
   }
 
+  log_pre(player_name, data) {
+    console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
+    logger.debug("activegame.onmessage pre-finish_the_play player: ", player_name);
+    console.dir(data);
+    logger.debug(data);
+  }
+
+  log_post(player_name, data) {
+    console.log("activegame.onmessage post-finish_the_play player: ", player_name);
+    logger.debug("activegame.onmessage post-finish_the_play player: ", player_name);
+
+    data.forEach((item, i) => {
+      console.dir(item);
+      logger.debug(item);
+    });
+    console.log("new_tiles:");
+    logger.debug("new_tiles");
+    data[3].new_data[1].new_tiles.forEach((item, i) => {
+      console.dir(item);
+      logger.debug(item);
+    });
+    console.log("play_data:");
+    logger.debug("play_data");
+    data[3].new_data[6].play_data.forEach((item, i) => {
+      console.dir(item);
+      logger.debug(item);
+    });
+  }
 
   cheat(socket, play_data) {
     let user = play_data[1].player;
@@ -227,11 +255,11 @@ class ActiveGame {
             return;
           }
           else {
-            console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
-            console.dir(play_data);
+            a_game.log_pre(player, play_data);
+
             resp_data = a_game.game.finish_the_play(player, play_data);
-            console.log("activegame.onmessage post-finish_the_play player: ", player_name);
-            console.dir(resp_data);
+
+            a_game.log_post(player, resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {
