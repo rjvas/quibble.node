@@ -260,11 +260,11 @@ class ActiveGame {
             return;
           }
           else {
-            a_game.log_pre(player, play_data);
+            // a_game.log_pre(player, play_data);
 
             resp_data = a_game.game.finish_the_play(player, play_data);
 
-            a_game.log_post(player, resp_data);
+            // a_game.log_post(player, resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {

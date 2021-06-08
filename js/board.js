@@ -158,6 +158,7 @@ class Tile {
       this.column > 0 && this.column < 16) {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
+      PlayerHand.remove(this);
     } else if (PlayerHand.in_hand(row, col)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;
       if (!PlayerHand.add(this)) {
@@ -167,6 +168,7 @@ class Tile {
       this.column >= 18 && this.column <= 20) {
       this.status |= Tile.trashed;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
+      PlayerHand.remove(this);
     }
   }
 
@@ -713,11 +715,11 @@ function update_scoreboard(item, data) {
 function handle_the_response(resp) {
   var has_error = false;
   // error responses
-  if (resp[0].err_msg) {
+  if (resp && resp[0] && resp[0].err_msg) {
     handle_err_response(resp);
     has_error = true;
 
-  } else { // handle the data response
+  } else if (resp && resp[0]) { // handle the data response
     let new_data = resp[0].new_data;
     let word_tiles = resp[0].word_tiles;
 
