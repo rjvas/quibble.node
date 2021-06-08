@@ -182,7 +182,8 @@ class Tile {
 class PlayerHand {
   constructor() {}
   static tiles = [];
-  static squares = [{
+  static squares = [
+    {
       "row": 1,
       "column": 17
     },
@@ -216,60 +217,62 @@ class PlayerHand {
     }
   ];
 
+  static set_tile_attrs(idx, relative, value) {
+    if (PlayerHand.tiles[idx]) {
+      PlayerHand.tiles[idx].x = (idx + 16) * CELL_SIZE;
+
+      // set the col relative to last position or absolutely
+      // from the passed value
+      relative ? PlayerHand.tiles[idx].column += value :
+        PlayerHand.tiles[idx].column = value + 17;
+
+      PlayerHand.tiles[idx].y = 0;
+      PlayerHand.tiles[idx].row = 1; // 1-based
+      PlayerHand.tiles[idx].player_hand_idx = idx;
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[idx].x);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[idx].y);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "transfom", "");
+      PlayerHand.tiles[idx].drag.position();
+    }
+  }
+
   static rearrange_hand(svg, to_idx) {
 
     let tile = PlayerHand.tiles.find(t => {
       return t && t.svg == svg;
     });
 
+    if (!tile)
+      tile = PlayStarts.find(t => {
+        return t && t.svg == svg;
+      });
+
+    // want to accomdate tiles moved from the board, also
+    // if (tile && tile.status & Tile.in_hand && tile.player_hand_idx != to_idx) {
     // move the svgs and update the json.char and json.id
-    if (tile && tile.status & Tile.in_hand && tile.player_hand_idx != to_idx) {
-      // simple case - just stuff it in
-      if (PlayerHand.tiles[to_idx] == null) {
-        PlayerHand.tiles[to_idx] = tile;
-      } else if (to_idx > tile.player_hand_idx) {
-        for (let i = tile.player_hand_idx; i < to_idx; i++) {
-          if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
-            PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
-            if (PlayerHand.tiles[i]) {
-              PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
-              PlayerHand.tiles[i].column -= 1;
-              PlayerHand.tiles[i].player_hand_idx = i;
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
-              PlayerHand.tiles[i].drag.position();
-            }
-          }
+    if (tile) {
+      let ts = PlayerHand.tiles;
+      let os = PlayerHand.get_open_slot();
+
+      // if no open slot, shift in-place
+      if (os == -1) os = tile.player_hand_idx;
+
+      if (os < to_idx) { // shift to the left
+        for (let i = os; i < to_idx; i++) {
+          PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
+          PlayerHand.set_tile_attrs(i, true, -1);
         }
-      } else if (to_idx < tile.player_hand_idx) {
-        for (let i = tile.player_hand_idx; i > to_idx; i--) {
-          if (PlayerHand.tiles[i] && PlayerHand.tiles[i].status & Tile.in_hand) {
-            PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
-            if (PlayerHand.tiles[i]) {
-              PlayerHand.tiles[i].x = (i + 16) * CELL_SIZE;
-              PlayerHand.tiles[i].column += 1;
-              PlayerHand.tiles[i].player_hand_idx = i;
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "x", PlayerHand.tiles[i].x);
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "y", PlayerHand.tiles[i].y);
-              PlayerHand.tiles[i].svg.setAttributeNS(null, "transfom", "");
-              PlayerHand.tiles[i].drag.position();
-            }
-          }
+      }
+      else if (os > to_idx) { // shift to the right
+        for (let i = os; i > to_idx; i--) {
+          PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
+          PlayerHand.set_tile_attrs(i, true, 1);
         }
       }
 
+      // else, the case where to_idx is open - which, by now, it should be
       PlayerHand.tiles[to_idx] = tile;
-      if (PlayerHand.tiles[to_idx]) {
-        PlayerHand.tiles[to_idx].x = (to_idx + 16) * CELL_SIZE; // 0-based
-        PlayerHand.tiles[to_idx].column = to_idx + 17; // 1-based
-        PlayerHand.tiles[to_idx].y = 0;
-        PlayerHand.tiles[to_idx].player_hand_idx = to_idx;
-        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[to_idx].x);
-        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[to_idx].y);
-        PlayerHand.tiles[to_idx].svg.setAttributeNS(null, "transfom", "");
-        PlayerHand.tiles[to_idx].drag.position();
-      }
+      PlayerHand.set_tile_attrs(to_idx, false, to_idx);
     }
   }
 
@@ -637,30 +640,43 @@ function set_tile_props(jtile) {
 }
 
 function get_played_JSONS() {
-  let jsons = [];
-  PlayStarts.forEach((item, i) => {
-    jsons.push(item.get_JSON());
+  let check_jsons = [];
+  let tile_svgs = document.querySelectorAll('.player_tile_svg');
+
+  // for now, a sanity check
+  // DEBUG
+  tile_svgs.forEach(item => {
+    let x = item.getAttributeNS(null, "x");
+    let y = item.getAttributeNS(null, "y");
+    let col = Math.round(x / CELL_SIZE) + 0;
+    let row = Math.round(y / CELL_SIZE) + 0;
+    // if these are the played tiles ...
+    if (x >= -1 && y >= -1 &&
+      x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
+      check_jsons.push({
+        id: item.id,
+        row : row,
+        column : col
+      });
+    }
   });
 
-  // let tile_svgs = document.querySelectorAll('.player_tile_svg');
-  // tile_svgs.forEach(item => {
-  //   let x = item.getAttributeNS(null, "x");
-  //   let y = item.getAttributeNS(null, "y");
-  //   let col = Math.round(x / CELL_SIZE) + 1;
-  //   let row = Math.round(y / CELL_SIZE) + 1;
-  //   // if these are the played tiles ...
-  //   if (x >= 0 && y >= 0 &&
-  //     x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
-  //     jsons.push({
-  //       id: item.id,
-  //       char: item.childNodes[1].textContent,
-  //       x: x,
-  //       y: y,
-  //       row: row,
-  //       col: col
-  //     });
-  //   }
-  // });
+  let jsons = [];
+  PlayStarts.forEach((item, i) => {
+    if (cross_chk(item.id))
+      jsons.push(item.get_JSON());
+    else {
+      console.log(`ERROR: get_played_JSONS: ${item.char}/${item.id} not on the board`);
+    }
+  });
+
+  function cross_chk(id) {
+    for (let i = 0; i < check_jsons.length; i++) {
+      if (check_jsons[i].id == id) return true;
+    }
+    return false;
+  }
+
   return jsons;
 }
 
@@ -935,7 +951,7 @@ function tile_move_start(new_position) {
     }
   });
 
-  if (tile) {
+  if (tile && !PlayStarts.includes(tile, 0)) {
     PlayStarts.push(tile);
     // console.log("tile_move_start: ", tile.get_JSON());
   }
@@ -1038,10 +1054,14 @@ function tile_moved(new_position) {
           while (!char_regex.test(letter)) {
             letter = window.prompt("ONLY A SINGLE CHARACTER a-z or A-Z is acceptable!");
           }
-          svg.childNodes[TEXT_POSITION].textContent = letter.trim().toLowerCase();
+          tile.char = letter.trim().toLowerCase();
+          svg.childNodes[TEXT_POSITION].textContent = tile.char;
         }
         // console.log("blank tile moved: " + letter);
       }
+    }
+    else {
+      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
     }
   }
 }
@@ -1233,7 +1253,8 @@ ws.onmessage = function(msg) {
 
   console.log("in onmessage: type = " + type.type);
   console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  console.log("in onmessage: info = " + info.info);
+  if (info)
+    console.log("in onmessage: info = " + info.info);
 
   if (type.type == "game_over") {
     handle_game_over(info);

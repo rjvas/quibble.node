@@ -3,3 +3,5 @@ notes
 *.txt
 *.log
 *.zip
+*.swp
+*.gz

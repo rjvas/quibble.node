@@ -250,7 +250,7 @@ class Game {
       if (item.revert_state(this, play) && item.player == this.current_player) {
         ret_val.push(item.get_JSON());
       }
-      if (item.status && Tile.is_blank) {
+      if (item.status & Tile.is_blank) {
         item.char = BLANK_TILE;
       }
     });
@@ -292,7 +292,7 @@ class Game {
           t.row = item.row;
           t.column = item.col;
           // if this is a blank tile, set the character (sent in the play_data)
-          if (t.status && Tile.is_blank) {
+          if (t.status & Tile.is_blank) {
             t.char = item.char;
           }
           played_tiles.push(t);
