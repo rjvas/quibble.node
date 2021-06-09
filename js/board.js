@@ -154,8 +154,7 @@ class Tile {
     this.drag.position();
 
     // TODO: refact to Board.in_board, PlayerHand.in_hand, etc
-    if (this.row > 0 && this.row < 16 &&
-      this.column > 0 && this.column < 16) {
+    if (Tile.is_on_board(row, col)) {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
       PlayerHand.remove(this);
@@ -172,6 +171,8 @@ class Tile {
     }
   }
 
+  static word_tiles = [];
+
   // these are the legitimate tile states
   static none = -1;
   static in_hand = 1;
@@ -179,6 +180,39 @@ class Tile {
   static trashed = 4;
   static is_blank = 8;
   static is_magic_s = 16;
+
+  static is_collision(x,y, row,col) {
+    let collide = Tile.word_tiles.find((item, i) => {
+      let xl = item.getAttributeNS(null, "x");
+      let yl = item.getAttributeNS(null, "y");
+      let c = Math.round(xl / CELL_SIZE) + 1;
+      let r = Math.round(yl / CELL_SIZE) + 1;
+      return (r == row && c == col);
+    });
+    if (collide) return true;
+    else {
+      // check the 'just-played' tiles
+      collide = PlayStarts.find(item => {
+        return item.row == row && item.column == col;
+      });
+      if (collide) return true;
+    }
+    return false;
+  }
+
+  static is_in_trash(row, col) {
+    if (row >= 3 && row <= 5 &&
+      col >= 18 && col <= 20)
+      return true;
+    return false;
+  }
+
+  static is_on_board(row, col) {
+    if (row > 0 && row < 16 &&
+      col > 0 && col < 16)
+      return true;
+    return false;
+  }
 }
 
 class PlayerHand {
@@ -603,6 +637,7 @@ function setup_tile_for_play(tile, no_drag) {
       drag_rec.onDragEnd = tile_moved;
       drag_rec.onDragStart = tile_move_start;
 
+      drag_rec.autoScroll = true;
       drag_rec.containment = {
         left: 0,
         top: 0,
@@ -653,7 +688,7 @@ function get_played_JSONS() {
     let col = Math.round(x / CELL_SIZE) + 0;
     let row = Math.round(y / CELL_SIZE) + 0;
     // if these are the played tiles ...
-    if (x >= -1 && y >= -1 &&
+    if (x >= 0 && y >= 0 &&
       x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
       check_jsons.push({
         id: item.id,
@@ -754,6 +789,13 @@ function handle_the_response(resp) {
       }
     }
   }
+
+  // now stuff the word tiles into an easily accessable list - for drag control
+  Tile.word_tiles = [];
+  tile_svgs = document.querySelectorAll('.word_tile_svg');
+  tile_svgs.forEach((item, idx) => {
+    Tile.word_tiles.push(item);
+  });
 
   PlayStarts = [];
   return has_error;
@@ -974,13 +1016,19 @@ function tile_moving(new_position) {
   row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
   col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
 
+  let x = (col - 1) * CELL_SIZE;
+  let y = (row - 1) * CELL_SIZE;
+
   let svg = this.element;
 
   // if dragging within the player-hand area ...
-  if (row == 1 && col > 16 && col < 24) {
+  if (PlayerHand.in_hand(row, col)) {
     let cur_location_idx = col - 17;
     PlayerHand.rearrange_hand(svg, cur_location_idx);
     // console.log("tile_moving - player hand idx: " + (col - 17));
+  } else if (Tile.is_on_board(row, col)) {
+    // if we're moving into another tile, don't let it
+    if (Tile.is_collision(x, y, row, col)) return;
   }
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
@@ -989,8 +1037,8 @@ function tile_moving(new_position) {
   // with cycling through the player colors because setting the rect color
   // directly doesn't use the css translate. So, fix up the svg coords here.d
   svg.setAttributeNS(null, 'transform', "");
-  svg.setAttributeNS(null, 'x', (col - 1) * CELL_SIZE);
-  svg.setAttributeNS(null, 'y', (row - 1) * CELL_SIZE);
+  svg.setAttributeNS(null, 'x', x);
+  svg.setAttributeNS(null, 'y', y);
 
   // console.log('tile_moving - row: %d column: %d this.rect.width: %f Scale: %f',
   // row, col, this.rect.width, Scale);
@@ -1038,16 +1086,14 @@ function tile_moved(new_position) {
     }
 
     // TODO ugly
-    else if (row >= 3 && row <= 5 &&
-      col >= 18 && col <= 20) {
+    else if (Tile.is_in_trash(row, col)) {
       // console.log("tile to trash ...");
       tile.state |= Tile.trashed;
       PlayerHand.remove(tile);
       PlayTrash.push(tile);
     }
     // on the board
-    else if (row <= NUM_ROWS_COLS && row > 0 &&
-      col <= NUM_ROWS_COLS && col > 0) {
+    else if (Tile.is_on_board(row, col)) {
       tile.status |= Tile.on_board;
       PlayerHand.remove(tile);
       if (tile.status & Tile.is_blank) {
@@ -1077,6 +1123,7 @@ function setup_tiles_for_drag() {
     drag_rec.onMove = tile_moving;
     drag_rec.onDragEnd = tile_moved;
     drag_rec.onDragStart = tile_move_start;
+    drag_rec.autoScroll = true;
 
     drag_rec.containment = {
       left: 0,
@@ -1101,6 +1148,14 @@ function setup_tiles_for_drag() {
     else
       PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
   });
+
+  // now stuff the word tiles into an easily accessable list - for drag control
+  Tile.word_tiles = [];
+  tile_svgs = document.querySelectorAll('.word_tile_svg');
+  tile_svgs.forEach((item, idx) => {
+    Tile.word_tiles.push(item);
+  });
+
 }
 
 function update_the_board(resp) {
