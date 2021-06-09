@@ -834,7 +834,8 @@ function clicked_player_name(event) {
 function get_player_hand_JSONS() {
   let jsons = [];
   PlayerHand.tiles.forEach((item, i) => {
-    jsons.push(item.get_JSON());
+    if (!(item.status & Tile.is_magic_s))
+      jsons.push(item.get_JSON());
   });
 
   return jsons;

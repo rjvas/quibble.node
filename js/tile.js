@@ -81,7 +81,7 @@ class Tile {
   setup_for_play(player, pos, play) {
 
     this.player = player;
-    this.status = Tile.in_hand;
+    this.status |= Tile.in_hand;
 
     player.tiles[pos] = this;
     this.player_hand_idx = pos;
@@ -155,7 +155,7 @@ class Tile {
 
   static TileState = TileState;
 
-  static none = -1;
+  static in_pool = 0;
   static in_hand = 1;
   static on_board = 2;
   static trashed = 4;
@@ -197,7 +197,9 @@ class Tile {
         tmp_tile_defs.defs[rand_idx].count--;
         tmp_count--;
         t = new Tile(0, tmp_tile_defs.defs[rand_idx].char,
-          tmp_tile_defs.defs[rand_idx].points, tmp_tile_defs.defs[rand_idx].is_safe, -1, -1, null);
+          tmp_tile_defs.defs[rand_idx].points, tmp_tile_defs.defs[rand_idx].is_safe, -1, -1, Tile.in_pool,
+          null);
+        if (t.char == Tile.BLANK_TILE) t.status = Tile.is_blank;
         game.tile_pool.push(t);
       }
 
