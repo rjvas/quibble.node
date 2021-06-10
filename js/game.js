@@ -250,7 +250,8 @@ class Game {
       if (item.revert_state(this, play) && item.player == this.current_player) {
         ret_val.push(item.get_JSON());
       }
-      if (item.status & Tile.is_blank) {
+      if (this.new_word && this.new_word.tiles.includes(item) &&
+          item.status & Tile.is_blank) {
         item.char = BLANK_TILE;
       }
     });
