@@ -125,7 +125,7 @@ class Tile {
     this.svg = svg;
     this.drag = drag;
 
-    this.status = status;
+    this.status = status > -1 ? status : Tile.in_hand;
     if (this.char == BLANK_TILE) this.status |= Tile.is_blank;
   }
 
@@ -161,7 +161,7 @@ class Tile {
     } else if (PlayerHand.in_hand(row, col)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;
       if (!PlayerHand.add(this)) {
-        // probably already in hand - so, do nothing
+        console.error(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
       }
     } else if (this.row >= 3 && this.row <= 5 &&
       this.column >= 18 && this.column <= 20) {
@@ -171,17 +171,7 @@ class Tile {
     }
   }
 
-  static word_tiles = [];
-
-  // these are the legitimate tile states
-  static none = -1;
-  static in_hand = 1;
-  static on_board = 2;
-  static trashed = 4;
-  static is_blank = 8;
-  static is_magic_s = 16;
-
-  static is_collision(x,y, row,col) {
+  is_collision(x,y, row,col) {
     let collide = Tile.word_tiles.find((item, i) => {
       let xl = item.getAttributeNS(null, "x");
       let yl = item.getAttributeNS(null, "y");
@@ -193,12 +183,22 @@ class Tile {
     else {
       // check the 'just-played' tiles
       collide = PlayStarts.find(item => {
-        return item.row == row && item.column == col;
+        return item != this && item.row == row && item.column == col;
       });
       if (collide) return true;
     }
     return false;
   }
+
+  static word_tiles = [];
+
+  // these are the legitimate tile states
+  static none = 0;
+  static in_hand = 1;
+  static on_board = 2;
+  static trashed = 4;
+  static is_blank = 8;
+  static is_magic_s = 16;
 
   static is_in_trash(row, col) {
     if (row >= 3 && row <= 5 &&
@@ -274,9 +274,16 @@ class PlayerHand {
 
   static rearrange_hand(svg, to_idx) {
 
-    let tile = PlayerHand.tiles.find(t => {
+    let tile = PlayerHand.tiles.find((t,idx) => {
+      if (t && t.svg == svg && t.player_hand_idx != idx)
+        t.player_hand_idx = idx;
       return t && t.svg == svg;
     });
+
+    // if the tile is found in the hand, null the reference
+    // so we don't wind up with multiple copies of the same
+    // tile in the PlayerHand
+    if (tile) PlayerHand.tiles[tile.player_hand_idx] = null;
 
     if (!tile)
       tile = PlayStarts.find(t => {
@@ -284,7 +291,6 @@ class PlayerHand {
       });
 
     // want to accomdate tiles moved from the board, also
-    // if (tile && tile.status & Tile.in_hand && tile.player_hand_idx != to_idx) {
     // move the svgs and update the json.char and json.id
     if (tile) {
       let ts = PlayerHand.tiles;
@@ -870,7 +876,8 @@ function repatriate_played_tiles() {
     PlayStarts.forEach(item => {
       if (item.status & Tile.is_blank)
         item.svg.childNodes[TEXT_POSITION].textContent = " ";
-      PlayerHand.add(item);
+      if (!PlayerHand.add(item))
+        console.error(`repatriate_played_tiles: cannot add ${item.char}/${item.id} to PlayerHand`);
     });
   }
   PlayStarts = [];
@@ -996,10 +1003,17 @@ function tile_move_start(new_position) {
     }
   });
 
-  if (tile && !PlayStarts.includes(tile, 0)) {
+  // if the tile wasn't in the PlayerHand, it's in the
+  // PlayStarts array.
+  if (!tile) {
+    tile = PlayStarts.find(t => {
+      return t && t.svg == svg
+    });
+  }
+
+  if (tile && !PlayStarts.includes(tile, 0))
     PlayStarts.push(tile);
     // console.log("tile_move_start: ", tile.get_JSON());
-  }
 }
 
 function tile_moving(new_position) {
@@ -1021,6 +1035,16 @@ function tile_moving(new_position) {
   let y = (row - 1) * CELL_SIZE;
 
   let svg = this.element;
+  let tile = PlayerHand.tiles.find(t => {
+    return t && t.svg == svg
+  });
+  // if the tile wasn't in the PlayerHand, it's in the
+  // PlayStarts array.
+  if (!tile) {
+    tile = PlayStarts.find(t => {
+      return t && t.svg == svg
+    });
+  }
 
   // if dragging within the player-hand area ...
   if (PlayerHand.in_hand(row, col)) {
@@ -1029,7 +1053,7 @@ function tile_moving(new_position) {
     // console.log("tile_moving - player hand idx: " + (col - 17));
   } else if (Tile.is_on_board(row, col)) {
     // if we're moving into another tile, don't let it
-    if (Tile.is_collision(x, y, row, col)) return;
+    if (tile && tile.is_collision(x, y, row, col)) return;
   }
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
@@ -1057,6 +1081,9 @@ function tile_moved(new_position) {
     return t && t.svg == svg
   });
 
+  let x = svg.getAttributeNS(null, "x");
+  let y = svg.getAttributeNS(null, "y");
+
   // if the tile wasn't in the PlayerHand, it's in the
   // PlayStarts array.
   if (!tile) {
@@ -1069,7 +1096,8 @@ function tile_moved(new_position) {
   row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
 
   if (tile) {
-    tile.move(row, col);
+    if (!tile.is_collision(x, y, row, col))
+      tile.move(row, col);
 
     // console.log('finished drag at - row: %d column: %d', row, col);
 
@@ -1097,7 +1125,8 @@ function tile_moved(new_position) {
     else if (Tile.is_on_board(row, col)) {
       tile.status |= Tile.on_board;
       PlayerHand.remove(tile);
-      if (tile.status & Tile.is_blank) {
+      if (tile.status & Tile.is_blank &&
+          tile.char == BLANK_TILE) {
         letter = window.prompt("Please type the letter to use: ");
         if (letter) {
           while (!char_regex.test(letter)) {

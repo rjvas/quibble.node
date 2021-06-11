@@ -161,6 +161,7 @@ class Tile {
   static trashed = 4;
   static is_blank = 8;
   static is_magic_s = 16;
+  static utilized = 32;
 
   static new_tile_json(json, player) {
     let t = new Tile(json.id, json.char, json.points, json.is_safe, json.row,

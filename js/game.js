@@ -250,6 +250,7 @@ class Game {
       if (item.revert_state(this, play) && item.player == this.current_player) {
         ret_val.push(item.get_JSON());
       }
+      if (item.status & Tile.utilized) item.status ^= Tile.utilized;
       if (this.new_word && this.new_word.tiles.includes(item) &&
           item.status & Tile.is_blank) {
         item.char = BLANK_TILE;
@@ -262,7 +263,12 @@ class Game {
 
   build_the_response(err_idx, tiles) {
 
-    if (err_idx != -1) {
+    if (err_idx == 99) {
+      tiles.unshift(
+        {"err_msg" : `ERROR: Not all tiles are on the same row or column OR are unused`});
+      logger.debug("game.build_the_response: err_msg : " + tiles[0].err_msg);
+    }
+    else if (err_idx != -1) {
       tiles.unshift(
         {"err_msg" : this.new_word.check_words[err_idx] + " is not a valid word"});
       logger.debug("game.build_the_response: err_msg : " + tiles[0].err_msg);
