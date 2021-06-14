@@ -7,6 +7,10 @@ const {exec} = require('child_process');
 class ActiveGame {
 
   constructor(user1, user2, status, game) {
+    // DEBUG -  force a load at startup - see heist.js
+    if (!user1 || !user1)
+      return;
+
     this.user1 = user1;
     this.user2 = user2;
 
@@ -388,3 +392,4 @@ class ActiveGame {
 }
 
 exports.ActiveGame = ActiveGame;
+exports.AllActiveGames = ActiveGame.all_active;

@@ -19,6 +19,7 @@ class User {
     this.last_login_date = sonj.last_login_date;
     this.user_name = sonj.user_name;
     this.display_name = sonj.display_name;
+    this.email = sonj.email;
     this.password = sonj.password;
     // this.roles = [].push(new UserRole(this.id, UserRole.player));
     this.role = sonj.role;
@@ -54,6 +55,7 @@ class User {
       "last_login_date" : this.last_login_date,
       "user_name" : this.user_name,
       "display_name" : this.display_name,
+      "email" : this.email,
       "password" : this.password,
       "role" : this.role,
       "state" : this.status,

@@ -1,4 +1,3 @@
-var Game = require('./game').Game;
 const db = require('./db');
 var logger = require('./log').logger;
 
@@ -15,6 +14,7 @@ class Admin {
   static active_admins = [];
   static current_users = null;
   static db_users = [];
+  static active_games = null;
 
   logout(user) {
     Admin.active_admins = Admin.active_admins.filter(a => a.port != user.admin.port);
@@ -52,10 +52,6 @@ class Admin {
     // is deleted and a new socket created and 'pushed'.
     server.on('connection', function(socket) {
 
-      // Both players requests for updates wind up here and are distinguished
-      // by the current_player. CurrentGame processes the request info and then
-      // returns the new state of play in 'resp_data' which is then vectored to
-      // both sockets.
       socket.on('message', function(msg) {
         let admin = Admin.active_admins.find(a => {
           return a.ws_server.clients.has(socket);
@@ -66,17 +62,30 @@ class Admin {
           if (data[0].change_user) {
             // get user's data
             ret_data = JSON.stringify(admin.get_user_data(data[0].change_user));
+            admin.ws_server.clients.forEach(s => s.send(ret_data));
+          } else if (data[0].get_active_game) {
+            // find the active game that has a specific port # 
+            let agame_name = data[0].get_active_game;
+            if (agame_name) { 
+              let ag = Admin.active_games.find(ag => {
+                return ag.name == agame_name;
+              })
+
+              // found the game - jsonify it and send it back
+              let json = {
+                "type" : "view_game_json",
+                "agame" : ag.get_JSON(),
+                "game" : ag.game.get_JSON()
+              }
+
+              admin.ws_server.clients.forEach(s => s.send(JSON.stringify(json)));
+            }
           }
-          // let resp_data = a_game.game.finish_the_play(user, user_data);
-          // let data = JSON.stringify(resp_data);
-          // Admin.server.clients.forEach(s => s.send(data));
-          admin.ws_server.clients.forEach(s => s.send(ret_data));
         }
       });
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
-        // a_game.connects = a_game.connects.filter(s => s !== socket);
       });
     });
 

@@ -5,12 +5,12 @@ body {
   font-family: 'Lato', sans-serif;
 }
 
-div {
+ div {
   border: 1px solid black;
-  padding: 10px;
-  margin: 10px;
-  background-color: #aaaaaa;
-  opacity: 50.0;
+  padding: 2px;
+  margin: 2px;
+  background-color: #cccccc;
+  /* opacity: 50.0; */
 }
 
 #row1 {
@@ -28,9 +28,13 @@ div {
   /* align-items: center; */
 }
 #info {
+  display : flex;
+  justify-content: center;
   width : 30%;
 }
 #logout {
+  display : flex;
+  justify-content: center;
   width : 30%;
 }
 
@@ -42,9 +46,10 @@ div {
 }
 
 #all_users {
+
   display: flex;
   flex-direction: column;
-  width : 30%;
+  width : 20%;
 }
 .cur_user {
   display: flex;
@@ -66,21 +71,25 @@ div {
   padding: 0;
 }
 
-#user_lists {
+#user_data {
+  
   display: flex;
   flex-direction: column;
-  width : 30%;
+}
+#user_lists {
+
+  display: flex;
+  flex-direction: column;
+  /* width : 40%; */
 }
 #user_saved_games {
   display: flex;
   width : 90%;
-  justify: center;
 }
 
 #user_active_games {
   display: flex;
   width : 90%;
-  justify: center;
 }
 
 #chat_send_text {
@@ -94,15 +103,31 @@ div {
   /* font-weight:    bold; */
   background-color: #dddddd;
   width: 95%;
-  height: 250px;
+  height: 80%;
   overflow-x: auto;
   overflow-y: auto;
   text-align: left;
   padding: 2px;
 }
 
+#chat_view {
+  width: 95%;
+  height: 100%;
+}
+
+#data_view {
+  display: none;
+  width: 95%;
+  height: 100%;
+}
+
+#jsoneditor {
+  width: 100%;
+  height: 90%;
+}
+
 #all_active_games {
+
   display: flex;
   width : 90%;
-  justify: center;
 }

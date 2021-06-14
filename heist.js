@@ -38,7 +38,7 @@ var ActiveGame = require('./js/activegame').ActiveGame;
 var Game = require('./js/game').Game;
 var Word = require('./js/word').Word;
 var User = require('./js/user').User;
-// var Admin = require('./js/admin_srv').Admin;
+var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
 
 const main_port = 3042;
@@ -148,6 +148,9 @@ function startup() {
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
     var filename = null;
+
+    if (Admin && ActiveGame && !Admin.active_games)
+      Admin.active_games = ActiveGame.all_active;
 
     if (pathname.indexOf("new_practice_game") != -1) {
       CurrentAGame == null;
