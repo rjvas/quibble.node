@@ -168,8 +168,9 @@ function startup() {
         response.end();
       }
 
-      logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
-        remote_addr + " user.request_addr");
+        if (CurrentAGame)
+          logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
+            remote_addr + " user.request_addr");
     }
 
     else if (pathname.indexOf("save_game") != -1) {

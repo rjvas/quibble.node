@@ -322,7 +322,7 @@ class Game {
 
     // finalize the word building
     if (this.new_word.tiles.length > 0) {
-      if (played_tiles.length == 7) {
+      if (played_tiles.length > 6) {
         this.new_word.is_safe = true;
       }
 

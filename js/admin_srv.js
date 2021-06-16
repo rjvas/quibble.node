@@ -59,10 +59,12 @@ class Admin {
         if (admin) {
           var ret_data = null;
           var data = JSON.parse(msg);
+          
           if (data[0].change_user) {
             // get user's data
             ret_data = JSON.stringify(admin.get_user_data(data[0].change_user));
             admin.ws_server.clients.forEach(s => s.send(ret_data));
+
           } else if (data[0].get_active_game) {
             // find the active game that has a specific port # 
             let agame_name = data[0].get_active_game;
@@ -72,13 +74,14 @@ class Admin {
               })
 
               // found the game - jsonify it and send it back
-              let json = {
-                "type" : "view_game_json",
-                "agame" : ag.get_JSON(),
-                "game" : ag.game.get_JSON()
+              if (ag) {
+                let json = {
+                  "type" : "view_game_json",
+                  "agame" : ag.get_JSON(),
+                  "game" : ag.game.get_JSON()
+                }
+                admin.ws_server.clients.forEach(s => s.send(JSON.stringify(json)));
               }
-
-              admin.ws_server.clients.forEach(s => s.send(JSON.stringify(json)));
             }
           }
         }

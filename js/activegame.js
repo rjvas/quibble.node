@@ -44,6 +44,9 @@ class ActiveGame {
   static invited = 8;
   static practice = 32;
   static remove_active = 64;
+  static admin_peek = 128;
+
+  static admin_peek_socket = null;
 
   static all_active = [];
 
@@ -217,6 +220,22 @@ class ActiveGame {
     });
   }
 
+  peek(socket, play_data) {
+    let type = play_data.shift();
+    let state = play_data.shift();
+
+    if (type.type == "peek" && state.state == "on") {
+      this.status |= ActiveGame.admin_peek;
+      this.admin_peek_socket = socket;
+    }
+    else if (type.type == "peek" && state.state == "off") {
+      if (this.status & ActiveGame.admin_peek)
+        this.status ^= ActiveGame.admin_peek;
+      this.admin_peek_socket = null;
+    }
+    console.log("activegame.peek");
+  }
+
   setup_socket() {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
@@ -243,8 +262,12 @@ class ActiveGame {
           var play_data = JSON.parse(msg);
           let player_name = "";
 
+          let type = play_data[0] && play_data[0].type ? play_data[0].type :
+            "unknown"; 
+
           // got a chat message
-          if (play_data[0] && play_data[0].type && play_data[0].type == "chat") {
+          if ( type == "chat") {
+            // get the player name
             if (play_data[1] && play_data[1].player != "sysadmin") {
               let user = play_data[1].player;
               if (a_game.user1 && a_game.user1.id.toHexString() == user)
@@ -259,14 +282,33 @@ class ActiveGame {
             a_game.chat_text += "<br><br><b> " + player_name + " </b>:<br> " + play_data[2].info;
             resp_data = play_data;
           }
-          else if (play_data[0] && play_data[0].type && play_data[0].type == "cheat") {
+          else if (type == "cheat") {
             a_game.cheat(this, play_data);
+            return;
+          }
+          else if (type == "peek") {
+            a_game.peek(this, play_data);
             return;
           }
           else {
             // a_game.log_pre(player, play_data);
+            if (a_game.status & ActiveGame.admin_peek) {
+              let peek_data = {
+                "peek" : "Client to Server",
+                "play_data" : play_data
+              };
+              a_game.admin_peek_socket.send(JSON.stringify(peek_data));
+            }
 
             resp_data = a_game.game.finish_the_play(player, play_data);
+
+            if (a_game.status & ActiveGame.admin_peek) {
+              let peek_data = {
+                "peek" : "Server to Client",
+                "resp_data" : resp_data
+              };
+              a_game.admin_peek_socket.send(JSON.stringify(peek_data));
+            }
 
             // a_game.log_post(player, resp_data);
 
@@ -290,6 +332,7 @@ class ActiveGame {
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
       });
+    
     });
 
     return ws_server;

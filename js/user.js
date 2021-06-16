@@ -159,7 +159,7 @@ class User {
             }
             id = usr._id;
           } else {
-            logger.error("login error - " + user_name + "wrong password");
+            logger.error("login error - " + name + "wrong password");
             response.writeHead(302 , {
                'Location' : '/?error_password'
             });

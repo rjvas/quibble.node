@@ -435,7 +435,7 @@ function set_button_callbacks() {
 
   btn = document.getElementById('chat_cheat_send_btn');
   if (btn) {
-    btn.addEventListener("click", clicked_chat_cheat_send_btn);
+    btn.addEventListener("click", clicked_cheat_send_btn);
   }
 }
 
@@ -940,7 +940,7 @@ function clicked_tiles_area(event) {
   // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
-function clicked_chat_cheat_send_btn(event) {
+function clicked_cheat_send_btn(event) {
   var cheat = document.getElementById("chat_cheat_text");
   var user = document.getElementById("user").value;
   if (cheat && user) {

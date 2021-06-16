@@ -52,14 +52,37 @@ function setup_chat() {
   let game_name = event.currentTarget.selectedOptions[0].text;
 
   if (cur_chat_port) {
+    let opts = [];
+    peek_game ? opts[0] = "peek" : opts[0] = "no_peek";
     // cur_chat_ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
-    cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port);
+    cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port, opts);
 
     cur_chat_ws.onmessage = function(msg) {
       let chat = document.getElementById("chat_text");
       let resp = JSON.parse(msg.data);
-      chat.innerHTML += "<br><br><b>" + resp[1].player + "</b>:<br>" + resp[2].info;
-      console.log("admin: in onmessage: data = " + msg.data);
+      let json = null;
+      if (resp && resp.peek) {
+        var container = document.getElementById("jsoneditor");
+        var options = {
+            mode: 'tree',
+            name : 'PlayData'
+        };
+        // if this is peek data, just prepend it
+        if (editor) {
+          json = editor.get();
+          editor.destroy();
+        }
+        if (json && Array.isArray(json))
+          json.unshift(resp);
+        else
+          json = [resp];
+        editor = new JSONEditor(container, options);
+        editor.set(json);
+      } 
+      else {
+        chat.innerHTML += "<br><br><b>" + resp[1].player + "</b>:<br>" + resp[2].info;
+        console.log("admin: in onmessage: data = " + msg.data);
+      }
     }
 
     cur_chat_ws.onopen = function() {
@@ -136,6 +159,24 @@ function clicked_broadcast_btn(event) {
   broadcast_ws.onclose = function(msg) {
     console.log("broadcast_ws in get socket: close " + msg);
   };
+}
+
+function clicked_peek_chk(event) {
+  let peek = document.getElementById("peek_chk");
+  let json = [];
+
+  peek.checked ? peek_game = true : peek_game = false;
+  
+  if (cur_chat_port) {
+    json.push({"type" : "peek"});
+    json.push({"state" : "on"});
+    cur_chat_ws.send(JSON.stringify(json));
+  }
+  else {
+    json.push({"type" : "peek"});
+    json.push({"state" : "off"});
+    cur_chat_ws.send(JSON.stringify(json));
+  }
 }
 
 function clicked_chat_send_btn(event) {
@@ -274,6 +315,8 @@ function handle_user_data(resp) {
 // set in the changed_active_game call back
 var cur_chat_port;
 var cur_chat_ws;
+// peek at game traffic - use the chat channel for display
+var peek_game;
 
 var data_port = document.getElementById("data_port").value;
 // const data_ws = new WebSocket('ws://drawbridgecreativegames.com:' + data_port);
@@ -285,13 +328,17 @@ data_ws.onmessage = function(msg) {
   let resp = JSON.parse(msg.data);
 
   if (resp.type && resp.type == "view_game_json") {
+    let all_content = [];
+    resp.agame.game = resp.game;
     var container = document.getElementById("jsoneditor");
     var options = {
-        mode: 'tree'
+        mode: 'tree',
+        name : 'ActiveGame'
     };
     if (editor) editor.destroy();
     editor = new JSONEditor(container, options);
-    editor.set(resp.game);
+    all_content.push(resp.agame);
+    editor.set(all_content);
   }
   else {
     handle_user_data(resp);
@@ -328,7 +375,9 @@ function init() {
   }
 
   el = document.getElementById("user_active_games_lst");
-  el.addEventListener("change", changed_active_game);
+  if (el) {
+    el.addEventListener("change", changed_active_game);
+  }
 
   el = document.getElementById("chat_send_btn");
   if (el) {
@@ -350,6 +399,10 @@ function init() {
     el.addEventListener("click", clicked_view_game_data_btn);
   }
 
+  el = document.getElementById("peek_chk");
+  if (el) {
+    el.addEventListener("change", clicked_peek_chk);
+  }
 }
 
 init();

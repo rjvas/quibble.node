@@ -93,12 +93,14 @@ html(lang="en")
               |!{a_game_chat_text}
           textarea(id="chat_send_text" rows="2" cols="25" wrap="hard" placeholder="Type here ...")
           input(id="chat_send_btn" type="button" class="button" value="Send")
-          input(id="broadcast_btn" type="button" class="button" value="'Cast")
-          input(id="view_game_data" type="button" class="button" value="Game JSON")
+          //- input(id="broadcast_btn" type="button" class="button" value="'Cast")
+          input(id="view_game_data" type="button" class="button" value="Game")
 
         #data_view
           div(id="jsoneditor")
           input(id="view_chat" type="button" class="button" value="Chat") 
+          input(id="peek_chk" type="checkbox" class="checkbox")
+          label(for="peek_chk") Peek
           
     #all_active_games
       |All Active Games
