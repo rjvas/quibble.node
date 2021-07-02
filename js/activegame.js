@@ -254,7 +254,8 @@ class ActiveGame {
       // both sockets.
       socket.on('message', function(msg) {
         let a_game = ActiveGame.all_active.find(g => {
-          return g.ws_server.clients.has(socket);
+          return g && g.ws_server && g.ws_server.clients && 
+            g.ws_server.clients.has(socket);
         });
         if (a_game) {
           let resp_data = null;
@@ -297,7 +298,8 @@ class ActiveGame {
                 "peek" : "Client to Server",
                 "play_data" : play_data
               };
-              a_game.admin_peek_socket.send(JSON.stringify(peek_data));
+              if (a_game.admin_peek_socket)
+                a_game.admin_peek_socket.send(JSON.stringify(peek_data));
             }
 
             resp_data = a_game.game.finish_the_play(player, play_data);
@@ -307,7 +309,8 @@ class ActiveGame {
                 "peek" : "Server to Client",
                 "resp_data" : resp_data
               };
-              a_game.admin_peek_socket.send(JSON.stringify(peek_data));
+              if (a_game.admin_peek_socket)
+                a_game.admin_peek_socket.send(JSON.stringify(peek_data));
             }
 
             // a_game.log_post(player, resp_data);

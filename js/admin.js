@@ -38,6 +38,21 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
+function clicked_peek_email(event) {
+  var email = document.getElementById("admin_email").value;
+  let subj = "peek output";
+  if (editor) {
+    console.log("blah");
+    let body = JSON.stringify(editor.get());
+    // let body = editor.get();
+    // let call_str = "mailto:" + email + "?subject=" + subj + "&body=" + "[{blah : \"blah\"}]"; // body;
+    // let call_str = "mailto:gringopiranha@gmail.com?subject=blah blah&body=[{also blah}]";
+    // window.open(`${call_str}`);
+    var jsonWindow = window.open("", "Captured JSON");
+    jsonWindow.document.write(body); 
+  }
+}
+
 function changed_user(event) {
   let new_user = event.currentTarget.labels[0].innerText;
   var user = document.getElementById("user").value;
@@ -45,6 +60,13 @@ function changed_user(event) {
   console.log("admin.changed_user: user: " + new_user);
   // note - *always* an array of hashes
   data_ws.send(JSON.stringify([{"change_user" : new_user}]));
+}
+function clicked_user_logout_bt(event) {
+  let user_name = event.currentTarget.labels[0].innerText;
+
+  console.log("admin.logout user: user: " + user_name);
+  // note - *always* an array of hashes
+  data_ws.send(JSON.stringify([{"logout_user" : user_name}]));
 }
 
 function setup_chat() {
@@ -343,8 +365,8 @@ data_ws.onmessage = function(msg) {
   else {
     handle_user_data(resp);
   }
-  console.log("admin: in onmessage: data = " + msg.data);
-  console.dir(resp);
+  // console.log("admin: in onmessage: data = " + msg.data);
+  // console.dir(resp);
 }
 
 data_ws.onopen = function() {
@@ -374,6 +396,11 @@ function init() {
     us[i].addEventListener("change", changed_user);
   }
 
+  el = document.getElementById("user_logout_btn");
+  if (el) {
+    el.addEventListener("clicked", clicked_user_logout_btn);
+  }
+  
   el = document.getElementById("user_active_games_lst");
   if (el) {
     el.addEventListener("change", changed_active_game);
@@ -402,6 +429,11 @@ function init() {
   el = document.getElementById("peek_chk");
   if (el) {
     el.addEventListener("change", clicked_peek_chk);
+  }
+  
+  el = document.getElementById("peek_email");
+  if (el) {
+    el.addEventListener("click", clicked_peek_email);
   }
 }
 

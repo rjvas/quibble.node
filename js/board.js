@@ -163,8 +163,7 @@ class Tile {
       if (!PlayerHand.add(this)) {
         console.error(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
       }
-    } else if (this.row >= 3 && this.row <= 5 &&
-      this.column >= 18 && this.column <= 20) {
+    } else if (Tile.is_in_trash(this.row, this.column)) {
       this.status |= Tile.trashed;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
       PlayerHand.remove(this);
@@ -194,15 +193,17 @@ class Tile {
 
   // these are the legitimate tile states
   static none = 0;
-  static in_hand = 1;
+  static in_hand = 1; 
   static on_board = 2;
   static trashed = 4;
   static is_blank = 8;
   static is_magic_s = 16;
 
   static is_in_trash(row, col) {
-    if (row >= 3 && row <= 5 &&
-      col >= 18 && col <= 20)
+    if ((AppOrientation == HORIZ && row >= 3 && row <= 5 &&
+      col >= 18 && col <= 20) ||
+      (AppOrientation == VERT && row >= 18 && row <= 20 &&
+        col >= 3 && col <= 5))
       return true;
     return false;
   }
@@ -255,15 +256,20 @@ class PlayerHand {
 
   static set_tile_attrs(idx, relative, value) {
     if (PlayerHand.tiles[idx]) {
-      PlayerHand.tiles[idx].x = (idx + 16) * CELL_SIZE;
+      // if the orientation is horizontal placement is to the right of the board
+      // otherwise, it's below the board
+      let start_col = AppOrientation == HORIZ ? 16 : 3;
+      PlayerHand.tiles[idx].x = (idx + start_col) * CELL_SIZE;
+      
+      let start_row = AppOrientation == HORIZ ? 1 : 17;
 
       // set the col relative to last position or absolutely
       // from the passed value
       relative ? PlayerHand.tiles[idx].column += value :
-        PlayerHand.tiles[idx].column = value + 17;
+        PlayerHand.tiles[idx].column = value + start_col;
 
-      PlayerHand.tiles[idx].y = 0;
-      PlayerHand.tiles[idx].row = 1; // 1-based
+      PlayerHand.tiles[idx].y = (start_row - 1) * CELL_SIZE;
+      PlayerHand.tiles[idx].row = start_row; // 1-based
       PlayerHand.tiles[idx].player_hand_idx = idx;
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[idx].x);
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[idx].y);
@@ -319,7 +325,9 @@ class PlayerHand {
   }
 
   static in_hand(r, c) {
-    if (r == 1 && c < 25 && c > 16) return true;
+    if ((AppOrientation == HORIZ && r == 1 && c < 25 && c > 16) ||
+        (AppOrientation == VERT && r == 17 && c >= 4 && c <= 11))
+       return true;
     return false;
   }
   static get_open_slot() {
@@ -439,6 +447,7 @@ function set_button_callbacks() {
   }
 }
 
+// only on a page load
 function draw_safe_squares() {
   for (let i = 0; i < SAFE_INDEXES.length; i++) {
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -468,6 +477,7 @@ function draw_safe_squares() {
   }
 }
 
+// only on a page load
 function draw_center_start() {
   var center = {
     row: Math.round(NUM_ROWS_COLS / 2),
@@ -487,6 +497,7 @@ function draw_center_start() {
   AppSpace.append(r);
 }
 
+// only on a page load
 function draw_board() {
   AppSpace = document.querySelectorAll('#wt_board')[0];
 
@@ -691,8 +702,8 @@ function get_played_JSONS() {
   tile_svgs.forEach(item => {
     let x = item.getAttributeNS(null, "x");
     let y = item.getAttributeNS(null, "y");
-    let col = Math.round(x / CELL_SIZE) + 0;
-    let row = Math.round(y / CELL_SIZE) + 0;
+    let col = Math.round(x / CELL_SIZE) + 1;
+    let row = Math.round(y / CELL_SIZE) + 1;
     // if these are the played tiles ...
     if (x >= 0 && y >= 0 &&
       x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
@@ -1103,10 +1114,15 @@ function tile_moved(new_position) {
 
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
-    if (row == 1 && col > 16 && col < 24) {
+    if (PlayerHand.in_hand(row, col)) {
+
       // if it's the magic s being rearranged, don't let it
       if (tile.status & Tile.is_magic_s)
         PlayerHand.rearrange_hand(tile.svg, 7);
+      else if (col == PlayerHand.squares[PlayerHand.squares.length - 1].column)
+        // if it's not the magic S don't let in slot 7
+        PlayerHand.rearrange_hand(tile.svg, 6);
+
       // take it out of the PlayStarts
       PlayStarts = PlayStarts.filter(ps => {
         return ps.id != tile.id;
@@ -1139,7 +1155,10 @@ function tile_moved(new_position) {
       }
     }
     else {
-      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
+      if (tile.status & Tile.is_magic_s)
+        PlayerHand.rearrange_hand(tile.svg, 7);
+      else
+        PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
     }
   }
 }
@@ -1306,7 +1325,12 @@ function handle_game_over(info) {
   window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
 }
 
+const HORIZ = 1;
+const VERT = 2;
+AppOrientation = HORIZ;
 AppSpace = document.querySelectorAll('#wt_board')[0];
+if (window.innerWidth < window.innerHeight)
+  AppOrientation = VERT;
 
 var chat = document.getElementById("chat_text");
 

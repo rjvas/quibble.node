@@ -5,6 +5,11 @@ body {
   font-family: 'Lato', sans-serif;
 }
 
+#jsoneditor {
+  color : #000000;
+  height: 400;
+}
+
  div {
   border: 1px solid black;
   padding: 2px;
@@ -111,11 +116,21 @@ body {
 }
 
 #chat_view {
+  display: flex;
+  flex-direction: column;
   width: 95%;
   height: 100%;
 }
 
+#chat_ctrls {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
 #data_view {
+  display: flex;
+  flex-direction: column;
   display: none;
   width: 95%;
   height: 100%;
@@ -126,8 +141,13 @@ body {
   height: 90%;
 }
 
-#all_active_games {
-
+#data_ctrls {
   display: flex;
-  width : 90%;
+  flex-direction: row;
+  width: 100%;
+}
+
+#all_active_games {
+  display: flex;
+  width : 95%;
 }

@@ -80,8 +80,8 @@ function get_user_agame(remote_addr, query) {
 
   let user = null;
   user_id ? user = User.current_users.find(u => {
-    return u.request_address == remote_addr &&
-        u.id.toHexString() == user_id
+    return  u.id.toHexString() == user_id ||
+     u.request_address == remote_addr 
   }) : user = User.current_users.find(u => {
     return u.request_address == remote_addr
   });

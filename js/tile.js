@@ -1,4 +1,4 @@
-var TileState = require('./tilestate').TileState;
+var TileState = require('./tileState').TileState;
 var TileDefs = require('./tileDefs').TileDefs;
 var logger = require('./log').logger;
 

@@ -10,6 +10,7 @@ html(lang="en")
   body
     input(id="user" type="hidden" value=user.id.toHexString())
     input(id="data_port" type="hidden" value=admin.port)
+    input(id="admin_email" type="hidden" value=user.email)
     
     #row1
       #welcome
@@ -32,6 +33,7 @@ html(lang="en")
               div(class="cur_user_delete")
                 input(id="user_save_btn_"+idx type="button" class="button" value="Save" height="35" width="50")
                 input(id="user_delete_btn_"+idx type="button" class="button" value="Delete" height="35" width="50")
+                input(id="user_logout_btn_"+idx type="button" class="button" value="Logout" height="35" width="50")
               
         else 
           |No logged in Users
@@ -59,7 +61,7 @@ html(lang="en")
             label(for="user_display_name") Display Name
             input(id="user_display_name" type="text" name="user_display_name" class="user_data" 
               height="35" width="50")
-            label(for="user_email") Email
+            label(for="user_email") JSON out
             input(id="user_email" type="email" name="user_email" class="user_data" 
               height="35" width="50")
             label(for="user_failed_login_oount") Failed Logins
@@ -92,15 +94,18 @@ html(lang="en")
             p(id=chat_para)
               |!{a_game_chat_text}
           textarea(id="chat_send_text" rows="2" cols="25" wrap="hard" placeholder="Type here ...")
-          input(id="chat_send_btn" type="button" class="button" value="Send")
-          //- input(id="broadcast_btn" type="button" class="button" value="'Cast")
-          input(id="view_game_data" type="button" class="button" value="Game")
+          #chat_ctrls
+            input(id="chat_send_btn" type="button" class="button" value="Send")
+            //- input(id="broadcast_btn" type="button" class="button" value="'Cast")
+            input(id="view_game_data" type="button" class="button" value="Game")
 
         #data_view
           div(id="jsoneditor")
-          input(id="view_chat" type="button" class="button" value="Chat") 
-          input(id="peek_chk" type="checkbox" class="checkbox")
-          label(for="peek_chk") Peek
+          #data_ctrls
+            input(id="view_chat" type="button" class="button" value="Chat") 
+            input(id="peek_chk" type="checkbox" class="checkbox")
+            label(for="peek_chk") Peek
+            input(id="peek_email" type="button" class="button" value="Email")
           
     #all_active_games
       |All Active Games

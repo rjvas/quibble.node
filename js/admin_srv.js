@@ -65,6 +65,8 @@ class Admin {
             ret_data = JSON.stringify(admin.get_user_data(data[0].change_user));
             admin.ws_server.clients.forEach(s => s.send(ret_data));
 
+          } else if (data[0].logout_user) {
+            
           } else if (data[0].get_active_game) {
             // find the active game that has a specific port # 
             let agame_name = data[0].get_active_game;
