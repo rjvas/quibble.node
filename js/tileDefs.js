@@ -59,8 +59,8 @@ class TileDefs {
       {
         char: "J",
         count: 1,
-        is_safe : true,
-        points: 0
+        is_safe : false,
+        points: 5
       },
       {
         char: "K",
@@ -101,8 +101,8 @@ class TileDefs {
       {
         char: "Q",
         count: 1,
-        is_safe : true,
-        points: 0
+        is_safe : false,
+        points: 5
       },
       {
         char: "R",
@@ -143,8 +143,8 @@ class TileDefs {
       {
         char: "X",
         count: 1,
-        is_safe : true,
-        points: 0
+        is_safe : false,
+        points: 4
       },
       {
         char: "Y",
@@ -155,8 +155,8 @@ class TileDefs {
       {
         char: "Z",
         count: 1,
-        is_safe : true,
-        points: 0
+        is_safe : false,
+        points: 5
       },
       {
         char: " ",
