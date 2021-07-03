@@ -170,7 +170,7 @@ class Tile {
     }
   }
 
-  is_collision(x,y, row,col) {
+  is_collision(row,col) {
     let collide = Tile.word_tiles.find((item, i) => {
       let xl = item.getAttributeNS(null, "x");
       let yl = item.getAttributeNS(null, "y");
@@ -434,6 +434,11 @@ function set_button_callbacks() {
   let btn = document.getElementById('home_btn');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('pass_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_pass_btn);
   }
 
   btn = document.getElementById('chat_send_btn');
@@ -941,6 +946,7 @@ function clicked_tiles_area(event) {
   }
 
   if (jsons.length > 0) {
+    // type may have been set to 'pass' above
     if (!jsons[0].type)
       jsons.unshift({
         "type": "xchange"
@@ -1001,10 +1007,16 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
+function clicked_pass_btn(event) {
+  repatriate_played_tiles();
+  jsons = [{
+    "type": "pass"
+  }];
+  ws.send(JSON.stringify(jsons));
+}
+
 function tile_move_start(new_position) {
   let svg = this.element;
-  let x = svg.getAttributeNS(null, "x");
-  let y = svg.getAttributeNS(null, "y");
 
   let phi = -1;
   let tile = PlayerHand.tiles.find((t, idx) => {
@@ -1062,9 +1074,19 @@ function tile_moving(new_position) {
     let cur_location_idx = col - 17;
     PlayerHand.rearrange_hand(svg, cur_location_idx);
     // console.log("tile_moving - player hand idx: " + (col - 17));
-  } else if (Tile.is_on_board(row, col)) {
+  } 
+  else if (Tile.is_on_board(row, col) && tile && tile.is_collision(row, col)) {
     // if we're moving into another tile, don't let it
-    if (tile && tile.is_collision(x, y, row, col)) return;
+    // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
+    row = tile.row;
+    col = tile.column;
+    return;
+  }
+
+  // update the row/col
+  if (tile) {
+    tile.row = row;
+    tile.column = col;
   }
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
@@ -1076,8 +1098,8 @@ function tile_moving(new_position) {
   svg.setAttributeNS(null, 'x', x);
   svg.setAttributeNS(null, 'y', y);
 
-  // console.log('tile_moving - row: %d column: %d this.rect.width: %f Scale: %f',
-  // row, col, this.rect.width, Scale);
+  console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
+    tile.row, tile.column, this.rect.width, Scale);
 }
 
 function tile_moved(new_position) {
@@ -1088,12 +1110,12 @@ function tile_moved(new_position) {
   var letter;
 
   let svg = this.element;
+  let x = svg.getAttributeNS(null, "x");
+  let y = svg.getAttributeNS(null, "y");
+
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
   });
-
-  let x = svg.getAttributeNS(null, "x");
-  let y = svg.getAttributeNS(null, "y");
 
   // if the tile wasn't in the PlayerHand, it's in the
   // PlayStarts array.
@@ -1107,10 +1129,16 @@ function tile_moved(new_position) {
   row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
 
   if (tile) {
-    if (!tile.is_collision(x, y, row, col))
+    if (!tile.is_collision(row, col)) {
       tile.move(row, col);
+    } else {
+      // if we get a collision here use the last 'good' r/c
+      // console.log(`tile_moved collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
+      row = tile.row;
+      col = tile.column;
+    }
 
-    // console.log('finished drag at - row: %d column: %d', row, col);
+    // console.log('finished move at - row: %d column: %d', row, col);
 
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
