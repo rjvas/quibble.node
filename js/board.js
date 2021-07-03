@@ -1054,9 +1054,6 @@ function tile_moving(new_position) {
   row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
   col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
 
-  let x = (col - 1) * CELL_SIZE;
-  let y = (row - 1) * CELL_SIZE;
-
   let svg = this.element;
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
@@ -1080,7 +1077,7 @@ function tile_moving(new_position) {
     // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
     row = tile.row;
     col = tile.column;
-    return;
+    // return;
   }
 
   // update the row/col
@@ -1088,6 +1085,9 @@ function tile_moving(new_position) {
     tile.row = row;
     tile.column = col;
   }
+
+  let x = (col - 1) * CELL_SIZE;
+  let y = (row - 1) * CELL_SIZE;
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
   // css' translate. So, the tiles.svg have the original player_hand
@@ -1097,6 +1097,7 @@ function tile_moving(new_position) {
   svg.setAttributeNS(null, 'transform', "");
   svg.setAttributeNS(null, 'x', x);
   svg.setAttributeNS(null, 'y', y);
+  this.position();
 
   console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
     tile.row, tile.column, this.rect.width, Scale);
