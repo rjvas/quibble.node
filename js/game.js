@@ -510,14 +510,15 @@ class Game {
   end_game(player) {
     var ret_val = [];
 
-    // the tiles remaining in player1's hand are point-totaled,
-    // subtracted from p1's total and added to p2'2 score
+    // the tiles remaining in player1's hand are point-totaled
+    // and added to p2's score - and vis-versa
     let p1_hand_points = 0;
     this.player_1.tiles.forEach((item, i) => {
         if (item) p1_hand_points += item.points;
     });
     // remove from player 1
-    this.player_1.total_points -= p1_hand_points;
+    // don't 7/3/2021
+    // this.player_1.total_points -= p1_hand_points;
     // add to player 2
     this.player_2.total_points += p1_hand_points;
 
@@ -526,9 +527,10 @@ class Game {
     this.player_2.tiles.forEach((item, i) => {
         if (item) p2_hand_points += item.points;
     });
-    // remove from player 1
-    this.player_2.total_points -= p2_hand_points;
-    // add to player 2
+    // remove from player 2
+    // don't 7/3/2021
+    // this.player_2.total_points -= p2_hand_points;
+    // add to player 1
     this.player_1.total_points += p2_hand_points;
 
     ret_val.push({"type" : "game_over"});
