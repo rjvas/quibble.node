@@ -1,14 +1,12 @@
-/* W3hubs.com - Download Free Responsive Website Layout
- Templates designed on HTML5 CSS3,Bootstrap,Tailwind CSS which are 100% Mobile friendly.
-  w3Hubs all Layouts are responsive cross browser supported, best quality world class designs. */
+/* */
 
-body {
+/* body {
   background-image: url('./bridge_hero_large.jpg');
   padding: 0;
   margin: 0px;
   font-family: 'Lato', sans-serif;
 }
-
+*/
 div {
   border: 1px solid black;
   padding: 10px;
@@ -37,6 +35,7 @@ div {
 }
 
 form {
-  /* width: 100%; */
+  height: 100%;
+  width: 100%;
   padding: 30px;
 }

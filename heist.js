@@ -80,8 +80,7 @@ function get_user_agame(remote_addr, query) {
 
   let user = null;
   user_id ? user = User.current_users.find(u => {
-    return  u.id.toHexString() == user_id ||
-     u.request_address == remote_addr 
+    return  u.id.toHexString() == user_id 
   }) : user = User.current_users.find(u => {
     return u.request_address == remote_addr
   });
@@ -175,7 +174,7 @@ function startup() {
 
     else if (pathname.indexOf("save_game") != -1) {
       let ug = get_user_agame(remote_addr, query);
-      CurrentGame = ug.agame;
+      CurrentAGame = ug.agame;
       let user = ug.user;
 
       if (CurrentAGame) {
@@ -430,7 +429,7 @@ function startup() {
       }
     }
 
-    // This will refresh the player's page with the currrent state of CurrentGame
+    // This will refresh the player's page with the currrent state of CurrentAGame
     else if (pathname === "/player1" || pathname === "/player2") {
       logger.debug("heist.listen: <regular play> query: " + query);
 

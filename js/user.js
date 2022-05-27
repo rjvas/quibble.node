@@ -1,5 +1,5 @@
 /*
-The class that represents a user of the system - currently player and strator
+The class that represents a user of the system - currently player and administrator
 */
 
 const bcrypt = require('bcrypt');
@@ -158,6 +158,7 @@ class User {
               new_user.admin = new Admin(new_user, User.current_users);
             }
             id = usr._id;
+            // TODO setup activity timer here ...
           } else {
             logger.error("login error - " + name + "wrong password");
             response.writeHead(302 , {

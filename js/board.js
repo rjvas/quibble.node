@@ -11,8 +11,11 @@ var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
-const CELL_SIZE = 35;
+
 const NUM_ROWS_COLS = 15;
+var CELL_SIZE = 35;
+const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
+const BOARD_WIDTH = GRID_SIZE + CELL_SIZE*9; //1 cell_size for space, 8 for tiles
 
 const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
@@ -153,7 +156,6 @@ class Tile {
 
     this.drag.position();
 
-    // TODO: refact to Board.in_board, PlayerHand.in_hand, etc
     if (Tile.is_on_board(row, col)) {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
@@ -258,7 +260,7 @@ class PlayerHand {
     if (PlayerHand.tiles[idx]) {
       // if the orientation is horizontal placement is to the right of the board
       // otherwise, it's below the board
-      let start_col = AppOrientation == HORIZ ? 16 : 3;
+      let start_col = AppOrientation == HORIZ ? 16 : 1;
       PlayerHand.tiles[idx].x = (idx + start_col) * CELL_SIZE;
       
       let start_row = AppOrientation == HORIZ ? 1 : 17;
@@ -326,7 +328,7 @@ class PlayerHand {
 
   static in_hand(r, c) {
     if ((AppOrientation == HORIZ && r == 1 && c < 25 && c > 16) ||
-        (AppOrientation == VERT && r == 17 && c >= 4 && c <= 11))
+        (AppOrientation == VERT && r == 17 && c >= 1 && c <= 8))
        return true;
     return false;
   }
@@ -666,17 +668,7 @@ function setup_tile_for_play(tile, no_drag) {
         width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
         height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
       };
-      drag_rec.snap = {
-        x: {
-          start: 0,
-          step: "4.17%"
-        },
-        y: {
-          start: 0,
-          step: "6.25%"
-        }
-      };
-
+      drag_rec.snap = {CELL_SIZE};
       PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
     }
   }
@@ -1106,6 +1098,7 @@ function tile_moving(new_position) {
 function tile_moved(new_position) {
   // 'this' references the PlainDraggable instance
   Scale = CELL_SIZE / this.rect.width;
+
   var row = -1;
   var col = -1;
   var letter;
@@ -1209,16 +1202,7 @@ function setup_tiles_for_drag() {
       width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
       height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
     };
-    drag_rec.snap = {
-      x: {
-        start: 0,
-        step: "4.17%"
-      },
-      y: {
-        start: 0,
-        step: "6.25%"
-      }
-    };
+    drag_rec.snap = {CELL_SIZE};
 
     // this is the magic s - keep track of it
     if (idx == 7)
@@ -1356,10 +1340,24 @@ function handle_game_over(info) {
 
 const HORIZ = 1;
 const VERT = 2;
+// ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
 AppSpace = document.querySelectorAll('#wt_board')[0];
-if (window.innerWidth < window.innerHeight)
-  AppOrientation = VERT;
+
+function getWindowSize() {
+  // massage the top viewbox so all of grid displays
+  let winWidth = window.innerWidth;
+  let winHeight = window.innerHeight;
+  let winRatio = winWidth/winHeight;
+  let vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
+  AppSpace.setAttribute("viewBox", vbstr);
+ console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
+}
+window.onresize = getWindowSize;
+window.onload = getWindowSize;
+
+// if (window.innerWidth < window.innerHeight)
+  // AppOrientation = VERT;
 
 var chat = document.getElementById("chat_text");
 
