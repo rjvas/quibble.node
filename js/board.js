@@ -1340,6 +1340,9 @@ function handle_game_over(info) {
 
 const HORIZ = 1;
 const VERT = 2;
+// if (window.innerWidth < window.innerHeight)
+  // AppOrientation = VERT;
+
 // ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
 AppSpace = document.querySelectorAll('#wt_board')[0];
@@ -1355,9 +1358,6 @@ function getWindowSize() {
 }
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
-
-// if (window.innerWidth < window.innerHeight)
-  // AppOrientation = VERT;
 
 var chat = document.getElementById("chat_text");
 
