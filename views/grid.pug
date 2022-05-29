@@ -16,40 +16,57 @@ html
     input(id="user" type="hidden" value=user_id)
     
     - var cell_size = 35;
-    - var wt_w = cell_size*15  + cell_size + cell_size*9;
-    - var wt_h = cell_size*15;
+    
+    // if the layout is horizontal the scoreboard is vertical and the
+    // grid x is offset by the xy_offset. if the layout is vertical the
+    // grid y is offset by the xy_offset
+    // NOTE: THIS TEMPLATE SETS UP FOR A HORIZONTAL LAYOUT, ONLY! The 
+    // vertical layout is handled at the board.js getWindowSize callbak.
+    - var scorebd_xy_offset = cell_size*3;
+    input(id="scorebd_xy_offset" type="hidden" value=scorebd_xy_offset)
+    - var player_panel_wh = cell_size*5;
+    input(id="player_panel_wh" type="hidden" value=player_panel_wh)
 
-    svg(viewBox="0 0 850 525" id='wt_board' xmlns="http:www.w3.org2000svg")
-      
+    - var grid_wh = cell_size*15;
+    - var wt_w = scorebd_xy_offset+cell_size*15  + player_panel_wh;
+    - var wt_h = grid_wh;
+
+    - var full_play_area = `0 0 ${wt_w} ${wt_h}`;
+    - var vert_scorebd = `0 0 ${scorebd_xy_offset} ${wt_h}`;
+
+    svg(viewBox=full_play_area id='wt_board' xmlns="http:www.w3.org2000svg")
+      // scoreboard for horizontal board
+      rect(id="scoreboard_bg" x="0" y="0" width=scorebd_xy_offset height=wt_h fill="black")
+
       // so we can set the background color
-      // rjv width and height are the same ...
-      rect(id="grid_background" x="0" y="0" width=wt_h height=wt_h fill="lightgray")
+      // rjv width and height are the same, only the x offset for scoreboard handled here
+      rect(id="grid_background" x=scorebd_xy_offset y="0" width=grid_wh height=grid_wh fill="#333")
       
       // all the grid lines
       - var i = 0;
       while i < Game.NUM_ROWS_COLS + 1
-        line(class='line_horizontal' x1="0" y1="0" x2=wt_h y2="0" stroke="black")
-        line(class='line_vertical' x1="0" y1="0" x2="0" y2=wt_h stroke="black")
+        line(class='line_horizontal' x1=scorebd_xy_offset y1=i*cell_size x2=scorebd_xy_offset+wt_h y2=i*cell_size stroke="black")
+        line(class='line_vertical' x1=scorebd_xy_offset+i*cell_size y1="0" x2=scorebd_xy_offset+i*cell_size y2=wt_h stroke="black")
         - i++;
-      
+
       // safe and center squares 
       each s, idx in Game.SAFE_INDEXES
-        rect(x=(s.row-1)*cell_size y=(s.col-1)*cell_size width=cell_size height=cell_size fill="lightgray"
-          stroke-width=3 stroke=Game.SAFETY_FILL class="safety_square")
-        text(x=(s.row-1)*cell_size+cell_size/2 y=(s.col-1)*cell_size+cell_size/2 width=cell_size/4 height=cell_size/4 stroke_width=1
-          fill=Game.SAFETY_FILL_LITE text-anchor="middle" alignment-baseline="central"
-          class="saftey_text")
+        rect(x=(s.row-1)*cell_size+scorebd_xy_offset y=(s.col-1)*cell_size width=cell_size height=cell_size fill="#555"
+          stroke-width=1 stroke="black" class="safety_square")
+        text(x=(s.row-1)*cell_size+scorebd_xy_offset+cell_size/2 y=(s.col-1)*cell_size+cell_size/2 width=cell_size/4 height=cell_size/4 stroke_width=1
+          fill="#555" text-anchor="middle" alignment-baseline="central"
+          class="safety_text")
           |SAFE
           
       // center/start 
       - var center = {row: Math.round(15/2), col: Math.round(15/2)};
-      rect(x=(center.row-1)*cell_size y=(center.col-1)*cell_size width=cell_size height=cell_size fill="lightgray"
+      rect(x=(center.row-1)*cell_size+scorebd_xy_offset y=(center.col-1)*cell_size width=cell_size height=cell_size fill="#555"
         stroke-width=3 stroke=Game.CENTER_FILL class="center_square")
       
       // Words 
       each w, idx in game.words
         each t, tidx in w.tiles 
-          svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size class="word_tile_svg")
+          svg(id="tile_"+t.id x=(t.column-1)*cell_size+scorebd_xy_offset y=(t.row-1)*cell_size width=cell_size height=cell_size class="word_tile_svg")
             if t.player == game.player_1
               if t.is_safe
                 rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_safe 
@@ -72,112 +89,11 @@ html
             text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
               text-anchor="end" alignment-baseline="central" class='tile_points')
               |#{t.points}        
-        
-      // player tiles    
-      if player == "/player1"
-        each t, idx in game.player_1.tiles 
-          if t
-            svg(id="tile_"+t.id x=wt_h+cell_size+idx*cell_size y="0" width=cell_size height=cell_size class="player_tile_svg")
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                text-anchor="middle" alignment-baseline="central" class="tile_text"
-                onclick="tile_clicked")
-                |#{t.char}
-              text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
-                text-anchor="end" alignment-baseline="central" class='tile_points')
-                |#{t.points}
-      else
-        each t, idx in game.player_2.tiles 
-          if t
-            svg(id="tile_"+t.id x=wt_h+cell_size+idx*cell_size y="0" width=cell_size height=cell_size class="player_tile_svg")
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                text-anchor="middle" alignment-baseline="central" class="tile_text"
-                onclick="tile_clicked")
-                |#{t.char}
-              text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
-                text-anchor="end" alignment-baseline="central" class='tile_points')
-                |#{t.points}
-      
-      // all the control buttons must go in 'foriegnobjects' (svg requirement)
-      foreignobject(id="open_fo" class="node" x="755" y="50" width="95" height="50")
-        input(id="home_btn" type="button" class="button" value="Home" height=cell_size width="50")
-      foreignobject(id="pass_fo" class="node" x=wt_h+cell_size y="50" width="95" height="50")
-        input(id="pass_btn" type="button" class="button" value="Pass" height=cell_size width="50")
-        
-      foreignobject(id="err_fo" class="node" x="600" y="260" width="430" height="400")
-        text(id="error_text" x="200" y="50" width="400" height="220")
-      foreignobject(id="color_fo" class="node" x="530" y="240" width="400" height="400")
-        button(id="color_btn" height = "50" width = "100" style="border: none")
-        
-      // the scoreboard
-      svg(id="scoreboard" class="scoreboard" x=wt_h+cell_size y="65" width="245" height="105"
-          stroke='#000' stroke_width="1")
-        text(class="scoreboard_title" id="scoreboard_title" x="123" y=cell_size/2 width="245" height=cell_size/2
-          stroke_width="2" stroke="#000" text-anchor="middle" alignment-baseline="central")
-          |#{game.name}
-        
-        rect(class = 'player_1_area' id = 'player_1_area' x = '0'  y = cell_size fill=game.player_1.tile_color_safe
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' onclick="clicked_player_area")
-        text(class="scoreboard_player_1" id="scoreboard_player_1" x="4" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left"
-          onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
-          if game.current_player == game.player_1
-            |#{game.player_1.name}
-          else 
-            |Wait ...
-        text(class="scoreboard_player_1_score" id="scoreboard_player_1_score" x="41" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left")
-          |#{game.player_1.total_points}
-          
-        rect(class = 'tiles_area' id = 'tiles_area' x = '82'  y = cell_size
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' fill="white" onclick="clicked_tiles_area(event)")
-        text(class="scoreboard_tiles_left" id="scoreboard_tiles_left" x="85" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="center" alignment-baseline="center")
-          |Tiles Left
-        text(class="scoreboard_tiles_left_value" id="scoreboard_tiles_left_value" x="123" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="center" alignment-baseline="center")
-          |#{game.tile_pool.length}
-          
-        rect(class = 'player_2_area' id = 'player_2_area' x = '163'  y = cell_size fill=game.player_2.tile_color_safe
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' onclick="clicked_player_area")
-        text(class="scoreboard_player_2" id="scoreboard_player_2" x="184" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="right" alignment-baseline="right"
-          onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
-          if game.current_player == game.player_2
-            |#{game.player_2.name}
-          else 
-            |Wait ...
-        text(class="scoreboard_player_2_score" id="scoreboard_player_2_score" x="205" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left")
-          |#{game.player_2.total_points}
-
-      foreignobject(id="chat_fo" class="node" x=wt_h+cell_size y="185" width="250" height="250")
-        div(id="chat_text" height="250" width="250" )
-          p(id=chat_para)
-            |!{a_game_chat_text}
-      foreignobject(id="chat_send_fo" class="node" x=wt_h+cell_size y="440" width="200" height="50")
-        textarea(id="chat_send_text" rows="2" cols="30" wrap="hard" placeholder="Type here ...")
-      foreignobject(id="chat_send_btn_fo" class="node" x="762" y="440" width="50" height="50")
-        input(id="chat_send_btn" type="button" class="button" value="Send" height="50" width="50")
-      if is_admin
-        foreignobject(id="chat_cheat_fo" class="node" x=wt_h+cell_size y="480" width="200" height="30")
-          textarea(id="chat_cheat_text" rows="2" cols="30" wrap="soft" placeholder="Cheat here ...")
-        foreignobject(id="chat_cheat_send_btn_fo" class="node" x="762" y="480" width="50" height="30")
-          input(id="chat_cheat_send_btn" type="button" class="button" value="Send" height="30" width="50")
-      
             
+      rect(id="player_panel" x=scorebd_xy_offset+grid_wh y="0" width=player_panel_wh height=grid_wh fill="black")
+      
     // this should be a comment
     script(src="./js/vanilla-picker.js")
     script(src="./js/plain-draggable.min.js")
     script(src="./js/board.js")
+    

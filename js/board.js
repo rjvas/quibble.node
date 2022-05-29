@@ -454,78 +454,174 @@ function set_button_callbacks() {
   }
 }
 
-// only on a page load
-function draw_safe_squares() {
-  for (let i = 0; i < SAFE_INDEXES.length; i++) {
-    let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    r.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
-    r.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE);
-    r.setAttributeNS(null, 'width', CELL_SIZE);
-    r.setAttributeNS(null, 'height', CELL_SIZE);
-    r.setAttributeNS(null, 'fill', back_ground);
-    r.setAttributeNS(null, 'stroke-width', 3);
-    r.setAttributeNS(null, 'stroke', SAFETY_FILL);
-    r.setAttributeNS(null, 'class', 'safety_square');
-    SAFE_INDEXES[i].rect = r;
-    AppSpace.append(r);
+function draw_played_tiles() {
+  let tiles = Tile.word_tiles;
+  tiles.forEach(t => {
+    // let y = Math.round(parseInt(t.getAttributeNS(null, 'y'))/CELL_SIZE) + 1;
+    let x = parseInt(t.getAttributeNS(null, 'x'));
+    let y = parseInt(t.getAttributeNS(null, 'y'));
 
-    let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2);
-    t.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2);
-    t.setAttributeNS(null, 'width', CELL_SIZE / 4);
-    t.setAttributeNS(null, 'height', CELL_SIZE / 4);
-    t.setAttributeNS(null, 'stroke-width', 1);
-    t.setAttributeNS(null, 'fill', SAFETY_FILL_LITE);
-    t.setAttributeNS(null, 'text-anchor', "middle");
-    t.setAttributeNS(null, 'alignment-baseline', "central");
-    t.setAttributeNS(null, 'class', 'safety_text');
-    t.textContent = "SAFE";
-    AppSpace.append(t);
+    if (AppOrientation == HORIZ) {
+      // switching from VERT to HORIZ  
+      // remove the yoffset
+      y = y - grid_offset_xy;
+      // add the yoffset
+      x = x + grid_offset_xy;
+    } else {
+      // switching from HORIZ to VERT
+      // remove the xoffset
+      x = x - grid_offset_xy;
+      // add the yoffset
+      y = y + grid_offset_xy;
+    }
+    t.setAttributeNS(null, "x", x);
+    t.setAttributeNS(null, "y", y);
+  });
+}
+
+// only on an AppOrientation change
+function draw_safe_squares() {
+  var safe_squares = document.querySelectorAll('.safety_square');
+  var safety_text = document.querySelectorAll('.safety_text');
+
+  let ss = null;
+  let st = null;
+
+  if (AppOrientation == HORIZ) {
+    for (let i = 0; i < SAFE_INDEXES.length; i++) {
+      ss = safe_squares[i];
+      st = safety_text[i];
+
+      ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + grid_offset_xy);
+      ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE);
+
+      st.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2 + grid_offset_xy);
+      st.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2);
+    }
+  }
+  else {
+    for (let i = 0; i < SAFE_INDEXES.length; i++) {
+      ss = safe_squares[i];
+      st = safety_text[i];
+
+      ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
+      ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + grid_offset_xy);
+
+      st.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2);
+      st.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2 + grid_offset_xy);
+    }
   }
 }
 
-// only on a page load
+// only on an AppOrientation change
 function draw_center_start() {
-  var center = {
-    row: Math.round(NUM_ROWS_COLS / 2),
-    col: Math.round(NUM_ROWS_COLS / 2)
-  };
-  // for now just fill, draw the polygon later
-  let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  r.setAttributeNS(null, 'x', (center.row - 1) * CELL_SIZE);
-  r.setAttributeNS(null, 'y', (center.col - 1) * CELL_SIZE);
-  r.setAttributeNS(null, 'width', CELL_SIZE);
-  r.setAttributeNS(null, 'height', CELL_SIZE);
-  r.setAttributeNS(null, 'fill', back_ground);
-  r.setAttributeNS(null, 'stroke-width', 3);
-  r.setAttributeNS(null, 'stroke', CENTER_FILL);
-  // r.setAttributeNS(null, 'stroke_width', 0);
-  r.setAttributeNS(null, 'class', 'center_square');
-  AppSpace.append(r);
+  var center_start = document.querySelector('.center_square');
+  let x = center_start.getAttributeNS(null, 'x');
+  let y = center_start.getAttributeNS(null, 'y');
+  if (AppOrientation == HORIZ) {
+    center_start.setAttributeNS(null, 'x', x + grid_offset_xy);
+    center_start.setAttributeNS(null, 'y', y - grid_offset_xy);
+  } else {
+    center_start.setAttributeNS(null, 'x', x - grid_offset_xy);
+    center_start.setAttributeNS(null, 'y', y + grid_offset_xy);
+  }
 }
 
-// only on a page load
-function draw_board() {
+function draw_lines() {
   AppSpace = document.querySelectorAll('#wt_board')[0];
 
-  var board_vert = document.querySelectorAll('.line_vertical');
-  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-    board_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
-    board_vert[i].setAttributeNS(null, 'y1', 0);
-    board_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
-    board_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
-    board_vert[i].setAttributeNS(null, 'stroke_width', 1);
-  }
+  var line_vert = document.querySelectorAll('.line_vertical');
+  var line_horiz = document.querySelectorAll('.line_horizontal');
 
-  var board_horiz = document.querySelectorAll('.line_horizontal');
-  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-    board_horiz[i].setAttributeNS(null, 'x1', 0);
-    board_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
-    board_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
-    board_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
-    board_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+  if (AppOrientation == HORIZ) {
+    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+      line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE + grid_offset_xy);
+      line_vert[i].setAttributeNS(null, 'y1', 0);
+      line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE + grid_offset_xy);
+      line_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
+      line_vert[i].setAttributeNS(null, 'stroke_width', 1);
+    }
+    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+      line_horiz[i].setAttributeNS(null, 'x1', grid_offset_xy);
+      line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
+      line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS + grid_offset_xy);
+      line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
+      line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+    }
+  } 
+  else {
+    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+      line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
+      line_vert[i].setAttributeNS(null, 'y1', grid_offset_xy);
+      line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
+      line_vert[i].setAttributeNS(null, 'y2', grid_offset_xy + CELL_SIZE * NUM_ROWS_COLS);
+      line_vert[i].setAttributeNS(null, 'stroke_width', 1);
+    }
+    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+      line_horiz[i].setAttributeNS(null, 'x1', 0);
+      line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE + grid_offset_xy);
+      line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
+      line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE + grid_offset_xy);
+      line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+    }
   }
+}
 
+function draw_grid() {
+  var grid_bg = document.querySelector('#grid_background');
+  if (AppOrientation == HORIZ) {
+    grid_bg.setAttributeNS(null, 'x', grid_offset_xy);   
+    grid_bg.setAttributeNS(null, 'y', 0);   
+  }
+  else {
+    grid_bg.setAttributeNS(null, 'x', 0);   
+    grid_bg.setAttributeNS(null, 'y', grid_offset_xy);   
+  }
+  draw_lines();
+  draw_safe_squares();
+  draw_center_start();
+  draw_played_tiles();
+}
+
+// only on an AppOrientation change
+function draw_scorebd() {
+  var scorebd = document.querySelector('#scoreboard_bg');
+  if (AppOrientation == HORIZ) {
+    scorebd.setAttributeNS(null, 'width', grid_offset_xy);   
+    scorebd.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+  }
+  else {
+    scorebd.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    scorebd.setAttributeNS(null, 'height', grid_offset_xy);   
+  }
+}
+
+function draw_controls(){
+  var player_panel = document.querySelector('#player_panel');
+  let x = player_panel.getAttributeNS(null, 'x');
+  let y = player_panel.getAttributeNS(null, 'y');
+  let width = player_panel.getAttributeNS(null, 'width');
+  let height = player_panel.getAttributeNS(null, 'height');
+
+  if (AppOrientation == HORIZ) {
+    player_panel.setAttributeNS(null, 'x', grid_offset_xy + CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'y', 0);   
+    player_panel.setAttributeNS(null, 'width', player_panel_wh);   
+    player_panel.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+  }
+  else {
+    player_panel.setAttributeNS(null, 'x', 0);   
+    player_panel.setAttributeNS(null, 'y', grid_offset_xy + CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    player_panel.setAttributeNS(null, 'height', player_panel_wh);   
+  }
+}
+
+// only on an AppOrientation switch
+function draw_board() {
+  draw_scorebd();
+  draw_grid();
+  draw_controls();
 }
 
 function tile_clicked(event) {
@@ -1340,28 +1436,53 @@ function handle_game_over(info) {
 
 const HORIZ = 1;
 const VERT = 2;
-// if (window.innerWidth < window.innerHeight)
-  // AppOrientation = VERT;
 
 // ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
+// if (window.innerWidth < window.innerHeight)
+  // AppOrientation = VERT;
+
 AppSpace = document.querySelectorAll('#wt_board')[0];
+
+function changeLayout() {
+  var scorebd = document.getElementById("scoreboard_bg");
+  var player_pnl = document.getElementById("player_panel");
+
+  draw_board();
+}
 
 function getWindowSize() {
   // massage the top viewbox so all of grid displays
   let winWidth = window.innerWidth;
   let winHeight = window.innerHeight;
-  let winRatio = winWidth/winHeight;
-  let vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
-  AppSpace.setAttribute("viewBox", vbstr);
- console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
+  let lastOrient = AppOrientation;
+
+  // if the orientation changes, change the layout
+  winWidth > winHeight ? AppOrientation = HORIZ : AppOrientation = VERT;
+  if (lastOrient != AppOrientation)
+    changeLayout();
+
+  let vbstr = null;
+  if (AppOrientation == HORIZ) {
+    let winRatio = winWidth/winHeight;
+    vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
+    AppSpace.setAttribute("viewBox", vbstr);
+  }
+  else if (AppOrientation == VERT) {
+    let winRatio = winHeight/winWidth;
+    vbstr =`0 0 ${GRID_SIZE} ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)}`;
+    AppSpace.setAttribute("viewBox", vbstr);
+  }
+
+  console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
 }
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
 
 var chat = document.getElementById("chat_text");
-
 var is_practice = document.getElementById("is_practice").value;
+var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
+var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
 
 var ws_port = document.getElementById("ws_port").value;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
@@ -1458,5 +1579,5 @@ ws.onclose = function(msg) {
 };
 
 set_button_callbacks();
-draw_board();
+// draw_board();
 setup_tiles_for_drag();
