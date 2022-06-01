@@ -13,9 +13,9 @@ var AppSpace = null;
 var Scale = 1.0;
 
 const NUM_ROWS_COLS = 15;
-var CELL_SIZE = 35;
+const CELL_SIZE = 35;
 const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
-const BOARD_WIDTH = GRID_SIZE + CELL_SIZE*9; //1 cell_size for space, 8 for tiles
+var BoardWidth = 0;
 
 const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
@@ -1122,8 +1122,11 @@ function tile_move_start(new_position) {
     });
   }
 
-  if (tile && !PlayStarts.includes(tile, 0))
+  if (tile && !PlayStarts.includes(tile, 0)) {
+    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
+    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
     PlayStarts.push(tile);
+  }
     // console.log("tile_move_start: ", tile.get_JSON());
 }
 
@@ -1434,15 +1437,15 @@ function handle_game_over(info) {
   window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
 }
 
-const HORIZ = 1;
-const VERT = 2;
+const HORIZ = 0;
+const VERT = 1;
 
 // ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
 // if (window.innerWidth < window.innerHeight)
   // AppOrientation = VERT;
 
-AppSpace = document.querySelectorAll('#wt_board')[0];
+AppSpace = document.querySelectorAll('#wt_board')[-1];
 
 function changeLayout() {
   var scorebd = document.getElementById("scoreboard_bg");
@@ -1465,12 +1468,12 @@ function getWindowSize() {
   let vbstr = null;
   if (AppOrientation == HORIZ) {
     let winRatio = winWidth/winHeight;
-    vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
+    vbstr =`-1 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
     AppSpace.setAttribute("viewBox", vbstr);
   }
   else if (AppOrientation == VERT) {
     let winRatio = winHeight/winWidth;
-    vbstr =`0 0 ${GRID_SIZE} ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)}`;
+    vbstr =`-1 0 ${GRID_SIZE} ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)}`;
     AppSpace.setAttribute("viewBox", vbstr);
   }
 
@@ -1483,6 +1486,9 @@ var chat = document.getElementById("chat_text");
 var is_practice = document.getElementById("is_practice").value;
 var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
 var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
+var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
+
+BoardWidth = grid_offset_xy + GRID_SIZE + player_panel_wh; 
 
 var ws_port = document.getElementById("ws_port").value;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);

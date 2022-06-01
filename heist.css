@@ -41,6 +41,17 @@ form {
   fill: #888;
 }
 
+.play_cls {
+  fill: #636466;
+}
+
+.play_cls2 {
+  fill: none;
+  stroke: #636466;
+  stroke-miterlimit: 10;
+  stroke-width: 6px;
+}
+
  .scoreboard_title {
   font-family: Arial, Helvetica, sans-serif;
   stroke : #ff0000ff;
