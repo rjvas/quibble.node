@@ -15,7 +15,6 @@ var Scale = 1.0;
 const NUM_ROWS_COLS = 15;
 const CELL_SIZE = 35;
 const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
-var BoardWidth = 0;
 
 const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
@@ -154,7 +153,7 @@ class Tile {
     this.svg.setAttributeNS(null, "x", this.x);
     this.svg.setAttributeNS(null, "y", this.y);
 
-    this.drag.position();
+    this.drag = this.drag.position();
 
     if (Tile.is_on_board(row, col)) {
       this.status |= Tile.on_board;
@@ -276,7 +275,7 @@ class PlayerHand {
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[idx].x);
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[idx].y);
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "transfom", "");
-      PlayerHand.tiles[idx].drag.position();
+      PlayerHand.tiles[idx].drag = PlayerHand.tiles[idx].drag.position();
     }
   }
 
@@ -362,7 +361,7 @@ class PlayerHand {
         tile.y = 0;
         tile.svg.setAttributeNS(null, "x", tile.x);
         tile.svg.setAttributeNS(null, "y", tile.y);
-        tile.drag.position();
+        tile.drag = tile.drag.position();
         return true;
       }
     }
@@ -374,86 +373,6 @@ class PlayerHand {
 var PlayTrash = [];
 var PlayStarts = [];
 
-const SCOREBOARD_OFFSET = 2 * CELL_SIZE;
-const SCOREBOARD_HEIGHT = 3 * CELL_SIZE;
-const SCOREBOARD_WIDTH = NUM_PLAYER_TILES * CELL_SIZE;
-
-var color_picker = {
-  picker: null,
-  player: ""
-};
-
-function set_default_colors(color) {
-  /* all of the moves to the server
-    var player = color_picker.player;
-    var safe = color.rgbaString;
-    player.tile_color_safe = safe;
-    color._rgba[3] = .2;
-    player.tile_color_risky = color.rgbaString;
-    var risky = player.tile_color_risky;
-
-
-    for (let i = 0; i < NUM_PLAYER_TILES; i++) {
-      player.tiles[i].is_safe ?
-        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-      :
-        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
-    }
-
-    // for now set all played tiles to the appropriate risky or safe color
-    for (let i = 0; i < Word.words.length; i++) {
-      for (let j= 0; j < Word.words[i].length; j++) {
-        if (Word.words[i].tiles[j].player == player) {
-          Word.words[i].tiles[j].is_safe ?
-            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-          :
-            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
-        }
-      }
-    }
-
-    var player_rect = document.getElementById(player.name);
-    if (player_rect != null) {
-      player_rect.setAttributeNS(null, 'fill', safe);
-    }
-    else {
-      console.log("in set_default_colors set player_rect color failed");
-    }
-  */
-  console.log("in set_default_colors color: ", color);
-}
-
-function init_color_popup() {
-  var parent = document.getElementById("color_btn");
-  color_picker.picker = new Picker(parent, '#0000ff');
-  color_picker.picker.setOptions({
-    popup: 'right'
-  });
-  color_picker.picker.onDone = set_default_colors;
-}
-
-function set_button_callbacks() {
-  let btn = document.getElementById('home_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_home_btn);
-  }
-
-  btn = document.getElementById('pass_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_pass_btn);
-  }
-
-  btn = document.getElementById('chat_send_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_chat_send_btn);
-  }
-
-  btn = document.getElementById('chat_cheat_send_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_cheat_send_btn);
-  }
-}
-
 function draw_played_tiles() {
   let tiles = Tile.word_tiles;
   tiles.forEach(t => {
@@ -461,19 +380,6 @@ function draw_played_tiles() {
     let x = parseInt(t.getAttributeNS(null, 'x'));
     let y = parseInt(t.getAttributeNS(null, 'y'));
 
-    if (AppOrientation == HORIZ) {
-      // switching from VERT to HORIZ  
-      // remove the yoffset
-      y = y - grid_offset_xy;
-      // add the yoffset
-      x = x + grid_offset_xy;
-    } else {
-      // switching from HORIZ to VERT
-      // remove the xoffset
-      x = x - grid_offset_xy;
-      // add the yoffset
-      y = y + grid_offset_xy;
-    }
     t.setAttributeNS(null, "x", x);
     t.setAttributeNS(null, "y", y);
   });
@@ -482,34 +388,14 @@ function draw_played_tiles() {
 // only on an AppOrientation change
 function draw_safe_squares() {
   var safe_squares = document.querySelectorAll('.safety_square');
-  var safety_text = document.querySelectorAll('.safety_text');
 
   let ss = null;
-  let st = null;
 
-  if (AppOrientation == HORIZ) {
-    for (let i = 0; i < SAFE_INDEXES.length; i++) {
-      ss = safe_squares[i];
-      st = safety_text[i];
+  for (let i = 0; i < SAFE_INDEXES.length; i++) {
+    ss = safe_squares[i];
 
-      ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + grid_offset_xy);
-      ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE);
-
-      st.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2 + grid_offset_xy);
-      st.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2);
-    }
-  }
-  else {
-    for (let i = 0; i < SAFE_INDEXES.length; i++) {
-      ss = safe_squares[i];
-      st = safety_text[i];
-
-      ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
-      ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + grid_offset_xy);
-
-      st.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2);
-      st.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2 + grid_offset_xy);
-    }
+    ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
+    ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE );
   }
 }
 
@@ -518,64 +404,38 @@ function draw_center_start() {
   var center_start = document.querySelector('.center_square');
   let x = center_start.getAttributeNS(null, 'x');
   let y = center_start.getAttributeNS(null, 'y');
-  if (AppOrientation == HORIZ) {
-    center_start.setAttributeNS(null, 'x', x + grid_offset_xy);
-    center_start.setAttributeNS(null, 'y', y - grid_offset_xy);
-  } else {
-    center_start.setAttributeNS(null, 'x', x - grid_offset_xy);
-    center_start.setAttributeNS(null, 'y', y + grid_offset_xy);
-  }
+  center_start.setAttributeNS(null, 'x', x );
+  center_start.setAttributeNS(null, 'y', y );
 }
 
 function draw_lines() {
-  AppSpace = document.querySelectorAll('#wt_board')[0];
-
   var line_vert = document.querySelectorAll('.line_vertical');
   var line_horiz = document.querySelectorAll('.line_horizontal');
 
-  if (AppOrientation == HORIZ) {
-    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-      line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE + grid_offset_xy);
-      line_vert[i].setAttributeNS(null, 'y1', 0);
-      line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE + grid_offset_xy);
-      line_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
-      line_vert[i].setAttributeNS(null, 'stroke_width', 1);
-    }
-    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-      line_horiz[i].setAttributeNS(null, 'x1', grid_offset_xy);
-      line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
-      line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS + grid_offset_xy);
-      line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
-      line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
-    }
-  } 
-  else {
-    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-      line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
-      line_vert[i].setAttributeNS(null, 'y1', grid_offset_xy);
-      line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
-      line_vert[i].setAttributeNS(null, 'y2', grid_offset_xy + CELL_SIZE * NUM_ROWS_COLS);
-      line_vert[i].setAttributeNS(null, 'stroke_width', 1);
-    }
-    for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-      line_horiz[i].setAttributeNS(null, 'x1', 0);
-      line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE + grid_offset_xy);
-      line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
-      line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE + grid_offset_xy);
-      line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
-    }
+  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+    line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
+    line_vert[i].setAttributeNS(null, 'y1', 0);
+    line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
+    line_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
+    line_vert[i].setAttributeNS(null, 'stroke_width', 1);
   }
+  for (let i = 0; i <= NUM_ROWS_COLS; i++) {
+    line_horiz[i].setAttributeNS(null, 'x1', 0);
+    line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
+    line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
+    line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
+    line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+  }
+
 }
 
 function draw_grid() {
-  var grid_bg = document.querySelector('#grid_background');
   if (AppOrientation == HORIZ) {
-    grid_bg.setAttributeNS(null, 'x', grid_offset_xy);   
-    grid_bg.setAttributeNS(null, 'y', 0);   
-  }
-  else {
-    grid_bg.setAttributeNS(null, 'x', 0);   
-    grid_bg.setAttributeNS(null, 'y', grid_offset_xy);   
+    PlaySpace.setAttributeNS(null, "x", grid_offset_xy);
+    PlaySpace.setAttributeNS(null, "y", 0);
+  } else {
+    PlaySpace.setAttributeNS(null, "x", 0);
+    PlaySpace.setAttributeNS(null, "y", grid_offset_xy);
   }
   draw_lines();
   draw_safe_squares();
@@ -585,36 +445,76 @@ function draw_grid() {
 
 // only on an AppOrientation change
 function draw_scorebd() {
-  var scorebd = document.querySelector('#scoreboard_bg');
+  // this gets the scoreboard svg not background
+  var scoreboard = document.querySelector('#scoreboard');
+  var scoreboard_bg = document.querySelector('#scoreboard_bg');
+
   if (AppOrientation == HORIZ) {
-    scorebd.setAttributeNS(null, 'width', grid_offset_xy);   
-    scorebd.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+    scoreboard.setAttributeNS(null, 'width', grid_offset_xy);   
+    scoreboard.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+    scoreboard_bg.setAttributeNS(null, 'width', grid_offset_xy);   
+    scoreboard_bg.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
   }
   else {
-    scorebd.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
-    scorebd.setAttributeNS(null, 'height', grid_offset_xy);   
+    scoreboard.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    scoreboard.setAttributeNS(null, 'height', grid_offset_xy);   
+    scoreboard_bg.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    scoreboard_bg.setAttributeNS(null, 'height', grid_offset_xy);   
   }
 }
 
+function move_ctrls() {
+  var chat_svg = document.querySelector('#chat_ctrl');
+  var recall_svg = document.querySelector('#recall_ctrl');
+  var play_svg = document.querySelector('#play_ctrl');
+  var swap_svg = document.querySelector('#swap_ctrl');
+  var pass_svg = document.querySelector('#pass_ctrl');
+
+  let tmp = chat_svg.getAttributeNS(null, "x");
+  chat_svg.setAttributeNS(null, "x", chat_svg.getAttributeNS(null, "y"));
+  chat_svg.setAttributeNS(null, "y", tmp);
+  tmp = recall_svg.getAttributeNS(null, "x");
+  recall_svg.setAttributeNS(null, "x", recall_svg.getAttributeNS(null, "y"));
+  recall_svg.setAttributeNS(null, "y", tmp);
+  tmp = play_svg.getAttributeNS(null, "x");
+  play_svg.setAttributeNS(null, "x", play_svg.getAttributeNS(null, "y"));
+  play_svg.setAttributeNS(null, "y", tmp);
+  tmp = swap_svg.getAttributeNS(null, "x");
+  swap_svg.setAttributeNS(null, "x", swap_svg.getAttributeNS(null, "y"));
+  swap_svg.setAttributeNS(null, "y", tmp);
+  tmp = pass_svg.getAttributeNS(null, "x");
+  pass_svg.setAttributeNS(null, "x", pass_svg.getAttributeNS(null, "y"));
+  pass_svg.setAttributeNS(null, "y", tmp);
+}
+
 function draw_controls(){
+  // this is an svg rect
   var player_panel = document.querySelector('#player_panel');
-  let x = player_panel.getAttributeNS(null, 'x');
-  let y = player_panel.getAttributeNS(null, 'y');
-  let width = player_panel.getAttributeNS(null, 'width');
-  let height = player_panel.getAttributeNS(null, 'height');
 
   if (AppOrientation == HORIZ) {
-    player_panel.setAttributeNS(null, 'x', grid_offset_xy + CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'x', CELL_SIZE*NUM_ROWS_COLS);   
     player_panel.setAttributeNS(null, 'y', 0);   
     player_panel.setAttributeNS(null, 'width', player_panel_wh);   
     player_panel.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'fill', "black");   
   }
   else {
     player_panel.setAttributeNS(null, 'x', 0);   
-    player_panel.setAttributeNS(null, 'y', grid_offset_xy + CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'y',  CELL_SIZE*NUM_ROWS_COLS);   
     player_panel.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
     player_panel.setAttributeNS(null, 'height', player_panel_wh);   
+    player_panel.setAttributeNS(null, 'fill', "black");   
   }
+  move_ctrls();
+}
+
+function draw_player_hand() {
+  let tmp = null;
+  PlayerHand.tiles.forEach(t => {
+    tmp = t.svg.getAttributeNS(null, "x");
+    t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
+    t.svg.setAttributeNS(null, "y", tmp);
+  });
 }
 
 // only on an AppOrientation switch
@@ -622,6 +522,7 @@ function draw_board() {
   draw_scorebd();
   draw_grid();
   draw_controls();
+  draw_player_hand();
 }
 
 function tile_clicked(event) {
@@ -693,8 +594,7 @@ function clicked_player_area(event) {
 
 function setup_tile_for_play(tile, no_drag) {
 
-  let board_width = NUM_ROWS_COLS * CELL_SIZE;
-  let startx = board_width + CELL_SIZE;
+  let startx = GRID_SIZE + CELL_SIZE;
   let idx = -1;
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -748,7 +648,7 @@ function setup_tile_for_play(tile, no_drag) {
     svg.append(t);
     svg.append(p);
 
-    AppSpace.append(svg);
+    PlaySpace.append(svg);
 
     if (!no_drag) {
       let drag_rec = new PlainDraggable(svg);
@@ -761,8 +661,8 @@ function setup_tile_for_play(tile, no_drag) {
       drag_rec.containment = {
         left: 0,
         top: 0,
-        width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-        height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+        width: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
+        height: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
       };
       drag_rec.snap = {CELL_SIZE};
       PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
@@ -952,7 +852,7 @@ function get_player_hand_JSONS() {
 }
 
 function erase_player_hand(jsons) {
-  let back_fill = AppSpace.getAttributeNS(null, "fill");
+  let back_fill = PlaySpace.getAttributeNS(null, "fill");
 
   for (let i = 0; i < jsons.length; i++) {
     let tile = PlayerHand.tiles[jsons[i].player_hand_idx];
@@ -1123,10 +1023,9 @@ function tile_move_start(new_position) {
   }
 
   if (tile && !PlayStarts.includes(tile, 0)) {
-    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
-    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
     PlayStarts.push(tile);
   }
+
     // console.log("tile_move_start: ", tile.get_JSON());
 }
 
@@ -1168,6 +1067,9 @@ function tile_moving(new_position) {
     // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
     row = tile.row;
     col = tile.column;
+    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
+    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
+    tile.svg.drag = tile.svg.drag.position();
     // return;
   }
 
@@ -1298,8 +1200,8 @@ function setup_tiles_for_drag() {
     drag_rec.containment = {
       left: 0,
       top: 0,
-      width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-      height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+      width: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
+      height: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
     };
     drag_rec.snap = {CELL_SIZE};
 
@@ -1445,7 +1347,8 @@ AppOrientation = HORIZ;
 // if (window.innerWidth < window.innerHeight)
   // AppOrientation = VERT;
 
-AppSpace = document.querySelectorAll('#wt_board')[-1];
+AppSpace = document.querySelectorAll('#every_damn_thing')[0];
+PlaySpace = document.querySelectorAll('#wt_board')[0];
 
 function changeLayout() {
   var scorebd = document.getElementById("scoreboard_bg");
@@ -1466,15 +1369,21 @@ function getWindowSize() {
     changeLayout();
 
   let vbstr = null;
+  let winRatio = winWidth/winHeight;
   if (AppOrientation == HORIZ) {
-    let winRatio = winWidth/winHeight;
-    vbstr =`-1 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
-    AppSpace.setAttribute("viewBox", vbstr);
+    vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, GRID_SIZE+grid_offset_xy+player_panel_wh)} ${GRID_SIZE}`; 
+    AppSpace.setAttributeNS(null, "viewBox", vbstr);
+    PlaySpace.setAttributeNS(null, "width", GRID_SIZE+player_panel_wh);
+    PlaySpace.setAttributeNS(null, "height", GRID_SIZE);
+    PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE+player_panel_wh} ${GRID_SIZE}`);
   }
   else if (AppOrientation == VERT) {
-    let winRatio = winHeight/winWidth;
-    vbstr =`-1 0 ${GRID_SIZE} ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)}`;
-    AppSpace.setAttribute("viewBox", vbstr);
+    let playHeight = grid_offset_xy+player_panel_wh+GRID_SIZE;
+    vbstr =`0 0 ${Math.max(GRID_SIZE, winRatio*playHeight)} ${playHeight}`;
+    AppSpace.setAttributeNS(null, "viewBox", vbstr);
+    PlaySpace.setAttributeNS(null, "width", GRID_SIZE);
+    PlaySpace.setAttributeNS(null, "height", GRID_SIZE+player_panel_wh);
+    PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`);
   }
 
   console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
@@ -1487,8 +1396,6 @@ var is_practice = document.getElementById("is_practice").value;
 var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
 var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
 var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
-
-BoardWidth = grid_offset_xy + GRID_SIZE + player_panel_wh; 
 
 var ws_port = document.getElementById("ws_port").value;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
@@ -1584,6 +1491,27 @@ ws.onclose = function(msg) {
   console.log("in get socket: close " + msg);
 };
 
+function set_button_callbacks() {
+  let btn = document.getElementById('home_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('pass_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_pass_btn);
+  }
+
+  btn = document.getElementById('chat_send_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_chat_send_btn);
+  }
+
+  btn = document.getElementById('chat_cheat_send_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_cheat_send_btn);
+  }
+}
+
 set_button_callbacks();
-// draw_board();
 setup_tiles_for_drag();
