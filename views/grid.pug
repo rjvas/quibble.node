@@ -59,7 +59,7 @@ html
 
         // safe squares 
         each s, idx in Game.SAFE_INDEXES
-          svg(x=(s.row-1)*cell_size+5 y=(s.col-1)*cell_size+4 width=cell_size height=cell_size viewBox="0 0 280 280"
+          svg(x=(s.row-1)*cell_size y=(s.col-1)*cell_size width=cell_size height=cell_size viewBox="-40 -30 280 280"
             class="safety_square" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
             path(class="lock" fill="black"
                 d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")

@@ -511,9 +511,11 @@ function draw_controls(){
 function draw_player_hand() {
   let tmp = null;
   PlayerHand.tiles.forEach(t => {
-    tmp = t.svg.getAttributeNS(null, "x");
-    t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
-    t.svg.setAttributeNS(null, "y", tmp);
+    if (t) {
+      tmp = t.svg.getAttributeNS(null, "x");
+      t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
+      t.svg.setAttributeNS(null, "y", tmp);
+    }
   });
 }
 
