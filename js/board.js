@@ -443,11 +443,74 @@ function draw_grid() {
   draw_played_tiles();
 }
 
+function draw_player_scorebd() {
+  var player1_stats = document.querySelector('#player1_stats');
+  var player2_stats = document.querySelector('#player2_stats');
+  var player1_lock = document.querySelector('#player1_lock');
+  var player2_lock = document.querySelector('#player2_lock');
+  var player1_score = document.querySelector('#player1');
+  var player2_score = document.querySelector('#player2');
+  var player1_photo = document.querySelector('#player1_photo');
+  var player2_photo = document.querySelector('#player2_photo');
+  var tmp = null;
+
+  // the p1 svg
+  tmp = player1_score.getAttributeNS(null, "x");
+  player1_score.setAttributeNS(null, "x", player1_score.getAttributeNS(null, "y"));
+  player1_score.setAttributeNS(null, "y", tmp);
+  tmp = player1_score.getAttributeNS(null, "width");
+  player1_score.setAttributeNS(null, "width", player1_score.getAttributeNS(null, "height"));
+  player1_score.setAttributeNS(null, "height", tmp);
+  
+  tmp = player1_stats.getAttributeNS(null, "x");
+  player1_stats.setAttributeNS(null, "x", player1_stats.getAttributeNS(null, "y"));
+  player1_stats.setAttributeNS(null, "y", tmp);
+
+  // tmp = player1_lock.getAttributeNS(null, "x");
+  // player1_lock.setAttributeNS(null, "x", player1_lock.getAttributeNS(null, "y"));
+  // player1_lock.setAttributeNS(null, "y", tmp);
+
+  // the p1 photo
+  tmp = player1_photo.getAttributeNS(null, "x");
+  player1_photo.setAttributeNS(null, "x", player1_photo.getAttributeNS(null, "y"));
+  player1_photo.setAttributeNS(null, "y", tmp);
+  tmp = player1_photo.getAttributeNS(null, "width");
+  player1_photo.setAttributeNS(null, "width", player1_photo.getAttributeNS(null, "height"));
+  player1_photo.setAttributeNS(null, "height", tmp);
+  
+  // the p2 svg
+  tmp = player2_score.getAttributeNS(null, "x");
+  player2_score.setAttributeNS(null, "x", player2_score.getAttributeNS(null, "y"));
+  player2_score.setAttributeNS(null, "y", tmp);
+  tmp = player2_score.getAttributeNS(null, "width");
+  player2_score.setAttributeNS(null, "width", player2_score.getAttributeNS(null, "height"));
+  player2_score.setAttributeNS(null, "height", tmp);
+
+  tmp = player2_stats.getAttributeNS(null, "x");
+  player2_stats.setAttributeNS(null, "x", player2_stats.getAttributeNS(null, "y"));
+  player2_stats.setAttributeNS(null, "y", tmp);
+
+  // tmp = player2_lock.getAttributeNS(null, "x");
+  // player2_lock.setAttributeNS(null, "x", player2_lock.getAttributeNS(null, "y"));
+  // player2_lock.setAttributeNS(null, "y", tmp);
+
+  // the p2 photo
+  tmp = player2_photo.getAttributeNS(null, "x");
+  player2_photo.setAttributeNS(null, "x", player2_photo.getAttributeNS(null, "y"));
+  player2_photo.setAttributeNS(null, "y", tmp);
+  tmp = player2_photo.getAttributeNS(null, "width");
+  player2_photo.setAttributeNS(null, "width", player2_photo.getAttributeNS(null, "height"));
+  player2_photo.setAttributeNS(null, "height", tmp);
+}
+
 // only on an AppOrientation change
 function draw_scorebd() {
   // this gets the scoreboard svg not background
   var scoreboard = document.querySelector('#scoreboard');
   var scoreboard_bg = document.querySelector('#scoreboard_bg');
+  var back_arrow = document.querySelector('#back_arrow');
+  var p1_vs_p2 = document.querySelector('#p1_vs_p2');
+  var tmp = null;
 
   if (AppOrientation == HORIZ) {
     scoreboard.setAttributeNS(null, 'width', grid_offset_xy);   
@@ -461,6 +524,15 @@ function draw_scorebd() {
     scoreboard_bg.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
     scoreboard_bg.setAttributeNS(null, 'height', grid_offset_xy);   
   }
+
+  tmp = back_arrow.getAttributeNS(null, "x");
+  back_arrow.setAttributeNS(null, "x", back_arrow.getAttributeNS(null, "y"));
+  back_arrow.setAttributeNS(null, "y", tmp);
+  tmp = p1_vs_p2.getAttributeNS(null, "x");
+  p1_vs_p2.setAttributeNS(null, "x", p1_vs_p2.getAttributeNS(null, "y"));
+  p1_vs_p2.setAttributeNS(null, "y", tmp);
+
+  draw_player_scorebd();
 }
 
 function move_ctrls() {
@@ -508,6 +580,28 @@ function draw_controls(){
   move_ctrls();
 }
 
+function draw_tiles_left() {
+  var left_tiles = document.querySelector('#tiles_left');
+  var left_tiles_vert = document.querySelector('#tiles_left_vert');
+  var left_tiles_count = document.querySelector('#tiles_left_count');
+
+  let tmp = left_tiles_count.getAttributeNS(null, "x");
+
+  if (AppOrientation == HORIZ) {
+    left_tiles.setAttributeNS(null, "x", 275);
+    left_tiles.setAttributeNS(null, "y", 125);
+    left_tiles_vert.setAttributeNS(null, "transform", "rotate(-90.5876, 277.2, 136.8)");
+    left_tiles_count.setAttributeNS(null, "x", 550);
+    left_tiles_count.setAttributeNS(null, "y", 175);
+  } else {
+    left_tiles.setAttributeNS(null, "x", -20);
+    left_tiles.setAttributeNS(null, "y", 415);
+    left_tiles_vert.setAttributeNS(null, "transform", "rotate(0, 277.2, 136.8)");
+    left_tiles_count.setAttributeNS(null, "x", 350);
+    left_tiles_count.setAttributeNS(null, "y", 557);
+  }
+}
+
 function draw_player_hand() {
   let tmp = null;
   PlayerHand.tiles.forEach(t => {
@@ -515,6 +609,7 @@ function draw_player_hand() {
       tmp = t.svg.getAttributeNS(null, "x");
       t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
       t.svg.setAttributeNS(null, "y", tmp);
+      t.drag = t.drag.position();
     }
   });
 }
@@ -524,6 +619,7 @@ function draw_board() {
   draw_scorebd();
   draw_grid();
   draw_controls();
+  draw_tiles_left();
   draw_player_hand();
 }
 
@@ -663,8 +759,10 @@ function setup_tile_for_play(tile, no_drag) {
       drag_rec.containment = {
         left: 0,
         top: 0,
-        width: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-        height: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+        width: "100%",
+        height: "100%"
+        // width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
+        // height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
       };
       drag_rec.snap = {CELL_SIZE};
       PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
@@ -733,25 +831,25 @@ function handle_err_response(resp) {
   let err_msg = resp[0].err_msg;
   alert(err_msg);
 
-  repatriate_played_tiles();
+  clicked_recall();
 }
 
 function update_scoreboard(item, data) {
   let ret_val = true;
   if (data.scoreboard_player_1_name) {
-    item = document.getElementById("scoreboard_player_1");
+    item = document.getElementById("player1_name");
     if (item) item.textContent = data.scoreboard_player_1_name;
   } else if (data.scoreboard_player_1_score) {
-    item = document.getElementById("scoreboard_player_1_score");
+    item = document.getElementById("player1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
   } else if (data.scoreboard_player_2_name) {
-    item = document.getElementById("scoreboard_player_2");
+    item = document.getElementById("player2_name");
     if (item) item.textContent = data.scoreboard_player_2_name;
   } else if (data.scoreboard_player_2_score) {
-    item = document.getElementById("scoreboard_player_2_score");
+    item = document.getElementById("player2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   } else if (data.tiles_left_value >= 0) {
-    item = document.getElementById("scoreboard_tiles_left_value");
+    item = document.getElementById("tiles_left_count");
     if (item) item.textContent = data.tiles_left_value;
   } else
     ret_val = false;
@@ -814,22 +912,11 @@ function handle_the_response(resp) {
 }
 
 // jsonify the just-played-tiles and send them back to the server
-function clicked_player_name(event) {
-
-  // if the active player clicked the other player's name
-  if (event.currentTarget.textContent == 'Wait ...') return;
+function clicked_play(event) {
 
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
-  if (URL_x == "/player1") {
-    let txt = document.getElementById("scoreboard_player_1");
-    if (txt.textContent == "Wait ...") return;
-  } else if (URL_x == "/player2") {
-    let txt = document.getElementById("scoreboard_player_2");
-    if (txt.textContent == "Wait ...") return;
   }
 
   let jsons = get_played_JSONS();
@@ -837,7 +924,7 @@ function clicked_player_name(event) {
     "type": "regular_play"
   });
 
-  // console.log("in clicked_player_name: " + JSON.stringify(jsons));
+  // console.log("in clicked_play: " + JSON.stringify(jsons));
   ws.send(JSON.stringify(jsons));
 
   // console.log("clicked on ", event.currentTarget.innerHTML);
@@ -876,21 +963,21 @@ function get_played_trash_JSONS() {
   return jsons;
 }
 
-function repatriate_played_tiles() {
+function clicked_recall() {
 
   if (PlayStarts.length > 0) {
     PlayStarts.forEach(item => {
       if (item.status & Tile.is_blank)
         item.svg.childNodes[TEXT_POSITION].textContent = " ";
       if (!PlayerHand.add(item))
-        console.error(`repatriate_played_tiles: cannot add ${item.char}/${item.id} to PlayerHand`);
+        console.error(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
     });
   }
   PlayStarts = [];
   PlayTrash = [];
 }
 
-function clicked_tiles_area(event) {
+function clicked_swap(event) {
 
   if (!URL_x) {
     let url = window.location.href;
@@ -908,11 +995,11 @@ function clicked_tiles_area(event) {
   let jsons = null;
 
   // if not enough tiles to complete, consider this a pass
-  let tiles_left = parseInt(document.getElementById("scoreboard_tiles_left_value").textContent);
+  let tiles_left = parseInt(document.getElementById("tiles_left_count").textContent);
   if (PlayTrash.length == 0 && tiles_left < NUM_PLAYER_TILES ||
     PlayTrash.length > tiles_left) {
     window.alert("Not enough tiles left to complete the play - THIS IS A PASS")
-    repatriate_played_tiles();
+    clicked_recall();
     jsons = [{
       "type": "pass"
     }];
@@ -930,7 +1017,7 @@ function clicked_tiles_area(event) {
       }
       // move the trashed tiles back to the player tile area
       else {
-        repatriate_played_tiles();
+        clicked_recall();
       }
     } else return;
   }
@@ -997,8 +1084,8 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
-function clicked_pass_btn(event) {
-  repatriate_played_tiles();
+function clicked_pass(event) {
+  clicked_recall();
   jsons = [{
     "type": "pass"
   }];
@@ -1006,6 +1093,7 @@ function clicked_pass_btn(event) {
 }
 
 function tile_move_start(new_position) {
+  Scale = CELL_SIZE / this.rect.width;
   let svg = this.element;
 
   let phi = -1;
@@ -1024,7 +1112,20 @@ function tile_move_start(new_position) {
     });
   }
 
-  if (tile && !PlayStarts.includes(tile, 0)) {
+  if (tile) {
+    if (AppOrientation == HORIZ) {
+      tile.drag.left -= 2*CELL_SIZE;
+      // tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+    //   new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+    }
+    else {
+      tile.drag.top -= 2*CELL_SIZE;
+      // tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
+    //   new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
+    }
+
+    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
+    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
     PlayStarts.push(tile);
   }
 
@@ -1043,10 +1144,16 @@ function tile_moving(new_position) {
   let row = -1;
   let col = -1;
 
+  let svg = this.element;
+  let x = svg.getAttributeNS(null, "x");
+  let y = svg.getAttributeNS(null, "y");
+
   row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
   col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
+  let r2 = Math.round(y/ CELL_SIZE + 1);
+  let c2 = Math.round(x/ CELL_SIZE + 1);
+  console.log(`r/c from drag (scaled): ${row},${col} from svg: ${r2}, ${c2}`);
 
-  let svg = this.element;
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
   });
@@ -1058,7 +1165,15 @@ function tile_moving(new_position) {
     });
   }
 
-  // if dragging within the player-hand area ...
+  if (AppOrientation == HORIZ) {
+    // tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+    // new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+  }
+  else {
+    // tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
+    // new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
+  }
+
   if (PlayerHand.in_hand(row, col)) {
     let cur_location_idx = col - 17;
     PlayerHand.rearrange_hand(svg, cur_location_idx);
@@ -1069,9 +1184,6 @@ function tile_moving(new_position) {
     // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
     row = tile.row;
     col = tile.column;
-    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
-    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
-    tile.svg.drag = tile.svg.drag.position();
     // return;
   }
 
@@ -1081,8 +1193,8 @@ function tile_moving(new_position) {
     tile.column = col;
   }
 
-  let x = (col - 1) * CELL_SIZE;
-  let y = (row - 1) * CELL_SIZE;
+  x = (col - 1) * CELL_SIZE;
+  y = (row - 1) * CELL_SIZE;
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
   // css' translate. So, the tiles.svg have the original player_hand
@@ -1100,7 +1212,7 @@ function tile_moving(new_position) {
 
 function tile_moved(new_position) {
   // 'this' references the PlainDraggable instance
-  Scale = CELL_SIZE / this.rect.width;
+  // Scale = CELL_SIZE / this.rect.width;
 
   var row = -1;
   var col = -1;
@@ -1122,10 +1234,22 @@ function tile_moved(new_position) {
     });
   }
 
-  col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
-  row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
-
   if (tile) {
+    if (AppOrientation == HORIZ) {
+      tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+      new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+    }
+    else {
+      tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
+      new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
+    }
+    tile.drag.position();
+
+    // col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
+    // row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
+    col = Math.round(x / CELL_SIZE) + 1;
+    row = Math.round(y / CELL_SIZE) + 1;
+    
     if (!tile.is_collision(row, col)) {
       tile.move(row, col);
     } else {
@@ -1202,8 +1326,10 @@ function setup_tiles_for_drag() {
     drag_rec.containment = {
       left: 0,
       top: 0,
-      width: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-      height: PlaySpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+      // width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
+      // height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+      width: "100%",
+      height: "100%"
     };
     drag_rec.snap = {CELL_SIZE};
 
@@ -1494,17 +1620,33 @@ ws.onclose = function(msg) {
 };
 
 function set_button_callbacks() {
-  let btn = document.getElementById('home_btn');
+  // play recall swap chat
+  let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
   }
 
-  btn = document.getElementById('pass_btn');
+  btn = document.getElementById('recall_on_click');
   if (btn) {
-    btn.addEventListener("click", clicked_pass_btn);
+    btn.addEventListener("click", clicked_recall);
   }
 
-  btn = document.getElementById('chat_send_btn');
+  btn = document.getElementById('play_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_play);
+  }
+
+  btn = document.getElementById('pass_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_pass);
+  }
+
+  btn = document.getElementById('swap_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_swap);
+  }
+
+  btn = document.getElementById('chat_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_chat_send_btn);
   }
