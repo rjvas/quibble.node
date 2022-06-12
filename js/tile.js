@@ -160,7 +160,7 @@ class Tile {
   static on_board = 2;
   static trashed = 4;
   static is_blank = 8;
-  static is_magic_s = 16;
+  // static is_magic_s = 16;
   static utilized = 32;
 
   static new_tile_json(json, player) {

@@ -8,6 +8,15 @@
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
+var chat = document.getElementById("chat_text");
+var is_practice = document.getElementById("is_practice").value;
+var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
+var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
+var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
+var tiles_left_offset = parseInt(document.getElementById("tiles_left_offset").value);
+
+var ws_port = document.getElementById("ws_port").value;
+
 var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
@@ -118,12 +127,9 @@ class Tile {
 
     this.id = svg.getAttributeNS(null, "id");
     this.char = svg.childNodes[1].textContent;
-    this.x = svg.getAttributeNS(null, "x");
-    this.y = svg.getAttributeNS(null, "y");
-    this.row = Math.round(this.y / CELL_SIZE) + 1;
-    this.column = Math.round(this.x / CELL_SIZE) + 1;
+    this.row = Math.round(svg.getAttributeNS(null, "y") / CELL_SIZE) + 1;
+    this.column = Math.round(svg.getAttributeNS(null, "x") / CELL_SIZE) + 1;
     this.player_hand_idx = idx;
-
     this.svg = svg;
     this.drag = drag;
 
@@ -135,8 +141,8 @@ class Tile {
     return {
       id: this.id,
       char: this.char,
-      x: this.x,
-      y: this.y,
+      x: this.svg.getAttributeNS(null, "x"),
+      y: this.svg.getAttributeNS(null, "y"),
       row: this.row,
       col: this.column,
       status : this.status,
@@ -148,10 +154,10 @@ class Tile {
 
     this.row = row;
     this.column = col;
-    this.x = (col - 1) * CELL_SIZE;
-    this.y = (row - 1) * CELL_SIZE;
-    this.svg.setAttributeNS(null, "x", this.x);
-    this.svg.setAttributeNS(null, "y", this.y);
+    let x = (col - 1) * CELL_SIZE;
+    let y = (row - 1) * CELL_SIZE;
+    this.svg.setAttributeNS(null, "x", x);
+    this.svg.setAttributeNS(null, "y", y);
 
     this.drag = this.drag.position();
 
@@ -159,10 +165,10 @@ class Tile {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
       PlayerHand.remove(this);
-    } else if (PlayerHand.in_hand(row, col)) {
+    } else if (PlayerHand.is_in_hand(x, y)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;
       if (!PlayerHand.add(this)) {
-        console.error(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
+        console.log(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
       }
     } else if (Tile.is_in_trash(this.row, this.column)) {
       this.status |= Tile.trashed;
@@ -198,7 +204,6 @@ class Tile {
   static on_board = 2;
   static trashed = 4;
   static is_blank = 8;
-  static is_magic_s = 16;
 
   static is_in_trash(row, col) {
     if ((AppOrientation == HORIZ && row >= 3 && row <= 5 &&
@@ -211,69 +216,65 @@ class Tile {
 
   static is_on_board(row, col) {
     if (row > 0 && row < 16 &&
-      col > 0 && col < 16)
+      col > 0 && col < 16) {
       return true;
-    return false;
+    } else {
+      return false;
+    }
   }
 }
 
 class PlayerHand {
   constructor() {}
   static tiles = [];
-  static squares = [
-    {
-      "row": 1,
-      "column": 17
-    },
-    {
-      "row": 1,
-      "column": 18
-    },
-    {
-      "row": 1,
-      "column": 19
-    },
-    {
-      "row": 1,
-      "column": 20
-    },
-    {
-      "row": 1,
-      "column": 21
-    },
-    {
-      "row": 1,
-      "column": 22
-    },
-    {
-      "row": 1,
-      "column": 23
-    },
-    {
-      "row": 1,
-      "column": 24
-    }
-  ];
+  static squares = 
+      [
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+0*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+1*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+2*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+3*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+4*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+5*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+6*2*CELL_SIZE 
+        }
+      ];
 
   static set_tile_attrs(idx, relative, value) {
     if (PlayerHand.tiles[idx]) {
-      // if the orientation is horizontal placement is to the right of the board
-      // otherwise, it's below the board
-      let start_col = AppOrientation == HORIZ ? 16 : 1;
-      PlayerHand.tiles[idx].x = (idx + start_col) * CELL_SIZE;
       
-      let start_row = AppOrientation == HORIZ ? 1 : 17;
-
       // set the col relative to last position or absolutely
       // from the passed value
-      relative ? PlayerHand.tiles[idx].column += value :
-        PlayerHand.tiles[idx].column = value + start_col;
+      if (relative && idx + value >= 0 && idx + value < NUM_PLAYER_TILES) {
+        PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.squares[idx + value].x);
+        PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.squares[idx + value].y);
+      }
 
-      PlayerHand.tiles[idx].y = (start_row - 1) * CELL_SIZE;
-      PlayerHand.tiles[idx].row = start_row; // 1-based
       PlayerHand.tiles[idx].player_hand_idx = idx;
-      PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[idx].x);
-      PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[idx].y);
+      // coords just swapped for horiz to vert
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "width", 2*CELL_SIZE);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "height", 2*CELL_SIZE);
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "transfom", "");
       PlayerHand.tiles[idx].drag = PlayerHand.tiles[idx].drag.position();
     }
@@ -297,22 +298,46 @@ class PlayerHand {
         return t && t.svg == svg;
       });
 
+    let x = svg.getAttributeNS(null, "x");
+    let y = svg.getAttributeNS(null, "y");
+
+    // if the to_index is the same as the player_hand_idx then recalc the
+    // to_idx from the tile.x/y (gets updated in tile_moving)
+    let to_sq = null;
+    if (to_idx == tile.player_hand_idx) {
+      if (AppOrientation == HORIZ) { // xy explicit
+        PlayerHand.squares.find((s,idx) => {
+          if (y >= s.y && y < s.y + 2*CELL_SIZE)
+            to_idx = idx;
+        });
+      } else {
+        PlayerHand.squares.find((s,idx) => {
+          // for AppOrientation == VERT the x,y values are reversed
+          // (only keeping the HORIZ coords)
+          if (x >= s.y && x < s.y + 2*CELL_SIZE)
+            to_idx = idx;
+        });
+      }
+    }
+
     // want to accomdate tiles moved from the board, also
     // move the svgs and update the json.char and json.id
     if (tile) {
       let ts = PlayerHand.tiles;
       let os = PlayerHand.get_open_slot();
 
+      console.log(`rearrange_hand tile x=${x} y=${y} os=${os} to_idx=${to_idx}`);
+
       // if no open slot, shift in-place
       if (os == -1) os = tile.player_hand_idx;
 
-      if (os < to_idx) { // shift to the left
+      if (os < to_idx) { // shift to the front/top
         for (let i = os; i < to_idx; i++) {
           PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
           PlayerHand.set_tile_attrs(i, true, -1);
         }
       }
-      else if (os > to_idx) { // shift to the right
+      else if (os > to_idx) { // shift to the end/bottom
         for (let i = os; i > to_idx; i--) {
           PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
           PlayerHand.set_tile_attrs(i, true, 1);
@@ -325,18 +350,20 @@ class PlayerHand {
     }
   }
 
-  static in_hand(r, c) {
-    if ((AppOrientation == HORIZ && r == 1 && c < 25 && c > 16) ||
-        (AppOrientation == VERT && r == 17 && c >= 1 && c <= 8))
+  static is_in_hand(x, y) {
+    if ((AppOrientation == HORIZ && x > GRID_SIZE ) ||
+        (AppOrientation == VERT && y > GRID_SIZE))
        return true;
     return false;
   }
+
   static get_open_slot() {
     for (let i = 0; i < PlayerHand.tiles.length; i++) {
       if (!PlayerHand.tiles[i]) return i;
     }
     return -1;
   }
+
   static remove(tile) {
     if (tile.status & Tile.in_hand) tile.status = tile.status ^ Tile.in_hand;
     // a little brute force here - if the tile has been moved through the
@@ -347,6 +374,7 @@ class PlayerHand {
         PlayerHand.tiles[i] = null;
     });
   }
+
   static add(tile) {
     let idx = -1;
     let exists = PlayerHand.tiles.find(t => {
@@ -357,10 +385,12 @@ class PlayerHand {
         PlayerHand.tiles[idx] = tile;
         tile.status |= Tile.in_hand;
         tile.hand_idx = idx;
-        tile.x = (16 + idx) * CELL_SIZE;
-        tile.y = 0;
-        tile.svg.setAttributeNS(null, "x", tile.x);
-        tile.svg.setAttributeNS(null, "y", tile.y);
+        let x = AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand[idx].y;
+        let y = AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand[idx].x;
+        tile.svg.setAttributeNS(null, "x", x);
+        tile.svg.setAttributeNS(null, "y", y);
+        tile.svg.setAttributeNS(null, "width", 2*CELL_SIZE);
+        tile.svg.setAttributeNS(null, "height", 2*CELL_SIZE);
         tile.drag = tile.drag.position();
         return true;
       }
@@ -372,6 +402,19 @@ class PlayerHand {
 
 var PlayTrash = [];
 var PlayStarts = [];
+
+function svgToScreen(element) {
+  var rect = element.getBoundingClientRect();
+  return {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
+}
+
+function screenToSVG(svg, x, y) { // svg is the svg DOM node
+  var pt = svg.createSVGPoint();
+  pt.x = x;
+  pt.y = y;
+  var cursorPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return {x: Math.floor(cursorPt.x), y: Math.floor(cursorPt.y)}
+}
 
 function draw_played_tiles() {
   let tiles = Tile.word_tiles;
@@ -609,6 +652,8 @@ function draw_player_hand() {
       tmp = t.svg.getAttributeNS(null, "x");
       t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
       t.svg.setAttributeNS(null, "y", tmp);
+      t.svg.setAttributeNS(null, "width", CELL_SIZE*2);
+      t.svg.setAttributeNS(null, "height", CELL_SIZE*2);
       t.drag = t.drag.position();
     }
   });
@@ -690,6 +735,7 @@ function clicked_player_area(event) {
   color_picker.picker.show();
 }
 
+// these are NEW tiles created async during play
 function setup_tile_for_play(tile, no_drag) {
 
   let startx = GRID_SIZE + CELL_SIZE;
@@ -700,10 +746,11 @@ function setup_tile_for_play(tile, no_drag) {
     idx = PlayerHand.get_open_slot();
     if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
     svg.setAttributeNS(null, 'id', "tile_" + tile.id);
-    svg.setAttributeNS(null, 'x', startx + idx * CELL_SIZE);
-    svg.setAttributeNS(null, 'y', 0);
-    svg.setAttributeNS(null, 'width', CELL_SIZE);
-    svg.setAttributeNS(null, 'height', CELL_SIZE);
+    svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx.y]);
+    svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx.x]);
+    svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
+    svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
+    svg.setAttributeNS(null, 'viewBox', `0 0 ${CELL_SIZE} ${CELL_SIZE}`);
 
     // rect and text position attributes are always relative to the svg
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -781,8 +828,8 @@ function set_tile_props(jtile) {
     svg.classList.remove('player_tile_svg');
   } else {
     svg = setup_tile_for_play(jtile, true);
-    svg.setAttributeNS(null, 'x', (jtile.column - 1) * CELL_SIZE);
-    svg.setAttributeNS(null, 'y', (jtile.row - 1) * CELL_SIZE);
+    // svg.setAttributeNS(null, 'x', (jtile.column - 1) * CELL_SIZE);
+    // svg.setAttributeNS(null, 'y', (jtile.row - 1) * CELL_SIZE);
   }
 }
 
@@ -925,7 +972,8 @@ function clicked_play(event) {
   });
 
   // console.log("in clicked_play: " + JSON.stringify(jsons));
-  ws.send(JSON.stringify(jsons));
+  if (jsons.length > 1)
+    ws.send(JSON.stringify(jsons));
 
   // console.log("clicked on ", event.currentTarget.innerHTML);
 }
@@ -933,8 +981,7 @@ function clicked_play(event) {
 function get_player_hand_JSONS() {
   let jsons = [];
   PlayerHand.tiles.forEach((item, i) => {
-    if (!(item.status & Tile.is_magic_s))
-      jsons.push(item.get_JSON());
+    jsons.push(item.get_JSON());
   });
 
   return jsons;
@@ -945,13 +992,10 @@ function erase_player_hand(jsons) {
 
   for (let i = 0; i < jsons.length; i++) {
     let tile = PlayerHand.tiles[jsons[i].player_hand_idx];
-    // don't get the magic S
-    if (tile && jsons[i].player_hand_idx != 7) {
-      tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
-      tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
-      tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
-      PlayerHand.tiles[jsons[i].player_hand_idx] = null;
-    }
+    tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
+    tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
+    tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
+    PlayerHand.tiles[jsons[i].player_hand_idx] = null;
   }
 }
 
@@ -970,7 +1014,7 @@ function clicked_recall() {
       if (item.status & Tile.is_blank)
         item.svg.childNodes[TEXT_POSITION].textContent = " ";
       if (!PlayerHand.add(item))
-        console.error(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
+        console.log(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
     });
   }
   PlayStarts = [];
@@ -1093,7 +1137,6 @@ function clicked_pass(event) {
 }
 
 function tile_move_start(new_position) {
-  Scale = CELL_SIZE / this.rect.width;
   let svg = this.element;
 
   let phi = -1;
@@ -1113,19 +1156,8 @@ function tile_move_start(new_position) {
   }
 
   if (tile) {
-    if (AppOrientation == HORIZ) {
-      tile.drag.left -= 2*CELL_SIZE;
-      // tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
-    //   new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
-    }
-    else {
-      tile.drag.top -= 2*CELL_SIZE;
-      // tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
-    //   new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
-    }
-
-    tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
-    tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
+    // tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
+    // tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
     PlayStarts.push(tile);
   }
 
@@ -1133,26 +1165,27 @@ function tile_move_start(new_position) {
 }
 
 function tile_moving(new_position) {
-  // 'this' references the PlainDraggable instance
-  Scale = CELL_SIZE / this.rect.width;
-
   // note that there are +1 and -1 conversions on row/col - this is due to
   // using 0-based coordinate system for x/y and 1-based coord system
   // for row/col
+
+  console.log(`tile_moving new_pos: ${new_position.left},${new_position.top}`);
 
   // just initing ...
   let row = -1;
   let col = -1;
 
   let svg = this.element;
-  let x = svg.getAttributeNS(null, "x");
-  let y = svg.getAttributeNS(null, "y");
 
-  row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
-  col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
-  let r2 = Math.round(y/ CELL_SIZE + 1);
-  let c2 = Math.round(x/ CELL_SIZE + 1);
-  console.log(`r/c from drag (scaled): ${row},${col} from svg: ${r2}, ${c2}`);
+  let playXY = screenToSVG(PlaySpace, new_position.left, new_position.top);
+  console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
+
+  let y = playXY.x;
+  let x = playXY.y;
+
+  row = Math.round(x/ CELL_SIZE + 1);
+  col = Math.round(y/ CELL_SIZE + 1);
+  console.log(`r/c from drag: ${row},${col}`);
 
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
@@ -1165,34 +1198,30 @@ function tile_moving(new_position) {
     });
   }
 
-  if (AppOrientation == HORIZ) {
-    // tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
-    // new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
-  }
-  else {
-    // tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
-    // new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
-  }
+  x = (col - 1) * CELL_SIZE;
+  y = (row - 1) * CELL_SIZE;
 
-  if (PlayerHand.in_hand(row, col)) {
-    let cur_location_idx = col - 17;
-    PlayerHand.rearrange_hand(svg, cur_location_idx);
-    // console.log("tile_moving - player hand idx: " + (col - 17));
+  if (PlayerHand.is_in_hand(x, y)) {
+    console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
+    PlayerHand.rearrange_hand(svg, tile.player_hand_idx);
   } 
-  else if (Tile.is_on_board(row, col) && tile && tile.is_collision(row, col)) {
+  else if (Tile.is_on_board(row, col)) {
+    console.log(`tile_moving - tile on board rc : ${row}/${col}`);
+    svg.setAttributeNS(null, "width", CELL_SIZE);
+    svg.setAttributeNS(null, "height", CELL_SIZE);
     // if we're moving into another tile, don't let it
-    // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
-    row = tile.row;
-    col = tile.column;
-    // return;
+    if (tile && tile.is_collision(row, col)) {
+      row = tile.row;
+      col = tile.column;
+    }
+  // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`); 
   }
 
-  // update the row/col
+  // update the row/col (rearrange_hand may have changed things)
   if (tile) {
     tile.row = row;
     tile.column = col;
   }
-
   x = (col - 1) * CELL_SIZE;
   y = (row - 1) * CELL_SIZE;
 
@@ -1200,14 +1229,14 @@ function tile_moving(new_position) {
   // css' translate. So, the tiles.svg have the original player_hand
   // coordinates and a translate field. In tile_clicked this causes issues
   // with cycling through the player colors because setting the rect color
-  // directly doesn't use the css translate. So, fix up the svg coords here.d
+  // directly doesn't use the css translate. So, fix up the svg coords here.
   svg.setAttributeNS(null, 'transform', "");
   svg.setAttributeNS(null, 'x', x);
   svg.setAttributeNS(null, 'y', y);
   this.position();
 
-  console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
-    tile.row, tile.column, this.rect.width, Scale);
+  // console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
+    // tile.row, tile.column, this.rect.width, Scale);
 }
 
 function tile_moved(new_position) {
@@ -1245,8 +1274,6 @@ function tile_moved(new_position) {
     }
     tile.drag.position();
 
-    // col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
-    // row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
     col = Math.round(x / CELL_SIZE) + 1;
     row = Math.round(y / CELL_SIZE) + 1;
     
@@ -1263,14 +1290,9 @@ function tile_moved(new_position) {
 
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
-    if (PlayerHand.in_hand(row, col)) {
+    if (PlayerHand.is_in_hand(x, y)) {
 
-      // if it's the magic s being rearranged, don't let it
-      if (tile.status & Tile.is_magic_s)
-        PlayerHand.rearrange_hand(tile.svg, 7);
-      else if (col == PlayerHand.squares[PlayerHand.squares.length - 1].column)
-        // if it's not the magic S don't let in slot 7
-        PlayerHand.rearrange_hand(tile.svg, 6);
+      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
 
       // take it out of the PlayStarts
       PlayStarts = PlayStarts.filter(ps => {
@@ -1304,10 +1326,7 @@ function tile_moved(new_position) {
       }
     }
     else {
-      if (tile.status & Tile.is_magic_s)
-        PlayerHand.rearrange_hand(tile.svg, 7);
-      else
-        PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
+      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
     }
   }
 }
@@ -1316,6 +1335,9 @@ function tile_moved(new_position) {
 function setup_tiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
   tile_svgs.forEach((item, idx) => {
+    item.setAttributeNS(null, "width", CELL_SIZE*2);
+    item.setAttributeNS(null, "height", CELL_SIZE*2);
+    
     let drag_rec = new PlainDraggable(item);
 
     drag_rec.onMove = tile_moving;
@@ -1333,11 +1355,7 @@ function setup_tiles_for_drag() {
     };
     drag_rec.snap = {CELL_SIZE};
 
-    // this is the magic s - keep track of it
-    if (idx == 7)
-      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand | Tile.is_magic_s));
-    else
-      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
+    PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
   });
 
   // now stuff the word tiles into an easily accessable list - for drag control
@@ -1514,18 +1532,11 @@ function getWindowSize() {
     PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`);
   }
 
-  console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
+  // console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
 }
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
 
-var chat = document.getElementById("chat_text");
-var is_practice = document.getElementById("is_practice").value;
-var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
-var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
-var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
-
-var ws_port = document.getElementById("ws_port").value;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 

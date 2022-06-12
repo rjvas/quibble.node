@@ -62,7 +62,6 @@ class Player {
   }
 
   update_hand(game, initial, play, jsons) {
-    // this does not hit the 'magic' s - get that after
     var ret_val = true;
     if (!jsons) jsons = [];
 
@@ -98,13 +97,13 @@ class Player {
       }
     }
 
-    if (initial) {
-      let tile = game.get_tile("S");
-      if (tile) {
-        tile.setup_for_play(this, Player.num_player_tiles);
-        tile.status |= Tile.is_magic_s;
-      }
-    }
+    // if (initial) {
+    //   let tile = game.get_tile("S");
+    //   if (tile) {
+    //     tile.setup_for_play(this, Player.num_player_tiles);
+    //     tile.status |= Tile.is_magic_s;
+    //   }
+    // }
 
     return ret_val;
   }

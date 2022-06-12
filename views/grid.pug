@@ -64,33 +64,33 @@ html
             text(id="player1_lock_pts" class="player_lock_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 stroke=player1_safe
               text-align="start" alignment-baseline="central")
               |0
-            text(id="player1_name" x="0" y="35" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+            text(id="player1_name" x="0" y="40" font-family="Sans-serif" font-size="24" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.name}
             text(id="player1_score" x="0" y="65" width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.total_points}
 
-        svg(id="p1_vs_p2" x="15" y="250" width=100 height=100 viewBox=`0 0 ${cell_size} ${cell_size/3}`)
-          text(x="0" y="0" width=cell_size height=cell_size stroke_width=2 fill="white" font-family="Sans-serif" font-size="12"
+        svg(id="p1_vs_p2" x="40" y="250" width=100 height=100 viewBox=`0 0 ${cell_size} ${cell_size/3}`)
+          text(x="0" y="0" width=cell_size height=cell_size stroke_width=2 fill="white" font-family="Sans-serif" font-size="6"
             text-align="start" alignment-baseline="central")
             |vs
 
         // player 2 scoreboard
-        svg(id="player2" x="15" y="300" width=scorebd_xy_offset height=cell_size*6)
-          svg(id="player2_stats" x="0" y="15" width=scorebd_xy_offset height=cell_size*4)
-            svg(x=0 y=0 width=cell_size height=cell_size viewBox="0 0 280 280"
+        svg(id="player2" x="15" y="300" width=90 height=210)
+          svg(id="player2_stats" x="0" y="45" width=90 height=cell_size*4)
+            svg(x=35 y=0 width=cell_size height=cell_size viewBox="0 0 280 280"
               class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
               path(class="player_lock_cls" fill=player2_safe
                   d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
-            text(id="player2_lock_pts" class="player_lock_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 
+            text(id="player2_lock_pts" class="player_lock_cls" x="65" y="15" width=cell_size height=cell_size stroke_width=2 
               stroke=player2_safe text-align="start" alignment-baseline="central")
               |0
-            text(id="player2_name" x="0" y="35" width=cell_size height=cell_size stroke_width=2 stroke="white" 
-              text-align="start" alignment-baseline="central")
+            text(id="player2_name" x="30" y="45" font-family="Sans-serif" font-size="24" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+              text-align="end" alignment-baseline="central")
               |#{game.player_2.name}
-            text(id="player2_score" x="0" y="65" width=cell_size height=cell_size stroke_width=2 stroke="white" 
-              text-align="start" alignment-baseline="central")
+            text(id="player2_score" x="55" y="70" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+              text-align="end" alignment-baseline="central")
               |#{game.player_2.total_points}
           rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky)
 
@@ -116,7 +116,7 @@ html
         // center/start 
         - var center = {row: Math.round(15/2), col: Math.round(15/2)};
         rect(x=(center.row-1)*cell_size y=(center.col-1)*cell_size width=cell_size height=cell_size fill="#555"
-          stroke-width=3 stroke=Game.CENTER_FILL class="center_square")
+          stroke=Game.CENTER_FILL class="center_square")
         
         // Words 
         each w, idx in game.words
@@ -160,8 +160,9 @@ html
         if player == "/player1"
           each t, idx in game.player_1.tiles 
             if t
-              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset+idx*2*cell_size+5 
-                width=2*cell_size height=2*cell_size preserveAspectRatio="xMidYMid meet" class="player_tile_svg")
+              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset+idx*2*cell_size 
+                width=2*cell_size height=2*cell_size viewBox=`0 0 ${cell_size} ${cell_size}` 
+                preserveAspectRatio="xMidYMid meet" class="player_tile_svg")
                 if t.is_safe
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player1_safe
                     stroke_width=1 stroke='#000' class="tile_rect")
@@ -178,8 +179,9 @@ html
         else
           each t, idx in game.player_2.tiles 
             if t
-              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset + idx*2*cell_size width=2*cell_size height=2*cell_size 
-                preserveAspectRatio="xMidYMid meet" viewbox="0 0 35 35" class="player_tile_svg")
+              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset + idx*2*cell_size 
+                width=2*cell_size height=2*cell_size viewBox=`0 0 ${cell_size} ${cell_size}` 
+                preserveAspectRatio="xMidYMid meet" class="player_tile_svg")
                 if t.is_safe
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player2_safe
                     stroke_width=1 stroke='#000' class="tile_rect")
