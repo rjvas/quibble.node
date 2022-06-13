@@ -385,8 +385,8 @@ class PlayerHand {
         PlayerHand.tiles[idx] = tile;
         tile.status |= Tile.in_hand;
         tile.hand_idx = idx;
-        let x = AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand[idx].y;
-        let y = AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand[idx].x;
+        let x = AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y;
+        let y = AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x;
         tile.svg.setAttributeNS(null, "x", x);
         tile.svg.setAttributeNS(null, "y", y);
         tile.svg.setAttributeNS(null, "width", 2*CELL_SIZE);
@@ -580,26 +580,50 @@ function draw_scorebd() {
 
 function move_ctrls() {
   var chat_svg = document.querySelector('#chat_ctrl');
+  var chat_click = document.querySelector('#chat_on_click')
   var recall_svg = document.querySelector('#recall_ctrl');
+  var recall_click = document.querySelector('#recall_on_click')
   var play_svg = document.querySelector('#play_ctrl');
+  var play_click = document.querySelector('#play_on_click')
   var swap_svg = document.querySelector('#swap_ctrl');
+  var swap_click = document.querySelector('#swap_on_click')
   var pass_svg = document.querySelector('#pass_ctrl');
+  var pass_click = document.querySelector('#pass_on_click')
 
   let tmp = chat_svg.getAttributeNS(null, "x");
   chat_svg.setAttributeNS(null, "x", chat_svg.getAttributeNS(null, "y"));
   chat_svg.setAttributeNS(null, "y", tmp);
+  tmp = chat_click.getAttributeNS(null, "x");
+  chat_click.setAttributeNS(null, "x", chat_click.getAttributeNS(null, "y"));
+  chat_click.setAttributeNS(null, "y", tmp);
+
   tmp = recall_svg.getAttributeNS(null, "x");
   recall_svg.setAttributeNS(null, "x", recall_svg.getAttributeNS(null, "y"));
   recall_svg.setAttributeNS(null, "y", tmp);
+  tmp = recall_click.getAttributeNS(null, "x");
+  recall_click.setAttributeNS(null, "x", recall_click.getAttributeNS(null, "y"));
+  recall_click.setAttributeNS(null, "y", tmp);
+  
   tmp = play_svg.getAttributeNS(null, "x");
   play_svg.setAttributeNS(null, "x", play_svg.getAttributeNS(null, "y"));
   play_svg.setAttributeNS(null, "y", tmp);
+  tmp = play_click.getAttributeNS(null, "x");
+  play_click.setAttributeNS(null, "x", play_click.getAttributeNS(null, "y"));
+  play_click.setAttributeNS(null, "y", tmp);
+
   tmp = swap_svg.getAttributeNS(null, "x");
   swap_svg.setAttributeNS(null, "x", swap_svg.getAttributeNS(null, "y"));
   swap_svg.setAttributeNS(null, "y", tmp);
+  tmp = swap_click.getAttributeNS(null, "x");
+  swap_click.setAttributeNS(null, "x", swap_click.getAttributeNS(null, "y"));
+  swap_click.setAttributeNS(null, "y", tmp);
+
   tmp = pass_svg.getAttributeNS(null, "x");
   pass_svg.setAttributeNS(null, "x", pass_svg.getAttributeNS(null, "y"));
   pass_svg.setAttributeNS(null, "y", tmp);
+  tmp = pass_click.getAttributeNS(null, "x");
+  pass_click.setAttributeNS(null, "x", pass_click.getAttributeNS(null, "y"));
+  pass_click.setAttributeNS(null, "y", tmp);
 }
 
 function draw_controls(){
@@ -889,12 +913,18 @@ function update_scoreboard(item, data) {
   } else if (data.scoreboard_player_1_score) {
     item = document.getElementById("player1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
+  } else if (data.scoreboard_player_1_safe_score) {
+    item = document.getElementById("player1_lock_pts");
+    if (item) item.textContent = data.scoreboard_player_1_safe_score;
   } else if (data.scoreboard_player_2_name) {
     item = document.getElementById("player2_name");
     if (item) item.textContent = data.scoreboard_player_2_name;
   } else if (data.scoreboard_player_2_score) {
     item = document.getElementById("player2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
+  } else if (data.scoreboard_player_2_safe_score) {
+    item = document.getElementById("player2_lock_pts");
+    if (item) item.textContent = data.scoreboard_player_2_safe_score;
   } else if (data.tiles_left_value >= 0) {
     item = document.getElementById("tiles_left_count");
     if (item) item.textContent = data.tiles_left_value;
@@ -1011,8 +1041,10 @@ function clicked_recall() {
 
   if (PlayStarts.length > 0) {
     PlayStarts.forEach(item => {
-      if (item.status & Tile.is_blank)
+      if (item.status & Tile.is_blank) {
         item.svg.childNodes[TEXT_POSITION].textContent = " ";
+        item.char = " "
+      }
       if (!PlayerHand.add(item))
         console.log(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
     });
@@ -1169,7 +1201,7 @@ function tile_moving(new_position) {
   // using 0-based coordinate system for x/y and 1-based coord system
   // for row/col
 
-  console.log(`tile_moving new_pos: ${new_position.left},${new_position.top}`);
+  console.log(`tile_moving new_pos: ${Math.round(new_position.left)},${Math.round(new_position.top)}`);
 
   // just initing ...
   let row = -1;
@@ -1511,8 +1543,6 @@ function getWindowSize() {
 
   // if the orientation changes, change the layout
   winWidth > winHeight ? AppOrientation = HORIZ : AppOrientation = VERT;
-  if (lastOrient != AppOrientation)
-    changeLayout();
 
   let vbstr = null;
   let winRatio = winWidth/winHeight;
@@ -1532,6 +1562,8 @@ function getWindowSize() {
     PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`);
   }
 
+  if (lastOrient != AppOrientation)
+    changeLayout();
   // console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
 }
 window.onresize = getWindowSize;
@@ -1670,3 +1702,4 @@ function set_button_callbacks() {
 
 set_button_callbacks();
 setup_tiles_for_drag();
+getWindowSize();

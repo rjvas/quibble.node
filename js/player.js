@@ -20,7 +20,7 @@ module.exports = mongoose.model('Play', PlaySchema);
 */
 
 class Player {
-  constructor (id, name, tile_color_risky, tile_color_safe, total_points) {
+  constructor (id, name, tile_color_risky, tile_color_safe, total_points, safe_points) {
     if (id > 0) {
       this.id = id;
       Player.current_id = Math.max(id, Player.current_id);
@@ -34,6 +34,7 @@ class Player {
     this.tile_color_safe = tile_color_safe;
     this.start = null;
     this.total_points =  total_points;
+    this.safe_points =  safe_points;
     this.trade_tiles_count = 0;
     // this.update_hand(true, null);
     this.max_tile_trade = 3;
@@ -46,6 +47,7 @@ class Player {
       "tile_color_risky" : this.tile_color_risky,
       "tile_color_safe" : this.tile_color_safe,
       "total_points" : this.total_points,
+      "safe_points" : this.safe_points,
       "trade_tiles_count" : this.trade_tiles_count,
       "max_tile_trade" : this.max_tile_trade,
       "tiles" : this.get_tiles_JSON()
@@ -138,7 +140,7 @@ class Player {
 
   static new_player_json(json) {
     let p = new Player(json.id, json.name, json.tile_color_risky,
-      json.tile_color_safe, json. total_points);
+      json.tile_color_safe, json. total_points, json.safe_points ? json.safe_points : 0);
     p.trade_tiles_count = json.trade_tiles_count;
     p.max_tile_trade = json.max_tile_trade;
     json.tiles.forEach((item, i) => {
