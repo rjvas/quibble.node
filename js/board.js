@@ -384,6 +384,7 @@ class PlayerHand {
       if ((idx = PlayerHand.get_open_slot()) != -1) {
         PlayerHand.tiles[idx] = tile;
         tile.status |= Tile.in_hand;
+        if (tile.status & Tile.on_board) tile.status ^= Tile.on_board; 
         tile.hand_idx = idx;
         let x = AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y;
         let y = AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x;
@@ -770,8 +771,8 @@ function setup_tile_for_play(tile, no_drag) {
     idx = PlayerHand.get_open_slot();
     if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
     svg.setAttributeNS(null, 'id', "tile_" + tile.id);
-    svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx.y]);
-    svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx.x]);
+    svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
+    svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
     svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
     svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
     svg.setAttributeNS(null, 'viewBox', `0 0 ${CELL_SIZE} ${CELL_SIZE}`);
