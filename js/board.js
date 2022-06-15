@@ -116,6 +116,7 @@ const SAFE_INDEXES = [{
 ];
 
 const NUM_PLAYER_TILES = 7;
+const RECT_POSITION = 0;
 const TEXT_POSITION = 1;
 const BLANK_TILE = " ";
 const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
@@ -197,6 +198,7 @@ class Tile {
   }
 
   static word_tiles = [];
+  static swapped_tiles = [];
 
   // these are the legitimate tile states
   static none = 0;
@@ -693,58 +695,6 @@ function draw_board() {
   draw_player_hand();
 }
 
-function tile_clicked(event) {
-  var player = null;
-  var tile = null;
-  var tile_rec = null;
-  var word = null;
-  var svg = null;
-  var clicked_row = -1;
-  var clicked_column = -1;
-
-  let txt = event.currentTarget;
-  txt != null ? svg = txt.nearestViewportElement : svg = null;
-  if (svg != null) {
-    // if (firefoxAgent) {
-    //   clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y'))/CELL_SIZE) + 1;
-    //   clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x'))/CELL_SIZE) + 1;
-    // } else {
-    clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y')) / CELL_SIZE);
-    clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x')) / CELL_SIZE);
-    // }
-  }
-
-  // Clicked on a board tile - cycle through player colors
-  // But first = make sure we're in between plays (new_word length == 0)
-  // and there are actually words on the board to work with.
-  /*
-    if (Word.new_word.tiles.length == 0 &&
-        Word.words.length != 0 &&
-        clicked_column <= NUM_ROWS_COLS &&
-        clicked_row <= NUM_ROWS_COLS) {
-      for (let i = 0; i < Word.words.length; i++) {
-        for (let j = 0; j < Word.words[i].tiles.length; j++) {
-          // these tiles must be in words, not player hands
-          if (Word.words[i].tiles[j].row == clicked_row &&
-              Word.words[i].tiles[j].column == clicked_column) {
-            word = Word.words[i];
-            tile = Word.words[i].tiles[j];
-            player = tile.player;
-            break;
-          }
-        }
-      }
-
-      if (cycle_colors && word && tile) {
-        cycle_tile_colors(word, tile);
-      } else if (word && word.check_words.length > 0) {
-          window.alert(word.check_words.join(" "));
-      }
-    }
-    */
-  // console.log('tile_clicked - row: %d column: %d', clicked_row, clicked_column);
-}
-
 function clicked_player_area(event) {
   var player = null;
   if (event.currentTarget.id == "player_1_area") {
@@ -760,22 +710,19 @@ function clicked_player_area(event) {
   color_picker.picker.show();
 }
 
-// these are NEW tiles created async during play
-function setup_tile_for_play(tile, no_drag) {
+function build_sub_struct(tile, idx, svg, id_prefix) {
 
-  let startx = GRID_SIZE + CELL_SIZE;
-  let idx = -1;
+    if (!id_prefix)
+      id_prefix = "tile_"
 
-  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  if (svg) {
-    idx = PlayerHand.get_open_slot();
-    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
-    svg.setAttributeNS(null, 'id', "tile_" + tile.id);
+    svg.setAttributeNS(null, 'id', id_prefix + tile.id);
     svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
     svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
     svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
     svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
     svg.setAttributeNS(null, 'viewBox', `0 0 ${CELL_SIZE} ${CELL_SIZE}`);
+    svg.setAttributeNS(null, 'fill', 'none');
+    svg.addEventListener("click", swap_tile_clicked);
 
     // rect and text position attributes are always relative to the svg
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -799,7 +746,7 @@ function setup_tile_for_play(tile, no_drag) {
     t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
     t.textContent = tile.char;
-    t.addEventListener("click", tile_clicked);
+    // t.addEventListener("click", tile_clicked);
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     p.setAttributeNS(null, 'x', CELL_SIZE - 2);
@@ -817,6 +764,20 @@ function setup_tile_for_play(tile, no_drag) {
     svg.append(r);
     svg.append(t);
     svg.append(p);
+  }
+
+// these are NEW tiles created async during play
+function setup_tile_for_play(tile, no_drag) {
+
+  let idx = -1;
+
+  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  if (svg) {
+    idx = PlayerHand.get_open_slot();
+    
+    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
+    
+    build_sub_struct(tile, idx, svg);
 
     PlaySpace.append(svg);
 
@@ -1030,10 +991,14 @@ function erase_player_hand(jsons) {
   }
 }
 
-function get_played_trash_JSONS() {
+function get_swap_JSONS() {
   var jsons = [];
-  PlayTrash.forEach(item => {
-    jsons.push(item.get_JSON());
+  Tile.swapped_tiles.forEach(item => {
+    let id = "tile_" + parseInt(item.split("_")[2]);
+    let tile = PlayerHand.tiles.find(t => {
+      return t.id == id;
+    });
+    jsons.push(tile.get_JSON());
   });
   return jsons;
 }
@@ -1054,42 +1019,133 @@ function clicked_recall() {
   PlayTrash = [];
 }
 
-function clicked_swap(event) {
+function swap_toggle_highlight(svg, no_toggle) {
+  var tile_id = svg.getAttributeNS(null, "id");
+  let found_id = Tile.swapped_tiles.find(item => {
+    return item == tile_id;
+  })
+  if (!found_id) { // select it
+    Tile.swapped_tiles.push(svg.getAttributeNS(null, "id"));
+    let highlite = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    highlite.setAttributeNS(null, "x", 2);
+    highlite.setAttributeNS(null, "y", 2);
+    highlite.setAttributeNS(null, "width", CELL_SIZE - 4);
+    highlite.setAttributeNS(null, "height", CELL_SIZE - 4);
+    highlite.setAttributeNS(null, "stroke", "red");
+    highlite.setAttributeNS(null, "stroke-width", "3");
+    svg.appendChild(highlite);
+  } else if (!no_toggle) { // unselect it
+      let idx = Tile.swapped_tiles.indexOf(found_id);
+      if (idx >= 0 && idx < Tile.swapped_tiles.length)
+        Tile.swapped_tiles = Tile.swapped_tiles.slice(0, idx).concat(Tile.swapped_tiles.slice(idx + 1));
+      svg.removeChild(svg.lastChild);
+  }
+}
+
+function swap_tile_clicked(event) {
+  var svg = null;
+
+  svg = event.currentTarget;
+  swap_toggle_highlight(svg);
+  // console.log('swap_tile_clicked - row: %d column: %d', clicked_row, clicked_column);
+}
+
+function swap_select_all(event) {
+  console.log(`in swap_select_all`);
+  let pu = document.getElementById("swap_pop");
+  let svgs = pu.getElementsByTagName("svg");
+  for (i=0; i<svgs.length; i++) {
+    let id = svgs[i].getAttributeNS(null, "id");
+    swap_toggle_highlight(svgs[i], true);
+  }
+  // unselect all toggle? i dunno ...
+  // let sel_btn = document.getElementById("swap_sel_all");
+  // if ()
+};
+
+function clicked_swap_cancel(event) {
+  let pu = document.getElementById("swap_pop");
+  pu.style.display = "none";
+  // clear the pu elements
+  while (pu.firstChild) {
+   pu.removeChild(pu.firstChild)
+  }
+
+  Tile.swapped_tiles = [];
+}
+
+function clicked_swap_begin(event) {
+  let pu = document.getElementById("swap_pop");
+  let svg = null;
+  PlayerHand.tiles.forEach((t, idx) => {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    if (svg) {
+      t.fill = t.svg.childNodes[RECT_POSITION].getAttributeNS(null, "fill");
+      build_sub_struct(t, idx, svg, "swap_");
+      swap_pop.appendChild(svg); 
+    } 
+  });
+  // now the controls
+  var sel = document.createElement("BUTTON"); 
+  sel.id = "swap_sel_all";
+  sel.textContent = "Select All";
+  sel.width = CELL_SIZE*2;
+  sel.height = CELL_SIZE;
+  sel.onclick = swap_select_all;
+  swap_pop.appendChild(sel);
+
+  var swap = document.createElement("BUTTON"); 
+  swap.id = "swap_now";
+  swap.textContent = "Swap";
+  swap.width = CELL_SIZE*2;
+  swap.height = CELL_SIZE;
+  swap.onclick = clicked_swap_end;
+  swap_pop.appendChild(swap);
+
+  var cancel = document.createElement("BUTTON"); 
+  cancel.id = "swap_cancel";
+  cancel.textContent = "Cancl";
+  cancel.width = CELL_SIZE*2;
+  cancel.height = CELL_SIZE;
+  cancel.onclick = clicked_swap_cancel;
+  swap_pop.appendChild(cancel);
+
+  pu.style.display = "block";
+}
+
+function clicked_swap_end(event) {
+  let pu = document.getElementById("swap_pop");
+  pu.style.display = "none";
+  // clear the pu elements
+  while (pu.firstChild) {
+   pu.removeChild(pu.firstChild)
+  }
 
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (URL_x == "/player1") {
-    let txt = document.getElementById("scoreboard_player_1");
-    if (txt.textContent == "Wait ...") return;
-  } else if (URL_x == "/player2") {
-    let txt = document.getElementById("scoreboard_player_2");
-    if (txt.textContent == "Wait ...") return;
-  }
-
   let jsons = null;
 
   // if not enough tiles to complete, consider this a pass
   let tiles_left = parseInt(document.getElementById("tiles_left_count").textContent);
-  if (PlayTrash.length == 0 && tiles_left < NUM_PLAYER_TILES ||
-    PlayTrash.length > tiles_left) {
+  if (Tile.swapped_tiles.length > tiles_left) {
     window.alert("Not enough tiles left to complete the play - THIS IS A PASS")
     clicked_recall();
     jsons = [{
       "type": "pass"
     }];
   } else {
-    if (PlayTrash.length == 0 &&
+    if (Tile.swapped_tiles.length == 7 &&
       window.confirm("Are you sure you want to trade all of your tiles?")) {
       jsons = get_player_hand_JSONS();
       erase_player_hand(jsons);
 
-    } else if (PlayTrash.length > 0) {
+    } else if (Tile.swapped_tiles.length > 0) {
       // roll back if no confirm
-      if (window.confirm("Are you sure you want to trade " + PlayTrash.length + " of your tiles?")) {
-        jsons = get_played_trash_JSONS();
+      if (window.confirm("Are you sure you want to trade " + Tile.swapped_tiles.length + " of your tiles?")) {
+        jsons = get_swap_JSONS();
         erase_player_hand(jsons);
       }
       // move the trashed tiles back to the player tile area
@@ -1098,6 +1154,8 @@ function clicked_swap(event) {
       }
     } else return;
   }
+
+  Tile.swapped_tiles = [];
 
   if (jsons.length > 0) {
     // type may have been set to 'pass' above
@@ -1687,7 +1745,7 @@ function set_button_callbacks() {
 
   btn = document.getElementById('swap_on_click');
   if (btn) {
-    btn.addEventListener("click", clicked_swap);
+    btn.addEventListener("click", clicked_swap_begin);
   }
 
   btn = document.getElementById('chat_on_click');
