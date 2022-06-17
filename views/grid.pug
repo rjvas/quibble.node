@@ -14,6 +14,7 @@ html
     input(id="is_practice" type="hidden" value=is_practice)
     input(id="current_game_id" type="hidden" value=game_id)
     input(id="user" type="hidden" value=user_id)
+    input(id="is_admin" type="hidden" value=is_admin)
     
     div(id="swap_pop" class="swap_pop" style="{display : none}")
     
@@ -33,6 +34,11 @@ html
     - var tiles_left_offset = cell_size + cell_size/4;
     input(id="tiles_left_offset" type="hidden" value=tiles_left_offset)
 
+    if game.current_player == game.player_2
+      input(id="current_player" type="hidden" value="/player2")
+    else 
+      input(id="current_player" type="hidden" value="/player1")
+ 
     - var player1_safe = "#eb008b";
     - var player1_risky = "#f179af";
     - var player2_safe = "#0072bc";
@@ -52,11 +58,14 @@ html
           g()
             line(fill="none" stroke="#fff" stroke-width="5" x1="15" x2="65" y1="40" y2="-5")
             line(fill="none" stroke="#fff" stroke-linejoin="miter" stroke-width="5" x1="15" x2="65" y1="40" y2="85")
-        rect(id="back_on_click" x=15  y=0 width=cell_size/2+cell_size height=cell_size*2 fill="#fff" fill-opacity=0)
+        rect(id="back_on_click" x=5  y=15 width=cell_size/2+cell_size height=cell_size*2 fill="#fff" fill-opacity=0)
 
         // player 1 scoreboard
         svg(id="player1" x="15" y=cell_size*2 width=scorebd_xy_offset height=cell_size*5)
-          rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky)
+          if game.current_player == game.player_1
+            rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky stroke="red" stroke-width="3")
+          else
+            rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky)
           svg(id="player1_stats" x="0" y=2*cell_size+15 width=scorebd_xy_offset height=cell_size*3)
             svg(x=0 y=0 height=cell_size width=cell_size viewBox="0 0 280 280"
               class="player_lock_cls" id="player1_lock" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
@@ -66,7 +75,8 @@ html
             text(id="player1_lock_pts" class="player_lock_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 stroke=player1_safe
               text-align="start" alignment-baseline="central")
               |#{game.player_1.safe_points}
-            text(id="player1_name" x="0" y="40" font-family="Sans-serif" font-size="24" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+            text(id="player1_name" x="0" y="40" font-family="sans-serif, Tahomah" font-size="24"
+              fill-rule="nonzero"  width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.name}
             text(id="player1_score" x="0" y="65" width=cell_size height=cell_size stroke_width=2 stroke="white" 
@@ -79,8 +89,8 @@ html
             |vs.
 
         // player 2 scoreboard
-        svg(id="player2" x="15" y="300" width=90 height=210)
-          svg(id="player2_stats" x="0" y="45" width=90 height=cell_size*4)
+        svg(id="player2" x="15" y="300" width=scorebd_xy_offset height=210)
+          svg(id="player2_stats" x="0" y="45" width=scorebd_xy_offset height=cell_size*4)
             svg(x=35 y=0 width=cell_size height=cell_size viewBox="0 0 280 280"
               class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
               path(class="player_lock_cls" fill=player2_safe
@@ -88,13 +98,17 @@ html
             text(id="player2_lock_pts" class="player_lock_cls" x="65" y="15" width=cell_size height=cell_size stroke_width=2 
               stroke=player2_safe text-align="start" alignment-baseline="central")
               |#{game.player_2.safe_points}
-            text(id="player2_name" x="30" y="45" font-family="Sans-serif" font-size="24" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
-              text-align="end" alignment-baseline="central")
+            text(id="player2_name" x=scorebd_xy_offset-30 y="45" font-family="sans-serif, Tahomah" font-size="24" 
+              fill-rule="nonzero" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+              text-anchor="end" alignment-baseline="central")
               |#{game.player_2.name}
             text(id="player2_score" x="55" y="70" width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-align="end" alignment-baseline="central")
               |#{game.player_2.total_points}
-          rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky)
+          if game.current_player == game.player_2
+            rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky stroke="red" stroke-width="3")
+          else
+            rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky)
 
       svg(id='wt_board' viewBox=full_play_area x=scorebd_xy_offset y="0" width=grid_wh+player_panel_wh height=grid_wh) 
         // so we can set the background color

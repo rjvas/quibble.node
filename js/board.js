@@ -8,18 +8,22 @@
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
-var chat = document.getElementById("chat_text");
 var is_practice = document.getElementById("is_practice").value;
+var is_admin = document.getElementById("is_admin").value;
 var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
 var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
 var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
 var tiles_left_offset = parseInt(document.getElementById("tiles_left_offset").value);
+var current_player = document.getElementById("current_player").value;
 
 var ws_port = document.getElementById("ws_port").value;
 
 var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
+var ChatWin = null;
+var ChatDoc = null;
+var Chat = null;
 
 const NUM_ROWS_COLS = 15;
 const CELL_SIZE = 35;
@@ -716,13 +720,22 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
       id_prefix = "tile_"
 
     svg.setAttributeNS(null, 'id', id_prefix + tile.id);
-    svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
-    svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
-    svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
-    svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
+    if (idx == -1) {
+      // a played tile - not in the hand
+      svg.setAttributeNS(null, 'x', (tile.column - 1) * CELL_SIZE);
+      svg.setAttributeNS(null, 'y', (tile.row - 1) * CELL_SIZE);
+      svg.setAttributeNS(null, 'width', CELL_SIZE);
+      svg.setAttributeNS(null, 'height', CELL_SIZE);
+    } else {
+      svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
+      svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
+      svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
+      svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
+      if (id_prefix == "swap_")
+        svg.addEventListener("click", swap_tile_clicked);
+    }
     svg.setAttributeNS(null, 'viewBox', `0 0 ${CELL_SIZE} ${CELL_SIZE}`);
     svg.setAttributeNS(null, 'fill', 'none');
-    svg.addEventListener("click", swap_tile_clicked);
 
     // rect and text position attributes are always relative to the svg
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -796,10 +809,12 @@ function setup_tile_for_play(tile, no_drag) {
         height: "100%"
         // width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
         // height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
-      };
+      } 
+
       drag_rec.snap = {CELL_SIZE};
       PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
     }
+    else Tile.word_tiles.push(svg);
   }
 
   // console.log("in setup_tile_for_play: ", PlayerHand.tiles[idx]);
@@ -917,6 +932,8 @@ function handle_the_response(resp) {
         tile.drag.remove();
         tile.svg.classList.remove('player_tile_svg');
         tile.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
+        // finally, stuff it in the Tile.word_tiles for collision control
+        Tile.word_tiles.push(tile.svg);
       }
     }
 
@@ -937,6 +954,7 @@ function handle_the_response(resp) {
         });
       }
     }
+    return has_error;
   }
 
   // now stuff the word tiles into an easily accessable list - for drag control
@@ -956,6 +974,12 @@ function clicked_play(event) {
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
   }
 
   let jsons = get_played_JSONS();
@@ -1075,6 +1099,17 @@ function clicked_swap_cancel(event) {
 }
 
 function clicked_swap_begin(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
+  }
+
   let pu = document.getElementById("swap_pop");
   let svg = null;
   PlayerHand.tiles.forEach((t, idx) => {
@@ -1121,11 +1156,6 @@ function clicked_swap_end(event) {
    pu.removeChild(pu.firstChild)
   }
 
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
   let jsons = null;
 
   // if not enough tiles to complete, consider this a pass
@@ -1170,7 +1200,7 @@ function clicked_swap_end(event) {
 }
 
 function clicked_cheat_send_btn(event) {
-  var cheat = document.getElementById("chat_cheat_text");
+  var cheat = ChatDoc.getElementById("chat_cheat_text");
   var user = document.getElementById("user").value;
   if (cheat && user) {
     let msg = [];
@@ -1181,8 +1211,73 @@ function clicked_cheat_send_btn(event) {
   }
 }
 
-function clicked_chat_send_btn(event) {
-  let txt = document.getElementById("chat_send_text");
+/*
+      if is_admin
+        foreignobject(id="chat_cheat_fo" class="node" x=wt_h+cell_size y="480" width="200" height="30")
+          textarea(id="chat_cheat_text" rows="2" cols="30" wrap="soft" placeholder="Cheat here ...")
+        foreignobject(id="chat_cheat_send_btn_fo" class="node" x="762" y="480" width="50" height="30")
+          input(id="chat_cheat_send_btn" type="button" class="button" value="Send" height="30" width="50")
+*/
+      
+function clicked_chat_btn() {
+  // RJV TEMP
+  ChatWin = window.open("", "Chat", "width=300,height=600"); 
+  ChatDoc = ChatWin.document;
+
+  let dv = ChatDoc.createElement("div");
+  dv.id = "chat_text";
+  dv.height = "300";
+  dv.width = "600";
+
+  let p = ChatDoc.createElement("p");
+  p.id="chat_text";
+  p.textContent = "What is this?"
+  dv.appendChild(p);
+  
+  let ta = ChatDoc.createElement("textarea");
+  ta.id = "chat_send_text";
+  ta.rows = "2";
+  ta.cols = "30";
+  ta.wrap = "hard";
+  ta.placeholder = "Type here ...";
+  dv.appendChild(ta);
+
+  let sb = ChatDoc.createElement("input");
+  sb.id = "chat_send_btn";
+  sb.type = "button";
+  sb.class="button";
+  sb.value = "Send";
+  sb.height="50";
+  sb.width = "50";
+  sb.onclick = clicked_chat_send_btn;
+  dv.appendChild(sb);
+
+  if (is_admin) {
+    ta = document.createElement("textarea"); 
+    ta.id = "chat_cheat_text";
+    ta.rows = "2"
+    ta.cols = "30";
+    ta.wrap = "soft";
+    ta.placeholder = "Cheat here ...";
+
+    sb = ChatDoc.createElement("input");
+    sb.id = "chat_cheat_send_btn";
+    sb.type = "button";
+    sb.class="button";
+    sb.value = "Send";
+    sb.height="50";
+    sb.width = "50";
+    sb.onclick = clicked_chat_cheat_send_btn;
+    dv.appendChild(sb);
+  }
+
+  ChatDoc.body.appendChild(dv);
+
+  Chat = ChatDoc.getElementById("chat_text");
+}
+
+function clicked_chat_send_btn(event) { 
+  let txt = ChatDoc.getElementById("chat_send_text");
   var user = document.getElementById("user").value;
   if (txt && user) {
     let msg = [];
@@ -1220,6 +1315,17 @@ function clicked_home_btn(event) {
 }
 
 function clicked_pass(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
+  }
+
   clicked_recall();
   jsons = [{
     "type": "pass"
@@ -1491,8 +1597,6 @@ function handle_exchange(resp) {
 
   // update the scoreboard - but first clear the tile
   // image residue
-  let ta = document.getElementById("tiles_area");
-  ta.setAttributeNS(null, "fill", "white");
   for (let i = 0; i < new_data.length; i++) {
     let item;
     if (update_scoreboard(item, new_data[i])) {
@@ -1541,15 +1645,15 @@ function toggle_player() {
 
 function handle_cheat(player, msg) {
   let matches = msg.split('\n');
-  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
+  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
   for (let i = 0; i<matches.length; i++) {
     let idx = matches[i].indexOf(':');
-    chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
+    Chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
   };
 }
 
 function handle_chat(player, msg) {
-  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
+  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
 }
 
 function handle_game_over(info) {
@@ -1631,6 +1735,31 @@ window.onload = getWindowSize;
 // const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 
+function update_current_player(player) {
+  // this makes sure 'current_player' is set correctly - needed for
+  // inhibiting function of Play, Swap, Pass
+  if (player.indexOf("player1") != -1) {
+   current_player = "/player2";
+  }
+  else {
+    current_player = "/player1";
+  } 
+  
+  if (current_player == "/player1") {
+    let photo_rec = document.getElementById("player1_photo");
+    photo_rec.setAttributeNS(null, "stroke", "red");
+    photo_rec.setAttributeNS(null, "stroke-width", "3");
+    photo_rec = document.getElementById("player2_photo");
+    photo_rec.setAttributeNS(null, "stroke-width", "0");
+  } else {
+    let photo_rec = document.getElementById("player2_photo");
+    photo_rec.setAttributeNS(null, "stroke", "red");
+    photo_rec.setAttributeNS(null, "stroke-width", "3");
+    photo_rec = document.getElementById("player1_photo");
+    photo_rec.setAttributeNS(null, "stroke-width", "0");
+  }
+}
+
 ws.onmessage = function(msg) {
 
   if (!URL_x) {
@@ -1664,9 +1793,11 @@ ws.onmessage = function(msg) {
     if (player.player != URL_x)
       alert(info.info);
     handle_pass(resp);
+    update_current_player(player.player);
   } else if (type.type == "xchange") {
     if (player.player == URL_x) {
       handle_exchange(resp);
+      update_current_player(player.player);
     } else {
       // update the scoreboard
       let new_data = resp[0].new_data;
@@ -1679,10 +1810,14 @@ ws.onmessage = function(msg) {
       alert(info.info);
     }
   } else if (type.type == "regular_play") {
-    if (player.player == URL_x)
-      err = handle_the_response(resp);
+    if (player.player == URL_x) {
+      if (!(err = handle_the_response(resp)))
+        update_current_player(player.player);
+    }
     else {
       update_the_board(resp);
+      if (!resp[0].err_msg)
+        update_current_player(player.player);
       if (info.info != "none")
         alert(info.info);
     }
@@ -1750,7 +1885,7 @@ function set_button_callbacks() {
 
   btn = document.getElementById('chat_on_click');
   if (btn) {
-    btn.addEventListener("click", clicked_chat_send_btn);
+    btn.addEventListener("click", clicked_chat_btn);
   }
 
   btn = document.getElementById('chat_cheat_send_btn');
