@@ -1200,7 +1200,7 @@ function clicked_swap_end(event) {
 }
 
 function clicked_cheat_send_btn(event) {
-  var cheat = ChatDoc.getElementById("chat_cheat_text");
+  var cheat = ChatDoc.getElementById("cheat_text");
   var user = document.getElementById("user").value;
   if (cheat && user) {
     let msg = [];
@@ -1211,14 +1211,6 @@ function clicked_cheat_send_btn(event) {
   }
 }
 
-/*
-      if is_admin
-        foreignobject(id="chat_cheat_fo" class="node" x=wt_h+cell_size y="480" width="200" height="30")
-          textarea(id="chat_cheat_text" rows="2" cols="30" wrap="soft" placeholder="Cheat here ...")
-        foreignobject(id="chat_cheat_send_btn_fo" class="node" x="762" y="480" width="50" height="30")
-          input(id="chat_cheat_send_btn" type="button" class="button" value="Send" height="30" width="50")
-*/
-      
 function clicked_chat_btn() {
   // RJV TEMP
   ChatWin = window.open("", "Chat", "width=300,height=600"); 
@@ -1230,8 +1222,8 @@ function clicked_chat_btn() {
   dv.width = "600";
 
   let p = ChatDoc.createElement("p");
-  p.id="chat_text";
-  p.textContent = "What is this?"
+  p.id="chat_para"; 
+  p.textContent = "<b>Salutations Worderists!</b>";
   dv.appendChild(p);
   
   let ta = ChatDoc.createElement("textarea");
@@ -1252,28 +1244,29 @@ function clicked_chat_btn() {
   sb.onclick = clicked_chat_send_btn;
   dv.appendChild(sb);
 
-  if (is_admin) {
+  if (is_admin == "true") {
     ta = document.createElement("textarea"); 
-    ta.id = "chat_cheat_text";
+    ta.id = "cheat_text";
     ta.rows = "2"
     ta.cols = "30";
     ta.wrap = "soft";
     ta.placeholder = "Cheat here ...";
+    dv.appendChild(ta);
 
     sb = ChatDoc.createElement("input");
-    sb.id = "chat_cheat_send_btn";
+    sb.id = "cheat_send_btn";
     sb.type = "button";
     sb.class="button";
     sb.value = "Send";
     sb.height="50";
     sb.width = "50";
-    sb.onclick = clicked_chat_cheat_send_btn;
+    sb.onclick = clicked_cheat_send_btn;
     dv.appendChild(sb);
   }
 
   ChatDoc.body.appendChild(dv);
 
-  Chat = ChatDoc.getElementById("chat_text");
+  Chat = ChatDoc.getElementById("chat_para");
 }
 
 function clicked_chat_send_btn(event) { 
@@ -1886,11 +1879,6 @@ function set_button_callbacks() {
   btn = document.getElementById('chat_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_chat_btn);
-  }
-
-  btn = document.getElementById('chat_cheat_send_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_cheat_send_btn);
   }
 }
 

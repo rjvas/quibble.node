@@ -282,7 +282,7 @@ function startup() {
         // response.end(CurrentAGame.game_id_str);
         response.end(pug_grid({
           'a_game_chat_text' : CurrentAGame.chat_text,
-          'is_admin' : ugv.user.role & User.admin,
+          'is_admin' : ugv.user.role & User.admin ? "true" : "false", 
           'user_id' : ugv.user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : false,
@@ -456,7 +456,7 @@ function startup() {
         logger.info("pathname: " + pathname + " filename: " + filename);
         response.end(pug_grid({
           'a_game_chat_text' : CurrentAGame.chat_text,
-          'is_admin' : user.role & User.admin,
+          'is_admin' : user.role & User.admin ? "true" : "false",
           'user_id' : user.id.toHexString(),
           'game_id' : CurrentAGame.game_id_str,
           'is_practice' : is_practice,
