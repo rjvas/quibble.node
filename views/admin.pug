@@ -5,8 +5,9 @@ html(lang="en")
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     link(rel='stylesheet', href='/views/admin.css')
-    link(href="./node_modules/jsoneditor/dist/jsoneditor.min.css", rel="stylesheet", type="text/css")
-    script(src="./node_modules/jsoneditor/dist/jsoneditor.min.js")
+    link(href="../js/jsonTree.css" rel="stylesheet" type="text/css")
+    //- link(href="../js/jsoneditor.min.css", rel="stylesheet", type="text/css")
+    //- link(href="./node_modules/jsoneditor/dist/jsoneditor.min.css", rel="stylesheet", type="text/css")
   body
     input(id="user" type="hidden" value=user.id.toHexString())
     input(id="data_port" type="hidden" value=admin.port)
@@ -27,13 +28,13 @@ html(lang="en")
         if User.current_users.length > 0
           each val, idx in User.current_users
             div(class="cur_user")
-              div(class="cur_user_radio")
-                input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
-                label(for="cur_user_"+idx) #{val.user_name}
               div(class="cur_user_delete")
                 input(id="user_save_btn_"+idx type="button" class="button" value="Save" height="35" width="50")
                 input(id="user_delete_btn_"+idx type="button" class="button" value="Delete" height="35" width="50")
                 input(id="user_logout_btn_"+idx type="button" class="button" value="Logout" height="35" width="50")
+              div(class="cur_user_radio")
+                input(id="cur_user_"+idx type="radio" name="cur_user" class="user_radio" height="35" width="50")
+                label(for="cur_user_"+idx) #{val.user_name}
               
         else 
           |No logged in Users
@@ -118,3 +119,6 @@ html(lang="en")
         |No Active Games
 
     script(src="../js/admin.js")
+    //- script(src="./node_modules/jsoneditor/dist/jsoneditor.min.js")
+    //- script(src="../js/jsoneditor.js")
+    script(src="../js/jsonTree.js")

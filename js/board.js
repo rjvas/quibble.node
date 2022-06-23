@@ -53,18 +53,6 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
-/* out as per email on 20210522
-  {
-    row: 3,
-    col: 3,
-    rect: null
-  },
-  {
-    row: 3,
-    col: NUM_ROWS_COLS - 2,
-    rect: null
-  },
-*/
   {
     row: NUM_ROWS_COLS,
     col: 1,
@@ -85,18 +73,6 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
-/* out as per email on 20210522
-  {
-    row: NUM_ROWS_COLS - 2,
-    col: 3,
-    rect: null
-  },
-  {
-    row: NUM_ROWS_COLS - 2,
-    col: NUM_ROWS_COLS - 2,
-    rect: null
-  },
-*/
   {
     row: 1,
     col: Math.round(NUM_ROWS_COLS / 2),
@@ -142,6 +118,22 @@ class Tile {
     if (this.char == BLANK_TILE) this.status |= Tile.is_blank;
   }
 
+  static get_Tile_json() {
+    // let  ret_val = [];
+    // let wt = [];
+    // Tile.word_tiles.forEach(t => {
+      // wt.push(t.get_JSON());
+    // });
+    let st = [];
+    Tile.swapped_tiles.forEach(t => {
+      if (t)
+        st.push(t.get_JSON());
+    })
+    // ret_val.push({"word tiles" : wt});
+    // ret_val.push({"swapped_tiles" : st});
+    return st;
+  }
+
   get_JSON() {
     return {
       id: this.id,
@@ -175,11 +167,7 @@ class Tile {
       if (!PlayerHand.add(this)) {
         console.log(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
       }
-    } else if (Tile.is_in_trash(this.row, this.column)) {
-      this.status |= Tile.trashed;
-      if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
-      PlayerHand.remove(this);
-    }
+    } 
   }
 
   is_collision(row,col) {
@@ -208,17 +196,7 @@ class Tile {
   static none = 0;
   static in_hand = 1; 
   static on_board = 2;
-  static trashed = 4;
   static is_blank = 8;
-
-  static is_in_trash(row, col) {
-    if ((AppOrientation == HORIZ && row >= 3 && row <= 5 &&
-      col >= 18 && col <= 20) ||
-      (AppOrientation == VERT && row >= 18 && row <= 20 &&
-        col >= 3 && col <= 5))
-      return true;
-    return false;
-  }
 
   static is_on_board(row, col) {
     if (row > 0 && row < 16 &&
@@ -264,6 +242,15 @@ class PlayerHand {
           "y": player_hand_xy_offset+6*2*CELL_SIZE 
         }
       ];
+
+  static get_PlayerHand_json() {
+    let phts = [];
+    PlayerHand.tiles.forEach(t => {
+      if (t)
+        phts.push(t.get_JSON());
+    });
+    return phts;
+  }
 
   static set_tile_attrs(idx, relative, value) {
     if (PlayerHand.tiles[idx]) {
@@ -326,7 +313,7 @@ class PlayerHand {
       }
     }
 
-    // want to accomdate tiles moved from the board, also
+    // want to accommodate tiles moved from the board, also
     // move the svgs and update the json.char and json.id
     if (tile) {
       let ts = PlayerHand.tiles;
@@ -407,8 +394,15 @@ class PlayerHand {
 
 };
 
-var PlayTrash = [];
 var PlayStarts = [];
+function get_PlayStarts_JSON() {
+  let ret_val = [];
+  PlayStarts.forEach(t => {
+    if (t)
+      ret_val.push(t.get_JSON());
+  });
+  return ret_val;
+}
 
 function svgToScreen(element) {
   var rect = element.getBoundingClientRect();
@@ -438,12 +432,10 @@ function draw_played_tiles() {
 // only on an AppOrientation change
 function draw_safe_squares() {
   var safe_squares = document.querySelectorAll('.safety_square');
-
   let ss = null;
 
   for (let i = 0; i < SAFE_INDEXES.length; i++) {
     ss = safe_squares[i];
-
     ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
     ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE );
   }
@@ -516,10 +508,6 @@ function draw_player_scorebd() {
   player1_stats.setAttributeNS(null, "x", player1_stats.getAttributeNS(null, "y"));
   player1_stats.setAttributeNS(null, "y", tmp);
 
-  // tmp = player1_lock.getAttributeNS(null, "x");
-  // player1_lock.setAttributeNS(null, "x", player1_lock.getAttributeNS(null, "y"));
-  // player1_lock.setAttributeNS(null, "y", tmp);
-
   // the p1 photo
   tmp = player1_photo.getAttributeNS(null, "x");
   player1_photo.setAttributeNS(null, "x", player1_photo.getAttributeNS(null, "y"));
@@ -539,10 +527,6 @@ function draw_player_scorebd() {
   tmp = player2_stats.getAttributeNS(null, "x");
   player2_stats.setAttributeNS(null, "x", player2_stats.getAttributeNS(null, "y"));
   player2_stats.setAttributeNS(null, "y", tmp);
-
-  // tmp = player2_lock.getAttributeNS(null, "x");
-  // player2_lock.setAttributeNS(null, "x", player2_lock.getAttributeNS(null, "y"));
-  // player2_lock.setAttributeNS(null, "y", tmp);
 
   // the p2 photo
   tmp = player2_photo.getAttributeNS(null, "x");
@@ -699,23 +683,7 @@ function draw_board() {
   draw_player_hand();
 }
 
-function clicked_player_area(event) {
-  var player = null;
-  if (event.currentTarget.id == "player_1_area") {
-    color_picker.player = "player_1";
-  } else if (event.currentTarget.id == "player_2_area") {
-    color_picker.player = "player_2";
-  }
-  var clr = event.currentTarget.getAttributeNS(null, "fill");
-  color_picker.picker.setOptions({
-    popup: 'right',
-    color: clr
-  });
-  color_picker.picker.show();
-}
-
 function build_sub_struct(tile, idx, svg, id_prefix) {
-
     if (!id_prefix)
       id_prefix = "tile_"
 
@@ -744,7 +712,7 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     r.setAttributeNS(null, 'width', CELL_SIZE);
     r.setAttributeNS(null, 'height', CELL_SIZE);
     r.setAttributeNS(null, 'fill', tile.fill);
-    r.setAttributeNS(null, 'stroke_width', 1);
+    // r.setAttributeNS(null, 'stroke_width', 1);
     r.setAttributeNS(null, 'stroke', '#000');
     r.setAttributeNS(null, 'class', 'tile_rect');
 
@@ -781,7 +749,6 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
 
 // these are NEW tiles created async during play
 function setup_tile_for_play(tile, no_drag) {
-
   let idx = -1;
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -807,8 +774,6 @@ function setup_tile_for_play(tile, no_drag) {
         top: 0,
         width: "100%",
         height: "100%"
-        // width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-        // height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
       } 
 
       drag_rec.snap = {CELL_SIZE};
@@ -829,8 +794,6 @@ function set_tile_props(jtile) {
     svg.classList.remove('player_tile_svg');
   } else {
     svg = setup_tile_for_play(jtile, true);
-    // svg.setAttributeNS(null, 'x', (jtile.column - 1) * CELL_SIZE);
-    // svg.setAttributeNS(null, 'y', (jtile.row - 1) * CELL_SIZE);
   }
 }
 
@@ -1040,7 +1003,6 @@ function clicked_recall() {
     });
   }
   PlayStarts = [];
-  PlayTrash = [];
 }
 
 function swap_toggle_highlight(svg, no_toggle) {
@@ -1083,8 +1045,6 @@ function swap_select_all(event) {
     swap_toggle_highlight(svgs[i], true);
   }
   // unselect all toggle? i dunno ...
-  // let sel_btn = document.getElementById("swap_sel_all");
-  // if ()
 };
 
 function clicked_swap_cancel(event) {
@@ -1211,6 +1171,15 @@ function clicked_cheat_send_btn(event) {
   }
 }
 
+function clicked_peek_board_btn() {
+  let jsons = [];
+  jsons.push({"Tile" : Tile.get_Tile_json()});
+  jsons.push({"PlayerHand" : PlayerHand.get_PlayerHand_json()});
+  jsons.push({"PlayStarts" : get_PlayStarts_JSON()});
+  var container = ChatDoc.getElementById("chat_text");
+  var tree = jsonTree.create(jsons, container);
+}
+
 function clicked_chat_btn() {
   // RJV TEMP
   ChatWin = window.open("", "Chat", "width=300,height=600"); 
@@ -1218,31 +1187,43 @@ function clicked_chat_btn() {
 
   let dv = ChatDoc.createElement("div");
   dv.id = "chat_text";
-  dv.height = "300";
-  dv.width = "600";
+  dv.height = "80%";
+  dv.width = "100%";
+
+  let ctrls = ChatDoc.createElement("div");
+  ctrls.id = "ctrls";
+  ctrls.height = "20%";
+  ctrls.width = "100%";
+  // pu.style.display = "none";
 
   let p = ChatDoc.createElement("p");
   p.id="chat_para"; 
+  p.x = "0";
+  p.y = "0";
+  p.height = "260";
+  p.width = "100%";
   p.textContent = "<b>Salutations Worderists!</b>";
   dv.appendChild(p);
   
   let ta = ChatDoc.createElement("textarea");
   ta.id = "chat_send_text";
+  ta.x = "0";
+  ta.y = "80%";
   ta.rows = "2";
   ta.cols = "30";
   ta.wrap = "hard";
   ta.placeholder = "Type here ...";
-  dv.appendChild(ta);
+  ctrls.appendChild(ta);
 
   let sb = ChatDoc.createElement("input");
   sb.id = "chat_send_btn";
   sb.type = "button";
   sb.class="button";
   sb.value = "Send";
-  sb.height="50";
+  sb.height="30";
   sb.width = "50";
   sb.onclick = clicked_chat_send_btn;
-  dv.appendChild(sb);
+  ctrls.appendChild(sb);
 
   if (is_admin == "true") {
     ta = document.createElement("textarea"); 
@@ -1251,20 +1232,31 @@ function clicked_chat_btn() {
     ta.cols = "30";
     ta.wrap = "soft";
     ta.placeholder = "Cheat here ...";
-    dv.appendChild(ta);
+    ctrls.appendChild(ta);
 
     sb = ChatDoc.createElement("input");
     sb.id = "cheat_send_btn";
     sb.type = "button";
     sb.class="button";
     sb.value = "Send";
-    sb.height="50";
+    sb.height="30";
     sb.width = "50";
     sb.onclick = clicked_cheat_send_btn;
-    dv.appendChild(sb);
+    ctrls.appendChild(sb);
+    
+    sb = ChatDoc.createElement("input");
+    sb.id = "peek_board_btn";
+    sb.type = "button";
+    sb.class="button";
+    sb.value = "Peek";
+    sb.height="30";
+    sb.width = "50";
+    sb.onclick = clicked_peek_board_btn;
+    ctrls.appendChild(sb);
   }
 
   ChatDoc.body.appendChild(dv);
+  ChatDoc.body.appendChild(ctrls);
 
   Chat = ChatDoc.getElementById("chat_para");
 }
@@ -1345,11 +1337,7 @@ function tile_move_start(new_position) {
     });
   }
 
-  if (tile) {
-    // tile.svg.setAttributeNS(null, 'width', CELL_SIZE);
-    // tile.svg.setAttributeNS(null, 'height', CELL_SIZE);
-    PlayStarts.push(tile);
-  }
+  if (tile) PlayStarts.push(tile);
 
     // console.log("tile_move_start: ", tile.get_JSON());
 }
@@ -1359,7 +1347,7 @@ function tile_moving(new_position) {
   // using 0-based coordinate system for x/y and 1-based coord system
   // for row/col
 
-  console.log(`tile_moving new_pos: ${Math.round(new_position.left)},${Math.round(new_position.top)}`);
+  // console.log(`tile_moving new_pos: ${Math.round(new_position.left)},${Math.round(new_position.top)}`);
 
   // just initing ...
   let row = -1;
@@ -1431,7 +1419,6 @@ function tile_moving(new_position) {
 
 function tile_moved(new_position) {
   // 'this' references the PlainDraggable instance
-  // Scale = CELL_SIZE / this.rect.width;
 
   var row = -1;
   var col = -1;
@@ -1455,12 +1442,12 @@ function tile_moved(new_position) {
 
   if (tile) {
     if (AppOrientation == HORIZ) {
-      tile.drag.left -= Scale*grid_offset_xy-2*CELL_SIZE;
-      new_position.left -= Scale*grid_offset_xy-2*CELL_SIZE;
+      tile.drag.left -= grid_offset_xy-2*CELL_SIZE;
+      new_position.left -= grid_offset_xy-2*CELL_SIZE;
     }
     else {
-      tile.drag.top += Scale*grid_offset_xy+2*CELL_SIZE;
-      new_position.top += Scale*grid_offset_xy+2*CELL_SIZE;
+      tile.drag.top += grid_offset_xy+2*CELL_SIZE;
+      new_position.top += grid_offset_xy+2*CELL_SIZE;
     }
     tile.drag.position();
 
@@ -1481,22 +1468,12 @@ function tile_moved(new_position) {
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
     if (PlayerHand.is_in_hand(x, y)) {
-
       PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
-
       // take it out of the PlayStarts
       PlayStarts = PlayStarts.filter(ps => {
         return ps.id != tile.id;
       });
       // console.log("tile_moving - rearranged hand to: " + (col - 17));
-    }
-
-    // TODO ugly
-    else if (Tile.is_in_trash(row, col)) {
-      // console.log("tile to trash ...");
-      tile.state |= Tile.trashed;
-      PlayerHand.remove(tile);
-      PlayTrash.push(tile);
     }
     // on the board
     else if (Tile.is_on_board(row, col)) {
@@ -1538,8 +1515,6 @@ function setup_tiles_for_drag() {
     drag_rec.containment = {
       left: 0,
       top: 0,
-      // width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-      // height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
       width: "100%",
       height: "100%"
     };
@@ -1578,7 +1553,6 @@ function update_the_board(resp) {
       }
     }
   }
-
   // console.log("in update_the_board");
 }
 
@@ -1601,7 +1575,6 @@ function handle_exchange(resp) {
   xchanged_tiles.forEach((item, idx) => {
     setup_tile_for_play(item, false);
   });
-
 }
 
 function handle_pass(resp) {
@@ -1615,7 +1588,6 @@ function handle_pass(resp) {
 }
 
 function toggle_player() {
-
   let url = window.location.href;
   url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
 
@@ -1676,10 +1648,7 @@ function handle_game_over(info) {
 const HORIZ = 0;
 const VERT = 1;
 
-// ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
-// if (window.innerWidth < window.innerHeight)
-  // AppOrientation = VERT;
 
 AppSpace = document.querySelectorAll('#every_damn_thing')[0];
 PlaySpace = document.querySelectorAll('#wt_board')[0];
@@ -1754,31 +1723,26 @@ function update_current_player(player) {
 }
 
 ws.onmessage = function(msg) {
-
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
   let err = false;
-
   let resp = JSON.parse(msg.data);
-
   // need this for vectoring control
   let type = resp.shift();
-
   // this data should be going to both players. The inactive player
   // needs to handle the data differently - ignore the new player-hand tiles
   // and just show the played tiles and scoreboard
   let player = resp.shift();
-
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
-  console.log("in onmessage: type = " + type.type);
-  console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  if (info)
-    console.log("in onmessage: info = " + info.info);
+  // console.log("in onmessage: type = " + type.type);
+  // console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
+  // if (info)
+    // console.log("in onmessage: info = " + info.info);
 
   if (type.type == "game_over") {
     handle_game_over(info);
@@ -1796,9 +1760,7 @@ ws.onmessage = function(msg) {
       let new_data = resp[0].new_data;
       for (let i = 0; i < new_data.length; i++) {
         let item;
-        if (update_scoreboard(item, new_data[i])) {
-          ;
-        }
+        if (update_scoreboard(item, new_data[i])) { ; }
       }
       alert(info.info);
     }
@@ -1830,7 +1792,6 @@ ws.onmessage = function(msg) {
 
   // leave a clean environment
   PlayStarts = [];
-  PlayTrash = [];
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&

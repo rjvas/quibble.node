@@ -353,14 +353,53 @@ data_ws.onmessage = function(msg) {
     let all_content = [];
     resp.agame.game = resp.game;
     var container = document.getElementById("jsoneditor");
-    var options = {
-        mode: 'tree',
-        name : 'ActiveGame'
-    };
-    if (editor) editor.destroy();
-    editor = new JSONEditor(container, options);
-    all_content.push(resp.agame);
-    editor.set(all_content);
+    container.innerHTML = "";
+    var tree = jsonTree.create(resp.game, container);
+
+// Expand all (or selected) child nodes of root (optional)
+    // tree.expand(function(node) {
+      // return node.childNodes.length < 2 || node.label === 'phoneNumbers';
+    // });
+
+    // var options = {
+    //     schema: {
+    //       type: "object",
+    //       title: "Game",
+    //       properties: {
+    //         _id: Object,
+    //         name_time: {
+    //           type: "string"
+    //         },
+    //         name: {
+    //           type: "string"
+    //         },
+    //         pass_count: {
+    //           type: "integer"
+    //         },
+    //         played_tiles : Array,
+    //         player1 : Object,
+    //         player2 : Object,
+    //         plays : Array,
+    //         tile_pool : Array,
+    //         words : Array
+    //       }
+    //     },
+    //     mode: 'tree',
+    //     name : 'ActiveGame'
+    // };
+    
+    // if (editor) editor.destroy();
+
+    // editor = new JSONEditor((container), options);
+    // editor.load(resp.agame);
+    // editor = new JSONEditor(container, options)
+    //   .then((editor) => {
+    //     all_content.push(resp.agame);
+    //     editor.setValue(all_content);
+    //     })
+    //   .catch((e) => {
+    //     console.warn("activegame.delete_game: ", e);
+    //   });
   }
   else {
     handle_user_data(resp);

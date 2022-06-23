@@ -8,6 +8,7 @@
 html
   head
     title Heist
+    link(rel="stylesheet" type="text/css" href="./js/jsonTree.css")
     link(rel="stylesheet" type="text/css" href="heist.css")
   body(bgcolor='#2a2a2e')
     input(id="ws_port" type="hidden" value=port)
@@ -68,23 +69,23 @@ html
             rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky)
           svg(id="player1_stats" x="0" y=2*cell_size+15 width=scorebd_xy_offset height=cell_size*3)
             svg(x=0 y=0 height=cell_size width=cell_size viewBox="0 0 280 280"
-              class="player_lock_cls" id="player1_lock" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
-              path(class="player_lock_cls" fill=player1_safe
+              class="player_lock_cls" id="player1_lock" preserveAspectRatio="xMidYMid meet")
+              path(class="player_lock_cls" fill=player1_safe fill-rule="evenodd"
                   d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
             // these consts arrived at through experiment       
-            text(id="player1_lock_pts" class="player_lock_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 stroke=player1_safe
+            text(id="player1_lock_pts" class="player_stats_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 stroke=player1_safe
               text-align="start" alignment-baseline="central")
               |#{game.player_1.safe_points}
-            text(id="player1_name" x="0" y="40" font-family="sans-serif, Tahomah" font-size="24"
-              fill-rule="nonzero"  width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+            text(id="player1_name" class="player_stats_cls" x="0" y="40" font-size="22"
+              width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.name}
-            text(id="player1_score" x="0" y="65" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+            text(id="player1_score" class="player_stats_cls" x="0" y="65" width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.total_points}
 
-        svg(id="p1_vs_p2" x="40" y="250" width=100 height=100 viewBox=`0 0 ${cell_size} ${cell_size/3}`)
-          text(x="0" y="0" width=cell_size height=cell_size stroke_width=2 fill="white" font-family="Sans-serif" font-size="6"
+        svg(id="p1_vs_p2" class="player_stats_cls" x="40" y="250" width=100 height=100 viewBox=`0 0 ${cell_size} ${cell_size/3}`)
+          text(x="0" y="0" width=cell_size height=cell_size stroke_width=2 fill="white" font-size="6"
             text-align="start" alignment-baseline="central")
             |vs.
 
@@ -92,17 +93,17 @@ html
         svg(id="player2" x="15" y="300" width=scorebd_xy_offset height=210)
           svg(id="player2_stats" x="0" y="45" width=scorebd_xy_offset height=cell_size*4)
             svg(x=35 y=0 width=cell_size height=cell_size viewBox="0 0 280 280"
-              class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
-              path(class="player_lock_cls" fill=player2_safe
+              class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet")
+              path(class="player_lock_cls" fill=player2_safe fill-rule="evenodd"
                   d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
-            text(id="player2_lock_pts" class="player_lock_cls" x="65" y="15" width=cell_size height=cell_size stroke_width=2 
+            text(id="player2_lock_pts" class="player_stats_cls" x="65" y="15" width=cell_size height=cell_size stroke_width=2 
               stroke=player2_safe text-align="start" alignment-baseline="central")
               |#{game.player_2.safe_points}
-            text(id="player2_name" x=scorebd_xy_offset-30 y="45" font-family="sans-serif, Tahomah" font-size="24" 
-              fill-rule="nonzero" width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+            text(id="player2_name" class="player_stats_cls" x=scorebd_xy_offset-30 y="45" font-size="22" 
+              width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-anchor="end" alignment-baseline="central")
               |#{game.player_2.name}
-            text(id="player2_score" x="55" y="70" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+            text(id="player2_score" class="player_stats_cls" x="55" y="70" width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-align="end" alignment-baseline="central")
               |#{game.player_2.total_points}
           if game.current_player == game.player_2
@@ -165,7 +166,7 @@ html
 
         svg(id="tiles_left" x="275" y="125" width="640" height="480")
           g()
-            text(fill="white" font-family="Sans-serif" font-size="24" id="tiles_left_vert" stroke="#000000" 
+            text(fill="white" font-family="Tahoma" font-size="24" id="tiles_left_vert" stroke="#000000" 
               stroke-width="0" text-anchor="middle" transform="rotate(-90.5876, 277.2, 136.8)" x="277.2" xml:space="preserve" y="145.2")
               |TILES LEFT:
 
@@ -283,8 +284,7 @@ html
               d="M125.57,58l-13.5-13.5A1.5,1.5,0,1,0,110,46.64l10.94,10.94H70.51a18,18,0,0,0,0,36,1.5,1.5,0,0,0,0-3,15,15,0,0,1,0-30h50.38L110,71.52a1.49,1.49,0,0,0,0,2.12,1.51,1.51,0,0,0,1.06.44,1.49,1.49,0,0,0,1.06-.44l13.5-13.5A1.49,1.49,0,0,0,125.57,58Z")
         rect(id="pass_on_click" x=controls_offset y=420 width=60 height=60 fill="#fff" fill-opacity=0)
         
-    script(src="./js/vanilla-picker.js")
-    //- script(src="./node_modules/plain-draggable/node_modules/plain-draggable-debug.esm.js")
     script(src="./js/plain-draggable.min.js")
+    script(src="./js/jsonTree.js")
     script(src="./js/board.js")
     

@@ -68,13 +68,21 @@ form {
 }
 
  .scoreboard_title {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Tahoma, sans-serif;
   stroke : #ff0000ff;
   font-style: italic;
  }
 
+ .player_stats_cls {
+  font-family: Tahoma, sans-serif;
+ }
+
+ .tile_text {
+  font-family: Tahoma, sans-serif;
+ }
+
 .safety_text {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Tahoma, sans-serif;
   font-size: 70%;
   stroke : '#44bb55';
   font-style: italic;
@@ -99,7 +107,7 @@ form {
 }
 
 #chat_text {
-  font-family:    Arial, Helvetica, sans-serif;
+  font-family: Tahoma, sans-serif;
   font-size:      10pt;
   /* font-weight:    bold; */
   background-color: #dddddd;
