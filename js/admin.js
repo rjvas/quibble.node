@@ -354,7 +354,7 @@ data_ws.onmessage = function(msg) {
     resp.agame.game = resp.game;
     var container = document.getElementById("jsoneditor");
     container.innerHTML = "";
-    var tree = jsonTree.create(resp.game, container);
+    var tree = jsonTree.create(resp.agame, container);
 
 // Expand all (or selected) child nodes of root (optional)
     // tree.expand(function(node) {
