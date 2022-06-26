@@ -14,14 +14,6 @@ For the tiles:
   tile_text - the tile character
   tile_points - the point value on the tiles
 
-For the scoreboard
-player_1_area
-player_2_area
-
-scoreboard_rect - the rectangle outline and container
-scoreboard_title - says "SCOREBOARD"
-scoreboard_player_1 - player 1 name
-scoreboard_player_2 - player 2 name
 scoreboard_tiles_left - the text "Tiles Left"
 scoreboard_tiles_left_value - the value of "Tiles Left"
 
@@ -32,6 +24,7 @@ scoreboard_tiles_left_value - the value of "Tiles Left"
   /* display: block;  */
   position: fixed;
   z-index: 99;
+  flex-direction: row;
   left: 10%;
   top: 45%;
   width: 80%; /* Full width */
@@ -46,11 +39,11 @@ form {
 }
 
 #grid_background {
-  fill: #555;
+  fill: #333333;
   /* fill: #feecdd; */
  }
 .safety_square {
-  fill: #888;
+  fill: #555555;
 }
 .center_square {
   fill: #888;
@@ -63,22 +56,32 @@ form {
 .play_cls2 {
   fill: none;
   stroke: #636466;
-  stroke-miterlimit: 10;
+  /* stroke-miterlimit: 10; */
   stroke-width: 6px;
 }
 
- .scoreboard_title {
+ #player1_stats {
+  /* fill-rule: nonzero; */
+  fill: white;
+  stroke: white;
   font-family: Tahoma, sans-serif;
-  stroke : #ff0000ff;
-  font-style: italic;
+  display: flex;
+  flex-direction: column;
  }
-
- .player_stats_cls {
+ #player2_stats {
+  fill: white;
+  stroke: white;
   font-family: Tahoma, sans-serif;
+  display: flex;
+  flex-direction: column;
  }
 
  .tile_text {
   font-family: Tahoma, sans-serif;
+ }
+ .tile_points {
+  font-family: Tahoma, sans-serif;
+  font-size: 60%;
  }
 
 .safety_text {
@@ -91,9 +94,9 @@ form {
   fill : #eeeeee;
 }
 
-.scoreboard_tiles_left_value {
-  font: 16px italic;
-  stroke: red;
+.controls:hover { 
+  cursor: pointer;
+  filter: invert(0.5) sepia(1);
 }
 
 #chat_send_text {
@@ -118,3 +121,19 @@ form {
   text-align: left;
   padding: 2px;
 }
+
+/* **************** OBSOLETE ******************* */
+/*
+
+.scoreboard_tiles_left_value {
+  font: 16px italic;
+  stroke: red;
+}
+
+ .scoreboard_title {
+  font-family: Tahoma, sans-serif;
+  stroke : #ff0000ff;
+  font-style: italic;
+ }
+
+*/
