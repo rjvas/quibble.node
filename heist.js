@@ -42,8 +42,7 @@ var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
 
 const main_port = 3042;
-// const sock_port = 3043;
-// const hostname = 'www.drawbridgecreativegames.com';
+// const hostname = 'www.dbc-games.com';
 const hostname = 'localhost';
 
 var createServer_count = 0;

@@ -1,6 +1,6 @@
 /*
  * Heist
- * Drawbridge Creative https://drawbridgecreative.com
+ * Drawbridge Creative https://dbc-games.com
  * copyright 2021
  */
 
@@ -1737,7 +1737,7 @@ function getWindowSize() {
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
 
-// const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
+// const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 
 function update_current_player(player) {
