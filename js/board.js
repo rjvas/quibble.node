@@ -4,6 +4,7 @@
  * copyright 2021
  */
 
+
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
@@ -104,10 +105,11 @@ const back_ground = "#f5efe6ff";
 var scoreboard = null;
 
 class Tile {
-  constructor(svg, drag, idx, status) {
+  constructor(svg, drag, idx, status, points) {
 
     this.id = svg.getAttributeNS(null, "id");
     this.char = svg.childNodes[1].textContent;
+    this.points = points ? points : parseInt(svg.childNodes[2].textContent);
     this.row = Math.round(svg.getAttributeNS(null, "y") / CELL_SIZE) + 1;
     this.column = Math.round(svg.getAttributeNS(null, "x") / CELL_SIZE) + 1;
     this.player_hand_idx = idx;
@@ -142,6 +144,7 @@ class Tile {
       y: this.svg.getAttributeNS(null, "y"),
       row: this.row,
       col: this.column,
+      points: this.points,
       status : this.status,
       player_hand_idx: this.player_hand_idx
     };
@@ -789,7 +792,7 @@ function setup_tile_for_play(tile, no_drag) {
       } 
 
       drag_rec.snap = {CELL_SIZE};
-      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
+      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand, tile.points);
     }
     else Tile.word_tiles.push(svg);
   }
@@ -1068,6 +1071,7 @@ function clicked_swap_cancel(event) {
   }
 
   Tile.swapped_tiles = [];
+  window.onclick = null;
 }
 
 function clicked_swap_begin(event) {
@@ -1083,15 +1087,35 @@ function clicked_swap_begin(event) {
   }
 
   let pu = document.getElementById("swap_pop");
+
+  // don't allow multiple displays of PlayerHand
+  if (pu.firstChild) {
+    alert("Swap is already up! Cancel, Select All or Swap to continue.")
+    return;
+  }
+
   let svg = null;
+  let fill = "#000"
+  let new_idx = -1;
   PlayerHand.tiles.forEach((t, idx) => {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     if (svg) {
       t.fill = t.svg.childNodes[RECT_POSITION].getAttributeNS(null, "fill");
+      fill = t.fill;
       build_sub_struct(t, idx, svg, "swap_");
-      swap_pop.appendChild(svg); 
+      pu.appendChild(svg); 
+      new_idx = idx;
     } 
   });
+
+  // svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  // let ctrl_tile = new Tile(svg, null, new_idx+1, Tile.in_hand, -1);
+  // ctrl_tile.char = "Select All";
+  // build_sub_struct(ctrl_tile, new_idx+1, svg, "swap_");
+  // ctrl_tile.char = "Select All";
+  // ctrl_tile.setAttributeNS(null, "fill", fill);
+  // pu.appendChild(svg);
+
   // now the controls
   var sel = document.createElement("BUTTON"); 
   sel.id = "swap_sel_all";
@@ -1099,7 +1123,7 @@ function clicked_swap_begin(event) {
   sel.width = CELL_SIZE*2;
   sel.height = CELL_SIZE;
   sel.onclick = swap_select_all;
-  swap_pop.appendChild(sel);
+  pu.appendChild(sel);
 
   var swap = document.createElement("BUTTON"); 
   swap.id = "swap_now";
@@ -1107,17 +1131,24 @@ function clicked_swap_begin(event) {
   swap.width = CELL_SIZE*2;
   swap.height = CELL_SIZE;
   swap.onclick = clicked_swap_end;
-  swap_pop.appendChild(swap);
+  pu.appendChild(swap);
 
   var cancel = document.createElement("BUTTON"); 
   cancel.id = "swap_cancel";
-  cancel.textContent = "Cancl";
+  cancel.textContent = "Cancel";
   cancel.width = CELL_SIZE*2;
   cancel.height = CELL_SIZE;
   cancel.onclick = clicked_swap_cancel;
-  swap_pop.appendChild(cancel);
+  pu.appendChild(cancel);
 
   pu.style.display = "block";
+
+  // When the user clicks anywhere outside of the modal, close it
+  // window.onclick = function(event) {
+    // if (event.target != pu) {
+      // clicked_swap_cancel(event);
+    // }
+  // } 
 }
 
 function clicked_swap_end(event) {

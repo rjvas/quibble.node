@@ -21,18 +21,19 @@ scoreboard_tiles_left_value - the value of "Tiles Left"
 
 .swap_pop {
   display: none; 
-  /* display: block;  */
   position: fixed;
   z-index: 99;
   flex-direction: row;
   left: 10%;
   top: 45%;
-  width: 80%; /* Full width */
-  height: 15%; /* Full height */
-  /* overflow: auto; Enable scroll if needed */
-  background-color: rgb(40,40,40); /* Fallback color */
- /* background-color: rgba(128,0,0,0.4);  Black w/ opacity */
 }
+/* 
+#swap_pop_ctrls {
+  fill: none;
+  display: flex; 
+  flex-direction: column;
+  font-size: 100%;
+} */
 
 form {
   text-align: center;
@@ -60,80 +61,86 @@ form {
   stroke-width: 6px;
 }
 
- #player1_stats {
-  /* fill-rule: nonzero; */
-  fill: white;
+#p1_vs_p2 {
+  /* fill: white; */
   stroke: white;
   font-family: Tahoma, sans-serif;
-  display: flex;
-  flex-direction: column;
- }
- #player2_stats {
-  fill: white;
-  stroke: white;
-  font-family: Tahoma, sans-serif;
-  display: flex;
-  flex-direction: column;
- }
+}
 
- .tile_text {
-  font-family: Tahoma, sans-serif;
- }
- .tile_points {
-  font-family: Tahoma, sans-serif;
-  font-size: 60%;
- }
+#player1_stats {
+/* fill-rule: nonzero; */
+fill: white;
+stroke: white;
+font-family: Tahoma, sans-serif;
+display: flex;
+flex-direction: column;
+}
+#player2_stats {
+fill: white;
+stroke: white;
+font-family: Tahoma, sans-serif;
+display: flex;
+flex-direction: column;
+}
+
+.tile_text {
+font-family: Tahoma, sans-serif;
+}
+.tile_points {
+font-family: Tahoma, sans-serif;
+font-size: 60%;
+}
 
 .safety_text {
-  font-family: Tahoma, sans-serif;
-  font-size: 70%;
-  stroke : '#44bb55';
-  font-style: italic;
+font-family: Tahoma, sans-serif;
+font-size: 70%;
+stroke : '#44bb55';
+font-style: italic;
 }
 .scoreboard_rect {
-  fill : #eeeeee;
+fill : #eeeeee;
 }
 
 .controls:hover { 
-  cursor: pointer;
-  filter: invert(0.5) sepia(1);
+cursor: pointer;
+filter: invert(0.5) sepia(1);
 }
 
 #chat_send_text {
-  resize : none;
-  background-color: #dddddd;
+resize : none;
+background-color: #dddddd;
 }
 
 #chat_cheat_text {
-  resize : none;
-  background-color: #dddddd;
+resize : none;
+background-color: #dddddd;
 }
 
 #chat_text {
-  font-family: Tahoma, sans-serif;
-  font-size:      10pt;
-  /* font-weight:    bold; */
-  background-color: #dddddd;
-  width: 290px;
-  height: 250px;
-  overflow-x: auto;
-  overflow-y: auto;
-  text-align: left;
-  padding: 2px;
+font-family: Tahoma, sans-serif;
+font-size:      10pt;
+/* font-weight:    bold; */
+background-color: #dddddd;
+width: 290px;
+height: 250px;
+overflow-x: auto;
+overflow-y: auto;
+text-align: left;
+padding: 2px;
 }
 
 /* **************** OBSOLETE ******************* */
 /*
 
 .scoreboard_tiles_left_value {
-  font: 16px italic;
-  stroke: red;
+font: 16px italic;
+stroke: red;
 }
 
- .scoreboard_title {
-  font-family: Tahoma, sans-serif;
-  stroke : #ff0000ff;
-  font-style: italic;
- }
+.scoreboard_title {
+font-family: Tahoma, sans-serif;
+stroke : #ff0000ff;
+font-style: italic;
+}
 
 */
