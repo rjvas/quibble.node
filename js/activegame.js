@@ -15,7 +15,7 @@ class ActiveGame {
     this.tmp_user_id = null;
 
     this.status = status;
-    this.port = ActiveGame.current_port++;
+    this.port = ActiveGame.current_port < ActiveGame.port_max ? ActiveGame.current_port++ : ActiveGame.port_min;
 
     if (!game) {
       this.game = new Game(null, user1.display_name, user2.display_name);
@@ -35,6 +35,8 @@ class ActiveGame {
     this.ws_server = this.setup_socket();
   }
 
+  static port_min = 26101;
+  static port_max = 27101;
   static current_port = 26101;
 
   static none = -1;

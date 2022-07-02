@@ -61,12 +61,47 @@ function changed_user(event) {
   // note - *always* an array of hashes
   data_ws.send(JSON.stringify([{"change_user" : new_user}]));
 }
-function clicked_user_logout_bt(event) {
-  let user_name = event.currentTarget.labels[0].innerText;
 
-  console.log("admin.logout user: user: " + user_name);
+function clicked_user_save_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+  let rp = document.getElementById("user_role_player").checked;
+  let ra = document.getElementById("user_role_admin").checked;
+  let dn = document.getElementById("user_display_name").value; 
+  let em = document.getElementById("user_email").value;
+  let flc = document.getElementById("user_failed_login_count").value;
+  let llk = document.getElementById("user_last_lockout").value;
+  let llg = document.getElementById("user_last_login").value;
+  
+  let ret_val = {"id" : user_id,
+    "role_player" : rp,
+    "role_admin" : ra,
+    "display_name" : dn,
+    "email" : em,
+    "failed_login_count" : flc,
+    "last_lockout" : llk,
+    "last_login" : llg};
+
+  // save
+  data_ws.send(JSON.stringify([{"save_user" : ret_val}]));
+}
+
+function clicked_user_delete_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+}
+
+function clicked_user_logout_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+  // remove user from admin lists
+  
+  console.log("admin.logout user: user: " + user_id);
   // note - *always* an array of hashes
-  data_ws.send(JSON.stringify([{"logout_user" : user_name}]));
+  data_ws.send(JSON.stringify([{"logout_user" : user_id}]));
 }
 
 function setup_chat() {
@@ -473,6 +508,25 @@ function init() {
   el = document.getElementById("peek_email");
   if (el) {
     el.addEventListener("click", clicked_peek_email);
+  }
+
+  el = document.getElementsByClassName("user_save_btns");
+  if (el) {
+    for (i=0; i < el.length; i++ ) {
+      el[i].addEventListener("click", clicked_user_save_btn);
+    }
+  }
+  el = document.getElementsByClassName("user_delete_btns");
+  if (el) {
+    for (i=0; i < el.length; i++) {
+      el[i].addEventListener("click", clicked_user_delete_btn);
+    }
+  }
+  el = document.getElementsByClassName("user_logout_btns");
+  if (el) {
+    for (i=0; i < el.length; i++ ) {
+      el[i].addEventListener("click", clicked_user_logout_btn);
+    }
   }
 }
 
