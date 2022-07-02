@@ -14,73 +14,133 @@ For the tiles:
   tile_text - the tile character
   tile_points - the point value on the tiles
 
-For the scoreboard
-player_1_area
-player_2_area
-
-scoreboard_rect - the rectangle outline and container
-scoreboard_title - says "SCOREBOARD"
-scoreboard_player_1 - player 1 name
-scoreboard_player_2 - player 2 name
 scoreboard_tiles_left - the text "Tiles Left"
 scoreboard_tiles_left_value - the value of "Tiles Left"
 
 */
+
+.swap_pop {
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: row;
+  left: 10%;
+  top: 45%;
+}
+/* 
+#swap_pop_ctrls {
+  fill: none;
+  display: flex; 
+  flex-direction: column;
+  font-size: 100%;
+} */
+
 form {
   text-align: center;
 }
 
 #grid_background {
-  fill: #dddddd;
-   /* fill: #feecdd; */
+  fill: #333333;
+  /* fill: #feecdd; */
  }
 .safety_square {
-  fill: #f5efe6ff;
+  fill: #555555;
 }
 .center_square {
-  fill: #f5efe6ff;
+  fill: #888;
 }
 
- .scoreboard_title {
-  font-family: Arial, Helvetica, sans-serif;
-  stroke : #ff0000ff;
-  font-style: italic;
- }
+.play_cls {
+  fill: #636466;
+}
+
+.play_cls2 {
+  fill: none;
+  stroke: #636466;
+  /* stroke-miterlimit: 10; */
+  stroke-width: 6px;
+}
+
+#p1_vs_p2 {
+  /* fill: white; */
+  stroke: white;
+  font-family: Tahoma, sans-serif;
+}
+
+#player1_stats {
+/* fill-rule: nonzero; */
+fill: white;
+stroke: white;
+font-family: Tahoma, sans-serif;
+display: flex;
+flex-direction: column;
+}
+#player2_stats {
+fill: white;
+stroke: white;
+font-family: Tahoma, sans-serif;
+display: flex;
+flex-direction: column;
+}
+
+.tile_text {
+font-family: Tahoma, sans-serif;
+}
+.tile_points {
+font-family: Tahoma, sans-serif;
+font-size: 60%;
+}
 
 .safety_text {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 40%;
-  stroke : '#44bb55';
-  font-style: italic;
+font-family: Tahoma, sans-serif;
+font-size: 70%;
+stroke : '#44bb55';
+font-style: italic;
 }
 .scoreboard_rect {
-  fill : #eeeeee;
+fill : #eeeeee;
 }
 
-.scoreboard_tiles_left_value {
-  font: 16px italic;
-  stroke: red;
+.controls:hover { 
+cursor: pointer;
+filter: invert(0.5) sepia(1);
 }
 
 #chat_send_text {
-  resize : none;
-  background-color: #dddddd;
+resize : none;
+background-color: #dddddd;
 }
 
 #chat_cheat_text {
-  resize : none;
-  background-color: #dddddd;
+resize : none;
+background-color: #dddddd;
 }
 
 #chat_text {
-  font-family:    Arial, Helvetica, sans-serif;
-  font-size:      10pt;
-  /* font-weight:    bold; */
-  background-color: #dddddd;
-  width: 290px;
-  height: 250px;
-  overflow-x: auto;
-  overflow-y: auto;
-  text-align: left;
-  padding: 2px;
+font-family: Tahoma, sans-serif;
+font-size:      10pt;
+/* font-weight:    bold; */
+background-color: #dddddd;
+width: 290px;
+height: 250px;
+overflow-x: auto;
+overflow-y: auto;
+text-align: left;
+padding: 2px;
 }
+
+/* **************** OBSOLETE ******************* */
+/*
+
+.scoreboard_tiles_left_value {
+font: 16px italic;
+stroke: red;
+}
+
+.scoreboard_title {
+font-family: Tahoma, sans-serif;
+stroke : #ff0000ff;
+font-style: italic;
+}
+
+*/

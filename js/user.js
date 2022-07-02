@@ -135,10 +135,18 @@ class User {
       return u.user_name == name;
     });
     if (logged_in) {
-      logger.error("User.login error - " + name + " is already logged in");
-      response.writeHead(302 , {
-         'Location' : '/?error_login'
-      });
+      if (bcrypt.compareSync(passw, logged_in.password)) {
+        logger.warn("User.login warning - " + name + "has multiple logins");
+        response.writeHead(302 , {
+            'Location' : '/home_page?user=' + logged_in.id.toHexString()
+        });
+      }
+      else {
+        logger.error("User.login error - " + name + " is already logged in");
+        response.writeHead(302 , {
+          'Location' : '/?error_login'
+        });
+      }
       response.end();
       return;
     }

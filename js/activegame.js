@@ -7,15 +7,15 @@ const {exec} = require('child_process');
 class ActiveGame {
 
   constructor(user1, user2, status, game) {
-    // DEBUG -  force a load at startup - see heist.js
-    if (!user1 || !user1)
-      return;
 
     this.user1 = user1;
     this.user2 = user2;
+    // tmp_user_id is used to hold the id of the player NOT
+    // logged in.
+    this.tmp_user_id = null;
 
     this.status = status;
-    this.port = ActiveGame.current_port++;
+    this.port = ActiveGame.current_port < ActiveGame.port_max ? ActiveGame.current_port++ : ActiveGame.port_min;
 
     if (!game) {
       this.game = new Game(null, user1.display_name, user2.display_name);
@@ -35,6 +35,8 @@ class ActiveGame {
     this.ws_server = this.setup_socket();
   }
 
+  static port_min = 26101;
+  static port_max = 27101;
   static current_port = 26101;
 
   static none = -1;
@@ -105,8 +107,8 @@ class ActiveGame {
     return {
       "name" : this.name,
       "game_id" : this.game_id,
-      "user1_id" : this.user1 ? this.user1.id : null,
-      "user2_id" : this.user2 ? this.user2.id : null,
+      "user1_id" : this.user1 ? this.user1.id : this.tmp_user_id,
+      "user2_id" : this.user2 ? this.user2.id : this.tmp_user_id,
       "status" : this.status,
     }
   }
@@ -405,10 +407,14 @@ class ActiveGame {
           new_ag = new ActiveGame(u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
 
-          if (u1)
+          if (u1) 
             u1.active_games.push(new_ag);
+          else
+            new_ag.tmp_user_id = ag_json.user1_id;
           if (u2 && u1 != u2)
             u2.active_games.push(new_ag);
+          else if (!u2)
+            new_ag.tmp_user_id = ag_json.user2_id;
 
           logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
           let player = null;

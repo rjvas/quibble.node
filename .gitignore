@@ -5,3 +5,6 @@ notes
 *.zip
 *.swp
 *.gz
+js/plain-draggable.js
+settings.json - Shortcut.lnk
+keybindings.json - Shortcut.lnk

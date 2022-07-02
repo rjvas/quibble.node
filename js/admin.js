@@ -1,6 +1,6 @@
 /*
 * Heist
-* Drawbridge Creative https://drawbridgecreative.com
+* Drawbridge Creative https://dbc-games.com
 * copyright 2021
 */
 
@@ -61,12 +61,47 @@ function changed_user(event) {
   // note - *always* an array of hashes
   data_ws.send(JSON.stringify([{"change_user" : new_user}]));
 }
-function clicked_user_logout_bt(event) {
-  let user_name = event.currentTarget.labels[0].innerText;
 
-  console.log("admin.logout user: user: " + user_name);
+function clicked_user_save_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+  let rp = document.getElementById("user_role_player").checked;
+  let ra = document.getElementById("user_role_admin").checked;
+  let dn = document.getElementById("user_display_name").value; 
+  let em = document.getElementById("user_email").value;
+  let flc = document.getElementById("user_failed_login_count").value;
+  let llk = document.getElementById("user_last_lockout").value;
+  let llg = document.getElementById("user_last_login").value;
+  
+  let ret_val = {"id" : user_id,
+    "role_player" : rp,
+    "role_admin" : ra,
+    "display_name" : dn,
+    "email" : em,
+    "failed_login_count" : flc,
+    "last_lockout" : llk,
+    "last_login" : llg};
+
+  // save
+  data_ws.send(JSON.stringify([{"save_user" : ret_val}]));
+}
+
+function clicked_user_delete_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+}
+
+function clicked_user_logout_btn(event) {
+  let id_stuff = event.currentTarget.id.split("_");
+  let user_id = id_stuff[3];
+
+  // remove user from admin lists
+  
+  console.log("admin.logout user: user: " + user_id);
   // note - *always* an array of hashes
-  data_ws.send(JSON.stringify([{"logout_user" : user_name}]));
+  data_ws.send(JSON.stringify([{"logout_user" : user_id}]));
 }
 
 function setup_chat() {
@@ -76,7 +111,7 @@ function setup_chat() {
   if (cur_chat_port) {
     let opts = [];
     peek_game ? opts[0] = "peek" : opts[0] = "no_peek";
-    // cur_chat_ws = new WebSocket('ws://drawbridgecreativegames.com:' + cur_chat_port);
+    // cur_chat_ws = new WebSocket('ws://dbc-games.com:' + cur_chat_port);
     cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port, opts);
 
     cur_chat_ws.onmessage = function(msg) {
@@ -160,7 +195,7 @@ function clicked_broadcast_btn(event) {
       broadcast_msg.push({"player" : "sysadmin"});
       broadcast_msg.push({"info" : txt.value});
 
-      // broadcast_ws = new WebSocket('ws://drawbridgecreativegames.com:' + broadcast_port);
+      // broadcast_ws = new WebSocket('ws://dbc-games.com:' + broadcast_port);
       broadcast_ws = new WebSocket('ws://192.168.0.16:' + broadcast_port);
     }
   }
@@ -341,7 +376,7 @@ var cur_chat_ws;
 var peek_game;
 
 var data_port = document.getElementById("data_port").value;
-// const data_ws = new WebSocket('ws://drawbridgecreativegames.com:' + data_port);
+// const data_ws = new WebSocket('ws://dbc-games.com:' + data_port);
 const data_ws = new WebSocket('ws://192.168.0.16:' + data_port);
 
 var editor = null;
@@ -353,14 +388,53 @@ data_ws.onmessage = function(msg) {
     let all_content = [];
     resp.agame.game = resp.game;
     var container = document.getElementById("jsoneditor");
-    var options = {
-        mode: 'tree',
-        name : 'ActiveGame'
-    };
-    if (editor) editor.destroy();
-    editor = new JSONEditor(container, options);
-    all_content.push(resp.agame);
-    editor.set(all_content);
+    container.innerHTML = "";
+    var tree = jsonTree.create(resp.agame, container);
+
+// Expand all (or selected) child nodes of root (optional)
+    // tree.expand(function(node) {
+      // return node.childNodes.length < 2 || node.label === 'phoneNumbers';
+    // });
+
+    // var options = {
+    //     schema: {
+    //       type: "object",
+    //       title: "Game",
+    //       properties: {
+    //         _id: Object,
+    //         name_time: {
+    //           type: "string"
+    //         },
+    //         name: {
+    //           type: "string"
+    //         },
+    //         pass_count: {
+    //           type: "integer"
+    //         },
+    //         played_tiles : Array,
+    //         player1 : Object,
+    //         player2 : Object,
+    //         plays : Array,
+    //         tile_pool : Array,
+    //         words : Array
+    //       }
+    //     },
+    //     mode: 'tree',
+    //     name : 'ActiveGame'
+    // };
+    
+    // if (editor) editor.destroy();
+
+    // editor = new JSONEditor((container), options);
+    // editor.load(resp.agame);
+    // editor = new JSONEditor(container, options)
+    //   .then((editor) => {
+    //     all_content.push(resp.agame);
+    //     editor.setValue(all_content);
+    //     })
+    //   .catch((e) => {
+    //     console.warn("activegame.delete_game: ", e);
+    //   });
   }
   else {
     handle_user_data(resp);
@@ -434,6 +508,25 @@ function init() {
   el = document.getElementById("peek_email");
   if (el) {
     el.addEventListener("click", clicked_peek_email);
+  }
+
+  el = document.getElementsByClassName("user_save_btns");
+  if (el) {
+    for (i=0; i < el.length; i++ ) {
+      el[i].addEventListener("click", clicked_user_save_btn);
+    }
+  }
+  el = document.getElementsByClassName("user_delete_btns");
+  if (el) {
+    for (i=0; i < el.length; i++) {
+      el[i].addEventListener("click", clicked_user_delete_btn);
+    }
+  }
+  el = document.getElementsByClassName("user_logout_btns");
+  if (el) {
+    for (i=0; i < el.length; i++ ) {
+      el[i].addEventListener("click", clicked_user_logout_btn);
+    }
   }
 }
 

@@ -1,21 +1,34 @@
 /*
  * Heist
- * Drawbridge Creative https://drawbridgecreative.com
+ * Drawbridge Creative https://dbc-games.com
  * copyright 2021
  */
+
 
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
+var is_practice = document.getElementById("is_practice").value;
+var is_admin = document.getElementById("is_admin").value;
+var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
+var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
+var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
+var tiles_left_offset = parseInt(document.getElementById("tiles_left_offset").value);
+var current_player = document.getElementById("current_player").value;
+
+var ws_port = document.getElementById("ws_port").value;
+
 var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
+var ChatWin = null;
+var ChatDoc = null;
+var Chat = null;
 
 const NUM_ROWS_COLS = 15;
-var CELL_SIZE = 35;
+const CELL_SIZE = 35;
 const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
-const BOARD_WIDTH = GRID_SIZE + CELL_SIZE*9; //1 cell_size for space, 8 for tiles
 
 const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
@@ -41,18 +54,6 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
-/* out as per email on 20210522
-  {
-    row: 3,
-    col: 3,
-    rect: null
-  },
-  {
-    row: 3,
-    col: NUM_ROWS_COLS - 2,
-    rect: null
-  },
-*/
   {
     row: NUM_ROWS_COLS,
     col: 1,
@@ -73,18 +74,6 @@ const SAFE_INDEXES = [{
     col: NUM_ROWS_COLS - 1,
     rect: null
   },
-/* out as per email on 20210522
-  {
-    row: NUM_ROWS_COLS - 2,
-    col: 3,
-    rect: null
-  },
-  {
-    row: NUM_ROWS_COLS - 2,
-    col: NUM_ROWS_COLS - 2,
-    rect: null
-  },
-*/
   {
     row: 1,
     col: Math.round(NUM_ROWS_COLS / 2),
@@ -108,6 +97,7 @@ const SAFE_INDEXES = [{
 ];
 
 const NUM_PLAYER_TILES = 7;
+const RECT_POSITION = 0;
 const TEXT_POSITION = 1;
 const BLANK_TILE = " ";
 const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
@@ -115,16 +105,14 @@ const back_ground = "#f5efe6ff";
 var scoreboard = null;
 
 class Tile {
-  constructor(svg, drag, idx, status) {
+  constructor(svg, drag, idx, status, points) {
 
     this.id = svg.getAttributeNS(null, "id");
     this.char = svg.childNodes[1].textContent;
-    this.x = svg.getAttributeNS(null, "x");
-    this.y = svg.getAttributeNS(null, "y");
-    this.row = Math.round(this.y / CELL_SIZE) + 1;
-    this.column = Math.round(this.x / CELL_SIZE) + 1;
+    this.points = points ? points : parseInt(svg.childNodes[2].textContent);
+    this.row = Math.round(svg.getAttributeNS(null, "y") / CELL_SIZE) + 1;
+    this.column = Math.round(svg.getAttributeNS(null, "x") / CELL_SIZE) + 1;
     this.player_hand_idx = idx;
-
     this.svg = svg;
     this.drag = drag;
 
@@ -132,14 +120,31 @@ class Tile {
     if (this.char == BLANK_TILE) this.status |= Tile.is_blank;
   }
 
+  static get_Tile_json() {
+    // let  ret_val = [];
+    // let wt = [];
+    // Tile.word_tiles.forEach(t => {
+      // wt.push(t.get_JSON());
+    // });
+    let st = [];
+    Tile.swapped_tiles.forEach(t => {
+      if (t)
+        st.push(t.get_JSON());
+    })
+    // ret_val.push({"word tiles" : wt});
+    // ret_val.push({"swapped_tiles" : st});
+    return st;
+  }
+
   get_JSON() {
     return {
       id: this.id,
       char: this.char,
-      x: this.x,
-      y: this.y,
+      x: this.svg.getAttributeNS(null, "x"),
+      y: this.svg.getAttributeNS(null, "y"),
       row: this.row,
       col: this.column,
+      points: this.points,
       status : this.status,
       player_hand_idx: this.player_hand_idx
     };
@@ -149,27 +154,23 @@ class Tile {
 
     this.row = row;
     this.column = col;
-    this.x = (col - 1) * CELL_SIZE;
-    this.y = (row - 1) * CELL_SIZE;
-    this.svg.setAttributeNS(null, "x", this.x);
-    this.svg.setAttributeNS(null, "y", this.y);
+    let x = (col - 1) * CELL_SIZE;
+    let y = (row - 1) * CELL_SIZE;
+    this.svg.setAttributeNS(null, "x", x);
+    this.svg.setAttributeNS(null, "y", y);
 
-    this.drag.position();
+    this.drag = this.drag.position();
 
     if (Tile.is_on_board(row, col)) {
       this.status |= Tile.on_board;
       if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
       PlayerHand.remove(this);
-    } else if (PlayerHand.in_hand(row, col)) {
+    } else if (PlayerHand.is_in_hand(x, y)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;
       if (!PlayerHand.add(this)) {
-        console.error(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
+        console.log(`Cannot add tile ${this.char}/${this.id} to PlayerHand - tile may be dropped!`);
       }
-    } else if (Tile.is_in_trash(this.row, this.column)) {
-      this.status |= Tile.trashed;
-      if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
-      PlayerHand.remove(this);
-    }
+    } 
   }
 
   is_collision(row,col) {
@@ -192,91 +193,86 @@ class Tile {
   }
 
   static word_tiles = [];
+  static swapped_tiles = [];
 
   // these are the legitimate tile states
   static none = 0;
   static in_hand = 1; 
   static on_board = 2;
-  static trashed = 4;
   static is_blank = 8;
-  static is_magic_s = 16;
-
-  static is_in_trash(row, col) {
-    if ((AppOrientation == HORIZ && row >= 3 && row <= 5 &&
-      col >= 18 && col <= 20) ||
-      (AppOrientation == VERT && row >= 18 && row <= 20 &&
-        col >= 3 && col <= 5))
-      return true;
-    return false;
-  }
 
   static is_on_board(row, col) {
     if (row > 0 && row < 16 &&
-      col > 0 && col < 16)
+      col > 0 && col < 16) {
       return true;
-    return false;
+    } else {
+      return false;
+    }
   }
 }
 
 class PlayerHand {
   constructor() {}
   static tiles = [];
-  static squares = [
-    {
-      "row": 1,
-      "column": 17
-    },
-    {
-      "row": 1,
-      "column": 18
-    },
-    {
-      "row": 1,
-      "column": 19
-    },
-    {
-      "row": 1,
-      "column": 20
-    },
-    {
-      "row": 1,
-      "column": 21
-    },
-    {
-      "row": 1,
-      "column": 22
-    },
-    {
-      "row": 1,
-      "column": 23
-    },
-    {
-      "row": 1,
-      "column": 24
-    }
-  ];
+  static squares = 
+      [
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+0*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+1*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+2*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+3*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+4*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+5*2*CELL_SIZE 
+        },
+        {
+          "x": CELL_SIZE*15+tiles_left_offset+10,
+          "y": player_hand_xy_offset+6*2*CELL_SIZE 
+        }
+      ];
+
+  static get_PlayerHand_json() {
+    let phts = [];
+    PlayerHand.tiles.forEach(t => {
+      if (t)
+        phts.push(t.get_JSON());
+    });
+    return phts;
+  }
 
   static set_tile_attrs(idx, relative, value) {
     if (PlayerHand.tiles[idx]) {
-      // if the orientation is horizontal placement is to the right of the board
-      // otherwise, it's below the board
-      let start_col = AppOrientation == HORIZ ? 16 : 1;
-      PlayerHand.tiles[idx].x = (idx + start_col) * CELL_SIZE;
       
-      let start_row = AppOrientation == HORIZ ? 1 : 17;
-
       // set the col relative to last position or absolutely
       // from the passed value
-      relative ? PlayerHand.tiles[idx].column += value :
-        PlayerHand.tiles[idx].column = value + start_col;
+      if (relative && idx + value >= 0 && idx + value < NUM_PLAYER_TILES) {
+        PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.squares[idx + value].x);
+        PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.squares[idx + value].y);
+      }
 
-      PlayerHand.tiles[idx].y = (start_row - 1) * CELL_SIZE;
-      PlayerHand.tiles[idx].row = start_row; // 1-based
       PlayerHand.tiles[idx].player_hand_idx = idx;
-      PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", PlayerHand.tiles[idx].x);
-      PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", PlayerHand.tiles[idx].y);
+      // coords just swapped for horiz to vert
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "x", AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "y", AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "width", 2*CELL_SIZE);
+      PlayerHand.tiles[idx].svg.setAttributeNS(null, "height", 2*CELL_SIZE);
       PlayerHand.tiles[idx].svg.setAttributeNS(null, "transfom", "");
-      PlayerHand.tiles[idx].drag.position();
+      PlayerHand.tiles[idx].drag = PlayerHand.tiles[idx].drag.position();
     }
   }
 
@@ -298,22 +294,46 @@ class PlayerHand {
         return t && t.svg == svg;
       });
 
-    // want to accomdate tiles moved from the board, also
+    let x = svg.getAttributeNS(null, "x");
+    let y = svg.getAttributeNS(null, "y");
+
+    // if the to_index is the same as the player_hand_idx then recalc the
+    // to_idx from the tile.x/y (gets updated in tile_moving)
+    let to_sq = null;
+    if (to_idx == tile.player_hand_idx) {
+      if (AppOrientation == HORIZ) { // xy explicit
+        PlayerHand.squares.find((s,idx) => {
+          if (y >= s.y && y < s.y + 2*CELL_SIZE)
+            to_idx = idx;
+        });
+      } else {
+        PlayerHand.squares.find((s,idx) => {
+          // for AppOrientation == VERT the x,y values are reversed
+          // (only keeping the HORIZ coords)
+          if (x >= s.y && x < s.y + 2*CELL_SIZE)
+            to_idx = idx;
+        });
+      }
+    }
+
+    // want to accommodate tiles moved from the board, also
     // move the svgs and update the json.char and json.id
     if (tile) {
       let ts = PlayerHand.tiles;
       let os = PlayerHand.get_open_slot();
 
+      console.log(`rearrange_hand tile x=${x} y=${y} os=${os} to_idx=${to_idx}`);
+
       // if no open slot, shift in-place
       if (os == -1) os = tile.player_hand_idx;
 
-      if (os < to_idx) { // shift to the left
+      if (os < to_idx) { // shift to the front/top
         for (let i = os; i < to_idx; i++) {
           PlayerHand.tiles[i] = PlayerHand.tiles[i + 1];
           PlayerHand.set_tile_attrs(i, true, -1);
         }
       }
-      else if (os > to_idx) { // shift to the right
+      else if (os > to_idx) { // shift to the end/bottom
         for (let i = os; i > to_idx; i--) {
           PlayerHand.tiles[i] = PlayerHand.tiles[i - 1];
           PlayerHand.set_tile_attrs(i, true, 1);
@@ -326,18 +346,20 @@ class PlayerHand {
     }
   }
 
-  static in_hand(r, c) {
-    if ((AppOrientation == HORIZ && r == 1 && c < 25 && c > 16) ||
-        (AppOrientation == VERT && r == 17 && c >= 1 && c <= 8))
+  static is_in_hand(x, y) {
+    if ((AppOrientation == HORIZ && x > GRID_SIZE ) ||
+        (AppOrientation == VERT && y > GRID_SIZE))
        return true;
     return false;
   }
+
   static get_open_slot() {
     for (let i = 0; i < PlayerHand.tiles.length; i++) {
       if (!PlayerHand.tiles[i]) return i;
     }
     return -1;
   }
+
   static remove(tile) {
     if (tile.status & Tile.in_hand) tile.status = tile.status ^ Tile.in_hand;
     // a little brute force here - if the tile has been moved through the
@@ -348,6 +370,7 @@ class PlayerHand {
         PlayerHand.tiles[i] = null;
     });
   }
+
   static add(tile) {
     let idx = -1;
     let exists = PlayerHand.tiles.find(t => {
@@ -357,12 +380,15 @@ class PlayerHand {
       if ((idx = PlayerHand.get_open_slot()) != -1) {
         PlayerHand.tiles[idx] = tile;
         tile.status |= Tile.in_hand;
+        if (tile.status & Tile.on_board) tile.status ^= Tile.on_board; 
         tile.hand_idx = idx;
-        tile.x = (16 + idx) * CELL_SIZE;
-        tile.y = 0;
-        tile.svg.setAttributeNS(null, "x", tile.x);
-        tile.svg.setAttributeNS(null, "y", tile.y);
-        tile.drag.position();
+        let x = AppOrientation == HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y;
+        let y = AppOrientation == HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x;
+        tile.svg.setAttributeNS(null, "x", x);
+        tile.svg.setAttributeNS(null, "y", y);
+        tile.svg.setAttributeNS(null, "width", 2*CELL_SIZE);
+        tile.svg.setAttributeNS(null, "height", 2*CELL_SIZE);
+        tile.drag = tile.drag.position();
         return true;
       }
     }
@@ -371,245 +397,326 @@ class PlayerHand {
 
 };
 
-var PlayTrash = [];
 var PlayStarts = [];
-
-const SCOREBOARD_OFFSET = 2 * CELL_SIZE;
-const SCOREBOARD_HEIGHT = 3 * CELL_SIZE;
-const SCOREBOARD_WIDTH = NUM_PLAYER_TILES * CELL_SIZE;
-
-var color_picker = {
-  picker: null,
-  player: ""
-};
-
-function set_default_colors(color) {
-  /* all of the moves to the server
-    var player = color_picker.player;
-    var safe = color.rgbaString;
-    player.tile_color_safe = safe;
-    color._rgba[3] = .2;
-    player.tile_color_risky = color.rgbaString;
-    var risky = player.tile_color_risky;
-
-
-    for (let i = 0; i < NUM_PLAYER_TILES; i++) {
-      player.tiles[i].is_safe ?
-        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-      :
-        player.tiles[i].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
-    }
-
-    // for now set all played tiles to the appropriate risky or safe color
-    for (let i = 0; i < Word.words.length; i++) {
-      for (let j= 0; j < Word.words[i].length; j++) {
-        if (Word.words[i].tiles[j].player == player) {
-          Word.words[i].tiles[j].is_safe ?
-            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', safe)
-          :
-            Word.words[i].tiles[j].svg.childNodes[Tile.RECT_POSITION].setAttributeNS(null, 'fill', risky);
-        }
-      }
-    }
-
-    var player_rect = document.getElementById(player.name);
-    if (player_rect != null) {
-      player_rect.setAttributeNS(null, 'fill', safe);
-    }
-    else {
-      console.log("in set_default_colors set player_rect color failed");
-    }
-  */
-  console.log("in set_default_colors color: ", color);
-}
-
-function init_color_popup() {
-  var parent = document.getElementById("color_btn");
-  color_picker.picker = new Picker(parent, '#0000ff');
-  color_picker.picker.setOptions({
-    popup: 'right'
+function get_PlayStarts_JSON() {
+  let ret_val = [];
+  PlayStarts.forEach(t => {
+    if (t)
+      ret_val.push(t.get_JSON());
   });
-  color_picker.picker.onDone = set_default_colors;
+  return ret_val;
 }
 
-function set_button_callbacks() {
-  let btn = document.getElementById('home_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_home_btn);
-  }
-
-  btn = document.getElementById('pass_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_pass_btn);
-  }
-
-  btn = document.getElementById('chat_send_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_chat_send_btn);
-  }
-
-  btn = document.getElementById('chat_cheat_send_btn');
-  if (btn) {
-    btn.addEventListener("click", clicked_cheat_send_btn);
-  }
+function svgToScreen(element) {
+  var rect = element.getBoundingClientRect();
+  return {x: rect.left, y: rect.top, width: rect.width, height: rect.height};
 }
 
-// only on a page load
-function draw_safe_squares() {
+function screenToSVG(svg, x, y) { // svg is the svg DOM node
+  var pt = svg.createSVGPoint();
+  pt.x = x;
+  pt.y = y;
+  var cursorPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return {x: Math.floor(cursorPt.x), y: Math.floor(cursorPt.y)}
+}
+
+function reposition_played_tiles() {
+  let tiles = Tile.word_tiles;
+  tiles.forEach(t => {
+    // let y = Math.round(parseInt(t.getAttributeNS(null, 'y'))/CELL_SIZE) + 1;
+    let x = parseInt(t.getAttributeNS(null, 'x'));
+    let y = parseInt(t.getAttributeNS(null, 'y'));
+
+    t.setAttributeNS(null, "x", x);
+    t.setAttributeNS(null, "y", y);
+  });
+}
+
+// only on an AppOrientation change
+function reposition_safe_squares() {
+  var safe_squares = document.querySelectorAll('.safety_square');
+  let ss = null;
+
   for (let i = 0; i < SAFE_INDEXES.length; i++) {
-    let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    r.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
-    r.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE);
-    r.setAttributeNS(null, 'width', CELL_SIZE);
-    r.setAttributeNS(null, 'height', CELL_SIZE);
-    r.setAttributeNS(null, 'fill', back_ground);
-    r.setAttributeNS(null, 'stroke-width', 3);
-    r.setAttributeNS(null, 'stroke', SAFETY_FILL);
-    r.setAttributeNS(null, 'class', 'safety_square');
-    SAFE_INDEXES[i].rect = r;
-    AppSpace.append(r);
-
-    let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + CELL_SIZE / 2);
-    t.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + CELL_SIZE / 2);
-    t.setAttributeNS(null, 'width', CELL_SIZE / 4);
-    t.setAttributeNS(null, 'height', CELL_SIZE / 4);
-    t.setAttributeNS(null, 'stroke-width', 1);
-    t.setAttributeNS(null, 'fill', SAFETY_FILL_LITE);
-    t.setAttributeNS(null, 'text-anchor', "middle");
-    t.setAttributeNS(null, 'alignment-baseline', "central");
-    t.setAttributeNS(null, 'class', 'safety_text');
-    t.textContent = "SAFE";
-    AppSpace.append(t);
+    ss = safe_squares[i];
+    ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
+    ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE );
   }
 }
 
-// only on a page load
-function draw_center_start() {
-  var center = {
-    row: Math.round(NUM_ROWS_COLS / 2),
-    col: Math.round(NUM_ROWS_COLS / 2)
-  };
-  // for now just fill, draw the polygon later
-  let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  r.setAttributeNS(null, 'x', (center.row - 1) * CELL_SIZE);
-  r.setAttributeNS(null, 'y', (center.col - 1) * CELL_SIZE);
-  r.setAttributeNS(null, 'width', CELL_SIZE);
-  r.setAttributeNS(null, 'height', CELL_SIZE);
-  r.setAttributeNS(null, 'fill', back_ground);
-  r.setAttributeNS(null, 'stroke-width', 3);
-  r.setAttributeNS(null, 'stroke', CENTER_FILL);
-  // r.setAttributeNS(null, 'stroke_width', 0);
-  r.setAttributeNS(null, 'class', 'center_square');
-  AppSpace.append(r);
+// only on an AppOrientation change
+function reposition_center_start() {
+  var center_start = document.querySelector('.center_square');
+  let x = center_start.getAttributeNS(null, 'x');
+  let y = center_start.getAttributeNS(null, 'y');
+  center_start.setAttributeNS(null, 'x', x );
+  center_start.setAttributeNS(null, 'y', y );
 }
 
-// only on a page load
-function draw_board() {
-  AppSpace = document.querySelectorAll('#wt_board')[0];
+function reposition_lines() {
+  var line_vert = document.querySelectorAll('.line_vertical');
+  var line_horiz = document.querySelectorAll('.line_horizontal');
 
-  var board_vert = document.querySelectorAll('.line_vertical');
   for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-    board_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
-    board_vert[i].setAttributeNS(null, 'y1', 0);
-    board_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
-    board_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
-    board_vert[i].setAttributeNS(null, 'stroke_width', 1);
+    line_vert[i].setAttributeNS(null, 'x1', i * CELL_SIZE);
+    line_vert[i].setAttributeNS(null, 'y1', 0);
+    line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
+    line_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
+    line_vert[i].setAttributeNS(null, 'stroke_width', 1);
   }
-
-  var board_horiz = document.querySelectorAll('.line_horizontal');
   for (let i = 0; i <= NUM_ROWS_COLS; i++) {
-    board_horiz[i].setAttributeNS(null, 'x1', 0);
-    board_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
-    board_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
-    board_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
-    board_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+    line_horiz[i].setAttributeNS(null, 'x1', 0);
+    line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
+    line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
+    line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
+    line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
   }
 
 }
 
-function tile_clicked(event) {
-  var player = null;
-  var tile = null;
-  var tile_rec = null;
-  var word = null;
-  var svg = null;
-  var clicked_row = -1;
-  var clicked_column = -1;
+function reposition_grid() {
+  if (AppOrientation == HORIZ) {
+    PlaySpace.setAttributeNS(null, "x", grid_offset_xy);
+    PlaySpace.setAttributeNS(null, "y", 0);
+  } else {
+    PlaySpace.setAttributeNS(null, "x", 0);
+    PlaySpace.setAttributeNS(null, "y", grid_offset_xy);
+  }
+  reposition_lines();
+  reposition_safe_squares();
+  reposition_center_start();
+  reposition_played_tiles();
+}
 
-  let txt = event.currentTarget;
-  txt != null ? svg = txt.nearestViewportElement : svg = null;
-  if (svg != null) {
-    // if (firefoxAgent) {
-    //   clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y'))/CELL_SIZE) + 1;
-    //   clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x'))/CELL_SIZE) + 1;
-    // } else {
-    clicked_row = Math.round(parseInt(svg.getAttributeNS(null, 'y')) / CELL_SIZE);
-    clicked_column = Math.round(parseInt(svg.getAttributeNS(null, 'x')) / CELL_SIZE);
-    // }
+function reposition_player_scorebd() {
+  var player1_stats = document.querySelector('#player1_stats');
+  var player2_stats = document.querySelector('#player2_stats');
+  var player1_lock = document.querySelector('#player1_lock');
+  var player2_lock = document.querySelector('#player2_lock');
+  var player1_score = document.querySelector('#player1');
+  var player2_score = document.querySelector('#player2');
+  var player1_photo = document.querySelector('#player1_photo');
+  var player2_photo = document.querySelector('#player2_photo');
+  var tmp = null;
+
+  // the p1 svg
+  tmp = player1_score.getAttributeNS(null, "x");
+  player1_score.setAttributeNS(null, "x", player1_score.getAttributeNS(null, "y"));
+  player1_score.setAttributeNS(null, "y", tmp);
+  tmp = player1_score.getAttributeNS(null, "width");
+  player1_score.setAttributeNS(null, "width", player1_score.getAttributeNS(null, "height"));
+  player1_score.setAttributeNS(null, "height", tmp);
+  
+  tmp = player1_stats.getAttributeNS(null, "x");
+  player1_stats.setAttributeNS(null, "x", player1_stats.getAttributeNS(null, "y"));
+  player1_stats.setAttributeNS(null, "y", tmp);
+
+  // the p1 photo
+  tmp = player1_photo.getAttributeNS(null, "x");
+  player1_photo.setAttributeNS(null, "x", player1_photo.getAttributeNS(null, "y"));
+  player1_photo.setAttributeNS(null, "y", tmp);
+  tmp = player1_photo.getAttributeNS(null, "width");
+  player1_photo.setAttributeNS(null, "width", player1_photo.getAttributeNS(null, "height"));
+  player1_photo.setAttributeNS(null, "height", tmp);
+  
+  // the p2 svg
+  tmp = player2_score.getAttributeNS(null, "x");
+  player2_score.setAttributeNS(null, "x", player2_score.getAttributeNS(null, "y"));
+  player2_score.setAttributeNS(null, "y", tmp);
+  tmp = player2_score.getAttributeNS(null, "width");
+  player2_score.setAttributeNS(null, "width", player2_score.getAttributeNS(null, "height"));
+  player2_score.setAttributeNS(null, "height", tmp);
+
+  tmp = player2_stats.getAttributeNS(null, "x");
+  player2_stats.setAttributeNS(null, "x", player2_stats.getAttributeNS(null, "y"));
+  player2_stats.setAttributeNS(null, "y", tmp);
+
+  // the p2 photo
+  tmp = player2_photo.getAttributeNS(null, "x");
+  player2_photo.setAttributeNS(null, "x", player2_photo.getAttributeNS(null, "y"));
+  player2_photo.setAttributeNS(null, "y", tmp);
+  tmp = player2_photo.getAttributeNS(null, "width");
+  player2_photo.setAttributeNS(null, "width", player2_photo.getAttributeNS(null, "height"));
+  player2_photo.setAttributeNS(null, "height", tmp);
+}
+
+// only on an AppOrientation change
+function reposition_scorebd() {
+  // this gets the scoreboard svg not background
+  var scoreboard = document.querySelector('#scoreboard');
+  var scoreboard_bg = document.querySelector('#scoreboard_bg');
+  var back_arrow = document.querySelector('#back_arrow');
+  var p1_vs_p2 = document.querySelector('#p1_vs_p2');
+  var tmp = null;
+
+  if (AppOrientation == HORIZ) {
+    scoreboard.setAttributeNS(null, 'width', grid_offset_xy);   
+    scoreboard.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+    scoreboard_bg.setAttributeNS(null, 'width', grid_offset_xy);   
+    scoreboard_bg.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+  }
+  else {
+    scoreboard.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    scoreboard.setAttributeNS(null, 'height', grid_offset_xy);   
+    scoreboard_bg.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    scoreboard_bg.setAttributeNS(null, 'height', grid_offset_xy);   
   }
 
-  // Clicked on a board tile - cycle through player colors
-  // But first = make sure we're in between plays (new_word length == 0)
-  // and there are actually words on the board to work with.
-  /*
-    if (Word.new_word.tiles.length == 0 &&
-        Word.words.length != 0 &&
-        clicked_column <= NUM_ROWS_COLS &&
-        clicked_row <= NUM_ROWS_COLS) {
-      for (let i = 0; i < Word.words.length; i++) {
-        for (let j = 0; j < Word.words[i].tiles.length; j++) {
-          // these tiles must be in words, not player hands
-          if (Word.words[i].tiles[j].row == clicked_row &&
-              Word.words[i].tiles[j].column == clicked_column) {
-            word = Word.words[i];
-            tile = Word.words[i].tiles[j];
-            player = tile.player;
-            break;
-          }
-        }
-      }
+  tmp = back_arrow.getAttributeNS(null, "x");
+  back_arrow.setAttributeNS(null, "x", back_arrow.getAttributeNS(null, "y"));
+  back_arrow.setAttributeNS(null, "y", tmp);
+  tmp = p1_vs_p2.getAttributeNS(null, "x");
+  p1_vs_p2.setAttributeNS(null, "x", p1_vs_p2.getAttributeNS(null, "y"));
+  p1_vs_p2.setAttributeNS(null, "y", tmp);
 
-      if (cycle_colors && word && tile) {
-        cycle_tile_colors(word, tile);
-      } else if (word && word.check_words.length > 0) {
-          window.alert(word.check_words.join(" "));
-      }
+  reposition_player_scorebd();
+}
+
+function move_ctrls() {
+  var chat_svg = document.querySelector('#chat_ctrl');
+  var chat_click = document.querySelector('#chat_on_click')
+  var recall_svg = document.querySelector('#recall_ctrl');
+  var recall_click = document.querySelector('#recall_on_click')
+  var play_svg = document.querySelector('#play_ctrl');
+  var play_click = document.querySelector('#play_on_click')
+  var swap_svg = document.querySelector('#swap_ctrl');
+  var swap_click = document.querySelector('#swap_on_click')
+  var pass_svg = document.querySelector('#pass_ctrl');
+  var pass_click = document.querySelector('#pass_on_click')
+
+  let tmp = chat_svg.getAttributeNS(null, "x");
+  chat_svg.setAttributeNS(null, "x", chat_svg.getAttributeNS(null, "y"));
+  chat_svg.setAttributeNS(null, "y", tmp);
+  tmp = chat_click.getAttributeNS(null, "x");
+  chat_click.setAttributeNS(null, "x", chat_click.getAttributeNS(null, "y"));
+  chat_click.setAttributeNS(null, "y", tmp);
+
+  tmp = recall_svg.getAttributeNS(null, "x");
+  recall_svg.setAttributeNS(null, "x", recall_svg.getAttributeNS(null, "y"));
+  recall_svg.setAttributeNS(null, "y", tmp);
+  tmp = recall_click.getAttributeNS(null, "x");
+  recall_click.setAttributeNS(null, "x", recall_click.getAttributeNS(null, "y"));
+  recall_click.setAttributeNS(null, "y", tmp);
+  
+  // This section will have to be specific to each AppOrientation
+  // if (AppOrientation == HORIZ) {
+    tmp = parseInt(play_svg.getAttributeNS(null, "x"));
+    play_svg.setAttributeNS(null, "x", parseInt(play_svg.getAttributeNS(null, "y")) );
+    play_svg.setAttributeNS(null, "y", tmp );
+    tmp = parseInt(play_click.getAttributeNS(null, "x"));
+    play_click.setAttributeNS(null, "x", parseInt(play_click.getAttributeNS(null, "y")) );
+    play_click.setAttributeNS(null, "y", tmp );
+  // } else {
+    // tmp = parseInt(play_svg.getAttributeNS(null, "x"));
+    // play_svg.setAttributeNS(null, "x", parseInt(play_svg.getAttributeNS(null, "y")) - 10);
+    // play_svg.setAttributeNS(null, "y", tmp + 30);
+    // tmp = parseInt(play_click.getAttributeNS(null, "x"));
+    // play_click.setAttributeNS(null, "x", parseInt(play_click.getAttributeNS(null, "y")) - 10);
+    // play_click.setAttributeNS(null, "y", tmp + 30);
+  // }
+
+  tmp = swap_svg.getAttributeNS(null, "x");
+  swap_svg.setAttributeNS(null, "x", swap_svg.getAttributeNS(null, "y"));
+  swap_svg.setAttributeNS(null, "y", tmp);
+  tmp = swap_click.getAttributeNS(null, "x");
+  swap_click.setAttributeNS(null, "x", swap_click.getAttributeNS(null, "y"));
+  swap_click.setAttributeNS(null, "y", tmp);
+
+  tmp = pass_svg.getAttributeNS(null, "x");
+  pass_svg.setAttributeNS(null, "x", pass_svg.getAttributeNS(null, "y"));
+  pass_svg.setAttributeNS(null, "y", tmp);
+  tmp = pass_click.getAttributeNS(null, "x");
+  pass_click.setAttributeNS(null, "x", pass_click.getAttributeNS(null, "y"));
+  pass_click.setAttributeNS(null, "y", tmp);
+}
+
+function reposition_controls(){
+  // this is an svg rect
+  var player_panel = document.querySelector('#player_panel');
+
+  if (AppOrientation == HORIZ) {
+    player_panel.setAttributeNS(null, 'x', CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'y', 0);   
+    player_panel.setAttributeNS(null, 'width', player_panel_wh);   
+    player_panel.setAttributeNS(null, 'height', CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'fill', "black");   
+  }
+  else {
+    player_panel.setAttributeNS(null, 'x', 0);   
+    player_panel.setAttributeNS(null, 'y',  CELL_SIZE*NUM_ROWS_COLS);   
+    player_panel.setAttributeNS(null, 'width', CELL_SIZE*NUM_ROWS_COLS );   
+    player_panel.setAttributeNS(null, 'height', player_panel_wh);   
+    player_panel.setAttributeNS(null, 'fill', "black");   
+  }
+  move_ctrls();
+}
+
+function reposition_tiles_left() {
+  var left_tiles = document.querySelector('#tiles_left');
+  var left_tiles_vert = document.querySelector('#tiles_left_vert');
+  var left_tiles_count = document.querySelector('#tiles_left_count');
+
+  let tmp = left_tiles_count.getAttributeNS(null, "x");
+
+  if (AppOrientation == HORIZ) {
+    left_tiles.setAttributeNS(null, "x", 275);
+    left_tiles.setAttributeNS(null, "y", 125);
+    left_tiles_vert.setAttributeNS(null, "transform", "rotate(-90.5876, 277.2, 136.8)");
+    left_tiles_count.setAttributeNS(null, "x", 550);
+    left_tiles_count.setAttributeNS(null, "y", 175);
+  } else {
+    left_tiles.setAttributeNS(null, "x", -20);
+    left_tiles.setAttributeNS(null, "y", 415);
+    left_tiles_vert.setAttributeNS(null, "transform", "rotate(0, 277.2, 136.8)");
+    left_tiles_count.setAttributeNS(null, "x", 350);
+    left_tiles_count.setAttributeNS(null, "y", 557);
+  }
+}
+
+function reposition_player_hand() {
+  let tmp = null;
+  PlayerHand.tiles.forEach(t => {
+    if (t) {
+      tmp = t.svg.getAttributeNS(null, "x");
+      t.svg.setAttributeNS(null, "x", t.svg.getAttributeNS(null, "y"));
+      t.svg.setAttributeNS(null, "y", tmp);
+      t.svg.setAttributeNS(null, "width", CELL_SIZE*2);
+      t.svg.setAttributeNS(null, "height", CELL_SIZE*2);
+      t.drag = t.drag.position();
     }
-    */
-  // console.log('tile_clicked - row: %d column: %d', clicked_row, clicked_column);
-}
-
-function clicked_player_area(event) {
-  var player = null;
-  if (event.currentTarget.id == "player_1_area") {
-    color_picker.player = "player_1";
-  } else if (event.currentTarget.id == "player_2_area") {
-    color_picker.player = "player_2";
-  }
-  var clr = event.currentTarget.getAttributeNS(null, "fill");
-  color_picker.picker.setOptions({
-    popup: 'right',
-    color: clr
   });
-  color_picker.picker.show();
 }
 
-function setup_tile_for_play(tile, no_drag) {
+// only on an AppOrientation switch
+function reposition_board() {
+  reposition_scorebd();
+  reposition_grid();
+  reposition_controls();
+  reposition_tiles_left();
+  reposition_player_hand();
+}
 
-  let board_width = NUM_ROWS_COLS * CELL_SIZE;
-  let startx = board_width + CELL_SIZE;
-  let idx = -1;
+function build_sub_struct(tile, idx, svg, id_prefix) {
+    if (!id_prefix)
+      id_prefix = "tile_"
 
-  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  if (svg) {
-    idx = PlayerHand.get_open_slot();
-    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
-    svg.setAttributeNS(null, 'id', "tile_" + tile.id);
-    svg.setAttributeNS(null, 'x', startx + idx * CELL_SIZE);
-    svg.setAttributeNS(null, 'y', 0);
-    svg.setAttributeNS(null, 'width', CELL_SIZE);
-    svg.setAttributeNS(null, 'height', CELL_SIZE);
+    svg.setAttributeNS(null, 'id', id_prefix + tile.id);
+    if (idx == -1) {
+      // a played tile - not in the hand
+      svg.setAttributeNS(null, 'x', (tile.column - 1) * CELL_SIZE);
+      svg.setAttributeNS(null, 'y', (tile.row - 1) * CELL_SIZE);
+      svg.setAttributeNS(null, 'width', CELL_SIZE);
+      svg.setAttributeNS(null, 'height', CELL_SIZE);
+    } else {
+      svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
+      svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
+      svg.setAttributeNS(null, 'width', 2*CELL_SIZE);
+      svg.setAttributeNS(null, 'height', 2*CELL_SIZE);
+      if (id_prefix == "swap_")
+        svg.addEventListener("click", swap_tile_clicked);
+    }
+    svg.setAttributeNS(null, 'viewBox', `0 0 ${CELL_SIZE} ${CELL_SIZE}`);
+    svg.setAttributeNS(null, 'fill', 'none');
 
     // rect and text position attributes are always relative to the svg
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -618,7 +725,7 @@ function setup_tile_for_play(tile, no_drag) {
     r.setAttributeNS(null, 'width', CELL_SIZE);
     r.setAttributeNS(null, 'height', CELL_SIZE);
     r.setAttributeNS(null, 'fill', tile.fill);
-    r.setAttributeNS(null, 'stroke_width', 1);
+    // r.setAttributeNS(null, 'stroke_width', 1);
     r.setAttributeNS(null, 'stroke', '#000');
     r.setAttributeNS(null, 'class', 'tile_rect');
 
@@ -629,20 +736,22 @@ function setup_tile_for_play(tile, no_drag) {
     t.setAttributeNS(null, 'height', CELL_SIZE);
     t.setAttributeNS(null, 'stroke_width', 2);
     t.setAttributeNS(null, 'stroke', '#000');
+    t.setAttributeNS(null, 'fill', '#000');
     t.setAttributeNS(null, 'text-anchor', "middle");
     t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
     t.textContent = tile.char;
-    t.addEventListener("click", tile_clicked);
+    // t.addEventListener("click", tile_clicked);
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    p.setAttributeNS(null, 'x', CELL_SIZE - 2);
-    p.setAttributeNS(null, 'y', CELL_SIZE - 10);
+    p.setAttributeNS(null, 'x', CELL_SIZE*.8);
+    p.setAttributeNS(null, 'y', CELL_SIZE*.6);
     // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
-    p.setAttributeNS(null, 'width', CELL_SIZE / 10);
-    p.setAttributeNS(null, 'height', CELL_SIZE / 10);
+    p.setAttributeNS(null, 'width', CELL_SIZE*.4);
+    p.setAttributeNS(null, 'height', CELL_SIZE*.4);
     p.setAttributeNS(null, 'stroke_width', 1);
     p.setAttributeNS(null, 'stroke', '#000');
+    t.setAttributeNS(null, 'fill', '#000');
     p.setAttributeNS(null, 'text-anchor', "end");
     p.setAttributeNS(null, 'alignment-baseline', "central");
     p.setAttributeNS(null, 'class', 'tile_points');
@@ -651,8 +760,21 @@ function setup_tile_for_play(tile, no_drag) {
     svg.append(r);
     svg.append(t);
     svg.append(p);
+  }
 
-    AppSpace.append(svg);
+// these are NEW tiles created async during play
+function setup_tile_for_play(tile, no_drag) {
+  let idx = -1;
+
+  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  if (svg) {
+    idx = PlayerHand.get_open_slot();
+    
+    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
+    
+    build_sub_struct(tile, idx, svg);
+
+    PlaySpace.append(svg);
 
     if (!no_drag) {
       let drag_rec = new PlainDraggable(svg);
@@ -665,12 +787,14 @@ function setup_tile_for_play(tile, no_drag) {
       drag_rec.containment = {
         left: 0,
         top: 0,
-        width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-        height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
-      };
+        width: "100%",
+        height: "100%"
+      } 
+
       drag_rec.snap = {CELL_SIZE};
-      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand);
+      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand, tile.points);
     }
+    else Tile.word_tiles.push(svg);
   }
 
   // console.log("in setup_tile_for_play: ", PlayerHand.tiles[idx]);
@@ -685,8 +809,6 @@ function set_tile_props(jtile) {
     svg.classList.remove('player_tile_svg');
   } else {
     svg = setup_tile_for_play(jtile, true);
-    svg.setAttributeNS(null, 'x', (jtile.column - 1) * CELL_SIZE);
-    svg.setAttributeNS(null, 'y', (jtile.row - 1) * CELL_SIZE);
   }
 }
 
@@ -735,25 +857,31 @@ function handle_err_response(resp) {
   let err_msg = resp[0].err_msg;
   alert(err_msg);
 
-  repatriate_played_tiles();
+  clicked_recall();
 }
 
 function update_scoreboard(item, data) {
   let ret_val = true;
   if (data.scoreboard_player_1_name) {
-    item = document.getElementById("scoreboard_player_1");
+    item = document.getElementById("player1_name");
     if (item) item.textContent = data.scoreboard_player_1_name;
   } else if (data.scoreboard_player_1_score) {
-    item = document.getElementById("scoreboard_player_1_score");
+    item = document.getElementById("player1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
+  } else if (data.scoreboard_player_1_safe_score) {
+    item = document.getElementById("player1_lock_pts");
+    if (item) item.textContent = data.scoreboard_player_1_safe_score;
   } else if (data.scoreboard_player_2_name) {
-    item = document.getElementById("scoreboard_player_2");
+    item = document.getElementById("player2_name");
     if (item) item.textContent = data.scoreboard_player_2_name;
   } else if (data.scoreboard_player_2_score) {
-    item = document.getElementById("scoreboard_player_2_score");
+    item = document.getElementById("player2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
+  } else if (data.scoreboard_player_2_safe_score) {
+    item = document.getElementById("player2_lock_pts");
+    if (item) item.textContent = data.scoreboard_player_2_safe_score;
   } else if (data.tiles_left_value >= 0) {
-    item = document.getElementById("scoreboard_tiles_left_value");
+    item = document.getElementById("tiles_left_count");
     if (item) item.textContent = data.tiles_left_value;
   } else
     ret_val = false;
@@ -782,6 +910,8 @@ function handle_the_response(resp) {
         tile.drag.remove();
         tile.svg.classList.remove('player_tile_svg');
         tile.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
+        // finally, stuff it in the Tile.word_tiles for collision control
+        Tile.word_tiles.push(tile.svg);
       }
     }
 
@@ -802,6 +932,7 @@ function handle_the_response(resp) {
         });
       }
     }
+    return has_error;
   }
 
   // now stuff the word tiles into an easily accessable list - for drag control
@@ -816,22 +947,17 @@ function handle_the_response(resp) {
 }
 
 // jsonify the just-played-tiles and send them back to the server
-function clicked_player_name(event) {
-
-  // if the active player clicked the other player's name
-  if (event.currentTarget.textContent == 'Wait ...') return;
+function clicked_play(event) {
 
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (URL_x == "/player1") {
-    let txt = document.getElementById("scoreboard_player_1");
-    if (txt.textContent == "Wait ...") return;
-  } else if (URL_x == "/player2") {
-    let txt = document.getElementById("scoreboard_player_2");
-    if (txt.textContent == "Wait ...") return;
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
   }
 
   let jsons = get_played_JSONS();
@@ -839,8 +965,9 @@ function clicked_player_name(event) {
     "type": "regular_play"
   });
 
-  // console.log("in clicked_player_name: " + JSON.stringify(jsons));
-  ws.send(JSON.stringify(jsons));
+  // console.log("in clicked_play: " + JSON.stringify(jsons));
+  if (jsons.length > 1)
+    ws.send(JSON.stringify(jsons));
 
   // console.log("clicked on ", event.currentTarget.innerHTML);
 }
@@ -848,94 +975,220 @@ function clicked_player_name(event) {
 function get_player_hand_JSONS() {
   let jsons = [];
   PlayerHand.tiles.forEach((item, i) => {
-    if (!(item.status & Tile.is_magic_s))
-      jsons.push(item.get_JSON());
+    jsons.push(item.get_JSON());
   });
 
   return jsons;
 }
 
 function erase_player_hand(jsons) {
-  let back_fill = AppSpace.getAttributeNS(null, "fill");
+  let back_fill = PlaySpace.getAttributeNS(null, "fill");
 
   for (let i = 0; i < jsons.length; i++) {
     let tile = PlayerHand.tiles[jsons[i].player_hand_idx];
-    // don't get the magic S
-    if (tile && jsons[i].player_hand_idx != 7) {
-      tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
-      tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
-      tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
-      PlayerHand.tiles[jsons[i].player_hand_idx] = null;
-    }
+    tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
+    tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
+    tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
+    PlayerHand.tiles[jsons[i].player_hand_idx] = null;
   }
 }
 
-function get_played_trash_JSONS() {
+function get_swap_JSONS() {
   var jsons = [];
-  PlayTrash.forEach(item => {
-    jsons.push(item.get_JSON());
+  Tile.swapped_tiles.forEach(item => {
+    let id = "tile_" + parseInt(item.split("_")[2]);
+    let tile = PlayerHand.tiles.find(t => {
+      return t.id == id;
+    });
+    jsons.push(tile.get_JSON());
   });
   return jsons;
 }
 
-function repatriate_played_tiles() {
+function clicked_recall() {
 
   if (PlayStarts.length > 0) {
     PlayStarts.forEach(item => {
-      if (item.status & Tile.is_blank)
+      if (item.status & Tile.is_blank) {
         item.svg.childNodes[TEXT_POSITION].textContent = " ";
+        item.char = " "
+      }
       if (!PlayerHand.add(item))
-        console.error(`repatriate_played_tiles: cannot add ${item.char}/${item.id} to PlayerHand`);
+        console.log(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
     });
   }
   PlayStarts = [];
-  PlayTrash = [];
 }
 
-function clicked_tiles_area(event) {
+function swap_toggle_highlight(svg, no_toggle) {
+  var tile_id = svg.getAttributeNS(null, "id");
+  let found_id = Tile.swapped_tiles.find(item => {
+    return item == tile_id;
+  })
+  if (!found_id) { // select it
+    Tile.swapped_tiles.push(svg.getAttributeNS(null, "id"));
+    let highlite = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    highlite.setAttributeNS(null, "x", 2);
+    highlite.setAttributeNS(null, "y", 2);
+    highlite.setAttributeNS(null, "width", CELL_SIZE - 4);
+    highlite.setAttributeNS(null, "height", CELL_SIZE - 4);
+    highlite.setAttributeNS(null, "stroke", "red");
+    highlite.setAttributeNS(null, "stroke-width", "3");
+    svg.appendChild(highlite);
+  } else if (!no_toggle) { // unselect it
+      let idx = Tile.swapped_tiles.indexOf(found_id);
+      if (idx >= 0 && idx < Tile.swapped_tiles.length)
+        Tile.swapped_tiles = Tile.swapped_tiles.slice(0, idx).concat(Tile.swapped_tiles.slice(idx + 1));
+      svg.removeChild(svg.lastChild);
+  }
+}
 
+function swap_tile_clicked(event) {
+  var svg = null;
+
+  svg = event.currentTarget;
+  swap_toggle_highlight(svg);
+  // console.log('swap_tile_clicked - row: %d column: %d', clicked_row, clicked_column);
+}
+
+function swap_select_all(event) {
+  console.log(`in swap_select_all`);
+  let pu = document.getElementById("swap_pop");
+  let svgs = pu.getElementsByTagName("svg");
+  for (i=0; i<svgs.length; i++) {
+    let id = svgs[i].getAttributeNS(null, "id");
+    swap_toggle_highlight(svgs[i], true);
+  }
+  // unselect all toggle? i dunno ...
+};
+
+function clicked_swap_cancel(event) {
+  let pu = document.getElementById("swap_pop");
+  pu.style.display = "none";
+  // clear the pu elements
+  while (pu.firstChild) {
+   pu.removeChild(pu.firstChild)
+  }
+
+  Tile.swapped_tiles = [];
+  window.onclick = null;
+}
+
+function clicked_swap_begin(event) {
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
-  if (URL_x == "/player1") {
-    let txt = document.getElementById("scoreboard_player_1");
-    if (txt.textContent == "Wait ...") return;
-  } else if (URL_x == "/player2") {
-    let txt = document.getElementById("scoreboard_player_2");
-    if (txt.textContent == "Wait ...") return;
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
+  }
+
+  let pu = document.getElementById("swap_pop");
+
+  // don't allow multiple displays of PlayerHand
+  if (pu.firstChild) {
+    alert("Swap is already up! Cancel, Select All or Swap to continue.")
+    return;
+  }
+
+  let svg = null;
+  let fill = "#000"
+  let new_idx = -1;
+  PlayerHand.tiles.forEach((t, idx) => {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    if (svg) {
+      t.fill = t.svg.childNodes[RECT_POSITION].getAttributeNS(null, "fill");
+      fill = t.fill;
+      build_sub_struct(t, idx, svg, "swap_");
+      pu.appendChild(svg); 
+      new_idx = idx;
+    } 
+  });
+
+  // svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  // let ctrl_tile = new Tile(svg, null, new_idx+1, Tile.in_hand, -1);
+  // ctrl_tile.char = "Select All";
+  // build_sub_struct(ctrl_tile, new_idx+1, svg, "swap_");
+  // ctrl_tile.char = "Select All";
+  // ctrl_tile.setAttributeNS(null, "fill", fill);
+  // pu.appendChild(svg);
+
+  // now the controls
+  var sel = document.createElement("BUTTON"); 
+  sel.id = "swap_sel_all";
+  sel.textContent = "Select All";
+  sel.width = CELL_SIZE*2;
+  sel.height = CELL_SIZE;
+  sel.onclick = swap_select_all;
+  pu.appendChild(sel);
+
+  var swap = document.createElement("BUTTON"); 
+  swap.id = "swap_now";
+  swap.textContent = "Swap";
+  swap.width = CELL_SIZE*2;
+  swap.height = CELL_SIZE;
+  swap.onclick = clicked_swap_end;
+  pu.appendChild(swap);
+
+  var cancel = document.createElement("BUTTON"); 
+  cancel.id = "swap_cancel";
+  cancel.textContent = "Cancel";
+  cancel.width = CELL_SIZE*2;
+  cancel.height = CELL_SIZE;
+  cancel.onclick = clicked_swap_cancel;
+  pu.appendChild(cancel);
+
+  pu.style.display = "block";
+
+  // When the user clicks anywhere outside of the modal, close it
+  // window.onclick = function(event) {
+    // if (event.target != pu) {
+      // clicked_swap_cancel(event);
+    // }
+  // } 
+}
+
+function clicked_swap_end(event) {
+  let pu = document.getElementById("swap_pop");
+  pu.style.display = "none";
+  // clear the pu elements
+  while (pu.firstChild) {
+   pu.removeChild(pu.firstChild)
   }
 
   let jsons = null;
 
   // if not enough tiles to complete, consider this a pass
-  let tiles_left = parseInt(document.getElementById("scoreboard_tiles_left_value").textContent);
-  if (PlayTrash.length == 0 && tiles_left < NUM_PLAYER_TILES ||
-    PlayTrash.length > tiles_left) {
+  let tiles_left = parseInt(document.getElementById("tiles_left_count").textContent);
+  if (Tile.swapped_tiles.length > tiles_left) {
     window.alert("Not enough tiles left to complete the play - THIS IS A PASS")
-    repatriate_played_tiles();
+    clicked_recall();
     jsons = [{
       "type": "pass"
     }];
   } else {
-    if (PlayTrash.length == 0 &&
+    if (Tile.swapped_tiles.length == 7 &&
       window.confirm("Are you sure you want to trade all of your tiles?")) {
       jsons = get_player_hand_JSONS();
       erase_player_hand(jsons);
 
-    } else if (PlayTrash.length > 0) {
+    } else if (Tile.swapped_tiles.length > 0) {
       // roll back if no confirm
-      if (window.confirm("Are you sure you want to trade " + PlayTrash.length + " of your tiles?")) {
-        jsons = get_played_trash_JSONS();
+      if (window.confirm("Are you sure you want to trade " + Tile.swapped_tiles.length + " of your tiles?")) {
+        jsons = get_swap_JSONS();
         erase_player_hand(jsons);
       }
       // move the trashed tiles back to the player tile area
       else {
-        repatriate_played_tiles();
+        clicked_recall();
       }
     } else return;
   }
+
+  Tile.swapped_tiles = [];
 
   if (jsons.length > 0) {
     // type may have been set to 'pass' above
@@ -950,7 +1203,7 @@ function clicked_tiles_area(event) {
 }
 
 function clicked_cheat_send_btn(event) {
-  var cheat = document.getElementById("chat_cheat_text");
+  var cheat = ChatDoc.getElementById("cheat_text");
   var user = document.getElementById("user").value;
   if (cheat && user) {
     let msg = [];
@@ -961,8 +1214,98 @@ function clicked_cheat_send_btn(event) {
   }
 }
 
-function clicked_chat_send_btn(event) {
-  let txt = document.getElementById("chat_send_text");
+function clicked_peek_board_btn() {
+  let jsons = [];
+  jsons.push({"Tile" : Tile.get_Tile_json()});
+  jsons.push({"PlayerHand" : PlayerHand.get_PlayerHand_json()});
+  jsons.push({"PlayStarts" : get_PlayStarts_JSON()});
+  var container = ChatDoc.getElementById("chat_text");
+  var tree = jsonTree.create(jsons, container);
+}
+
+function clicked_chat_btn() {
+  // RJV TEMP
+  ChatWin = window.open("", "Chat", "width=300,height=600"); 
+  ChatDoc = ChatWin.document;
+
+  let dv = ChatDoc.createElement("div");
+  dv.id = "chat_text";
+  dv.height = "80%";
+  dv.width = "100%";
+
+  let ctrls = ChatDoc.createElement("div");
+  ctrls.id = "ctrls";
+  ctrls.height = "20%";
+  ctrls.width = "100%";
+  // pu.style.display = "none";
+
+  let p = ChatDoc.createElement("p");
+  p.id="chat_para"; 
+  p.x = "0";
+  p.y = "0";
+  p.height = "260";
+  p.width = "100%";
+  p.textContent = "<b>Salutations Worderists!</b>";
+  dv.appendChild(p);
+  
+  let ta = ChatDoc.createElement("textarea");
+  ta.id = "chat_send_text";
+  ta.x = "0";
+  ta.y = "80%";
+  ta.rows = "2";
+  ta.cols = "30";
+  ta.wrap = "hard";
+  ta.placeholder = "Type here ...";
+  ctrls.appendChild(ta);
+
+  let sb = ChatDoc.createElement("input");
+  sb.id = "chat_send_btn";
+  sb.type = "button";
+  sb.class="button";
+  sb.value = "Send";
+  sb.height="30";
+  sb.width = "50";
+  sb.onclick = clicked_chat_send_btn;
+  ctrls.appendChild(sb);
+
+  if (is_admin == "true") {
+    ta = document.createElement("textarea"); 
+    ta.id = "cheat_text";
+    ta.rows = "2"
+    ta.cols = "30";
+    ta.wrap = "soft";
+    ta.placeholder = "Cheat here ...";
+    ctrls.appendChild(ta);
+
+    sb = ChatDoc.createElement("input");
+    sb.id = "cheat_send_btn";
+    sb.type = "button";
+    sb.class="button";
+    sb.value = "Send";
+    sb.height="30";
+    sb.width = "50";
+    sb.onclick = clicked_cheat_send_btn;
+    ctrls.appendChild(sb);
+    
+    sb = ChatDoc.createElement("input");
+    sb.id = "peek_board_btn";
+    sb.type = "button";
+    sb.class="button";
+    sb.value = "Peek";
+    sb.height="30";
+    sb.width = "50";
+    sb.onclick = clicked_peek_board_btn;
+    ctrls.appendChild(sb);
+  }
+
+  ChatDoc.body.appendChild(dv);
+  ChatDoc.body.appendChild(ctrls);
+
+  Chat = ChatDoc.getElementById("chat_para");
+}
+
+function clicked_chat_send_btn(event) { 
+  let txt = ChatDoc.getElementById("chat_send_text");
   var user = document.getElementById("user").value;
   if (txt && user) {
     let msg = [];
@@ -999,8 +1342,19 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
-function clicked_pass_btn(event) {
-  repatriate_played_tiles();
+function clicked_pass(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  if (current_player != URL_x) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
+  }
+
+  clicked_recall();
   jsons = [{
     "type": "pass"
   }];
@@ -1026,27 +1380,34 @@ function tile_move_start(new_position) {
     });
   }
 
-  if (tile && !PlayStarts.includes(tile, 0))
-    PlayStarts.push(tile);
+  if (tile) PlayStarts.push(tile);
+
     // console.log("tile_move_start: ", tile.get_JSON());
 }
 
 function tile_moving(new_position) {
-  // 'this' references the PlainDraggable instance
-  Scale = CELL_SIZE / this.rect.width;
-
   // note that there are +1 and -1 conversions on row/col - this is due to
   // using 0-based coordinate system for x/y and 1-based coord system
   // for row/col
+
+  // console.log(`tile_moving new_pos: ${Math.round(new_position.left)},${Math.round(new_position.top)}`);
 
   // just initing ...
   let row = -1;
   let col = -1;
 
-  row = Math.round(Scale * new_position.top / CELL_SIZE + 1);
-  col = Math.round(Scale * new_position.left / CELL_SIZE + 1);
-
   let svg = this.element;
+
+  let playXY = screenToSVG(PlaySpace, new_position.left, new_position.top);
+  console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
+
+  let y = playXY.x;
+  let x = playXY.y;
+
+  row = Math.round(x/ CELL_SIZE + 1);
+  col = Math.round(y/ CELL_SIZE + 1);
+  console.log(`r/c from drag: ${row},${col}`);
+
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
   });
@@ -1058,46 +1419,49 @@ function tile_moving(new_position) {
     });
   }
 
-  // if dragging within the player-hand area ...
-  if (PlayerHand.in_hand(row, col)) {
-    let cur_location_idx = col - 17;
-    PlayerHand.rearrange_hand(svg, cur_location_idx);
-    // console.log("tile_moving - player hand idx: " + (col - 17));
+  x = (col - 1) * CELL_SIZE;
+  y = (row - 1) * CELL_SIZE;
+
+  if (PlayerHand.is_in_hand(x, y)) {
+    console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
+    PlayerHand.rearrange_hand(svg, tile.player_hand_idx);
   } 
-  else if (Tile.is_on_board(row, col) && tile && tile.is_collision(row, col)) {
+  else if (Tile.is_on_board(row, col)) {
+    console.log(`tile_moving - tile on board rc : ${row}/${col}`);
+    svg.setAttributeNS(null, "width", CELL_SIZE);
+    svg.setAttributeNS(null, "height", CELL_SIZE);
     // if we're moving into another tile, don't let it
-    // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`);
-    row = tile.row;
-    col = tile.column;
-    // return;
+    if (tile && tile.is_collision(row, col)) {
+      row = tile.row;
+      col = tile.column;
+    }
+  // console.log(`tile_moving collision: tile.row=${tile.row} tile.col=${tile.column} row=${row} col=${col}`); 
   }
 
-  // update the row/col
+  // update the row/col (rearrange_hand may have changed things)
   if (tile) {
     tile.row = row;
     tile.column = col;
   }
-
-  let x = (col - 1) * CELL_SIZE;
-  let y = (row - 1) * CELL_SIZE;
+  x = (col - 1) * CELL_SIZE;
+  y = (row - 1) * CELL_SIZE;
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
   // css' translate. So, the tiles.svg have the original player_hand
   // coordinates and a translate field. In tile_clicked this causes issues
   // with cycling through the player colors because setting the rect color
-  // directly doesn't use the css translate. So, fix up the svg coords here.d
+  // directly doesn't use the css translate. So, fix up the svg coords here.
   svg.setAttributeNS(null, 'transform', "");
   svg.setAttributeNS(null, 'x', x);
   svg.setAttributeNS(null, 'y', y);
   this.position();
 
-  console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
-    tile.row, tile.column, this.rect.width, Scale);
+  // console.log('tile_moving - tile.row: %d tile.column: %d this.rect.width: %f Scale: %f',
+    // tile.row, tile.column, this.rect.width, Scale);
 }
 
 function tile_moved(new_position) {
   // 'this' references the PlainDraggable instance
-  Scale = CELL_SIZE / this.rect.width;
 
   var row = -1;
   var col = -1;
@@ -1119,10 +1483,20 @@ function tile_moved(new_position) {
     });
   }
 
-  col = Math.round(Scale * new_position.left / CELL_SIZE) + 1;
-  row = Math.round(Scale * new_position.top / CELL_SIZE) + 1;
-
   if (tile) {
+    if (AppOrientation == HORIZ) {
+      tile.drag.left -= grid_offset_xy-2*CELL_SIZE;
+      new_position.left -= grid_offset_xy-2*CELL_SIZE;
+    }
+    else {
+      tile.drag.top += grid_offset_xy+2*CELL_SIZE;
+      new_position.top += grid_offset_xy+2*CELL_SIZE;
+    }
+    tile.drag.position();
+
+    col = Math.round(x / CELL_SIZE) + 1;
+    row = Math.round(y / CELL_SIZE) + 1;
+    
     if (!tile.is_collision(row, col)) {
       tile.move(row, col);
     } else {
@@ -1136,28 +1510,13 @@ function tile_moved(new_position) {
 
     // if stopped dragging within the player-hand area don't
     // want that PlayStart to hang around
-    if (PlayerHand.in_hand(row, col)) {
-
-      // if it's the magic s being rearranged, don't let it
-      if (tile.status & Tile.is_magic_s)
-        PlayerHand.rearrange_hand(tile.svg, 7);
-      else if (col == PlayerHand.squares[PlayerHand.squares.length - 1].column)
-        // if it's not the magic S don't let in slot 7
-        PlayerHand.rearrange_hand(tile.svg, 6);
-
+    if (PlayerHand.is_in_hand(x, y)) {
+      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
       // take it out of the PlayStarts
       PlayStarts = PlayStarts.filter(ps => {
         return ps.id != tile.id;
       });
       // console.log("tile_moving - rearranged hand to: " + (col - 17));
-    }
-
-    // TODO ugly
-    else if (Tile.is_in_trash(row, col)) {
-      // console.log("tile to trash ...");
-      tile.state |= Tile.trashed;
-      PlayerHand.remove(tile);
-      PlayTrash.push(tile);
     }
     // on the board
     else if (Tile.is_on_board(row, col)) {
@@ -1177,10 +1536,7 @@ function tile_moved(new_position) {
       }
     }
     else {
-      if (tile.status & Tile.is_magic_s)
-        PlayerHand.rearrange_hand(tile.svg, 7);
-      else
-        PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
+      PlayerHand.rearrange_hand(tile.svg, tile.player_hand_idx);
     }
   }
 }
@@ -1189,6 +1545,9 @@ function tile_moved(new_position) {
 function setup_tiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
   tile_svgs.forEach((item, idx) => {
+    item.setAttributeNS(null, "width", CELL_SIZE*2);
+    item.setAttributeNS(null, "height", CELL_SIZE*2);
+    
     let drag_rec = new PlainDraggable(item);
 
     drag_rec.onMove = tile_moving;
@@ -1199,16 +1558,12 @@ function setup_tiles_for_drag() {
     drag_rec.containment = {
       left: 0,
       top: 0,
-      width: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'width'),
-      height: AppSpace.getAttributeNS("http://www.w3.org/2000/svg", 'height')
+      width: "100%",
+      height: "100%"
     };
     drag_rec.snap = {CELL_SIZE};
 
-    // this is the magic s - keep track of it
-    if (idx == 7)
-      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand | Tile.is_magic_s));
-    else
-      PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
+    PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
   });
 
   // now stuff the word tiles into an easily accessable list - for drag control
@@ -1241,7 +1596,6 @@ function update_the_board(resp) {
       }
     }
   }
-
   // console.log("in update_the_board");
 }
 
@@ -1253,8 +1607,6 @@ function handle_exchange(resp) {
 
   // update the scoreboard - but first clear the tile
   // image residue
-  let ta = document.getElementById("tiles_area");
-  ta.setAttributeNS(null, "fill", "white");
   for (let i = 0; i < new_data.length; i++) {
     let item;
     if (update_scoreboard(item, new_data[i])) {
@@ -1266,7 +1618,6 @@ function handle_exchange(resp) {
   xchanged_tiles.forEach((item, idx) => {
     setup_tile_for_play(item, false);
   });
-
 }
 
 function handle_pass(resp) {
@@ -1280,7 +1631,6 @@ function handle_pass(resp) {
 }
 
 function toggle_player() {
-
   let url = window.location.href;
   url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
 
@@ -1303,15 +1653,15 @@ function toggle_player() {
 
 function handle_cheat(player, msg) {
   let matches = msg.split('\n');
-  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
+  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
   for (let i = 0; i<matches.length; i++) {
     let idx = matches[i].indexOf(':');
-    chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
+    Chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
   };
 }
 
 function handle_chat(player, msg) {
-  chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
+  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
 }
 
 function handle_game_over(info) {
@@ -1338,61 +1688,104 @@ function handle_game_over(info) {
   window.alert("GAME OVER!\n\n" + p1_msg + "\n\n" + p2_msg);
 }
 
-const HORIZ = 1;
-const VERT = 2;
-// if (window.innerWidth < window.innerHeight)
-  // AppOrientation = VERT;
+const HORIZ = 0;
+const VERT = 1;
 
-// ALERT!! AppOrientation is only partially completed - horizontal only
 AppOrientation = HORIZ;
-AppSpace = document.querySelectorAll('#wt_board')[0];
+
+AppSpace = document.querySelectorAll('#every_damn_thing')[0];
+PlaySpace = document.querySelectorAll('#wt_board')[0];
+
+function changeLayout() {
+  var scorebd = document.getElementById("scoreboard_bg");
+  var player_pnl = document.getElementById("player_panel");
+
+  reposition_board();
+}
 
 function getWindowSize() {
   // massage the top viewbox so all of grid displays
   let winWidth = window.innerWidth;
   let winHeight = window.innerHeight;
+  let lastOrient = AppOrientation;
+
+  // if the orientation changes, change the layout
+  winWidth > winHeight ? AppOrientation = HORIZ : AppOrientation = VERT;
+
+  let vbstr = null;
   let winRatio = winWidth/winHeight;
-  let vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, BOARD_WIDTH)} ${GRID_SIZE}`; 
-  AppSpace.setAttribute("viewBox", vbstr);
- console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
+  if (AppOrientation == HORIZ) {
+    vbstr =`0 0 ${Math.max(winRatio*GRID_SIZE, GRID_SIZE+grid_offset_xy+player_panel_wh)} ${GRID_SIZE}`; 
+    AppSpace.setAttributeNS(null, "viewBox", vbstr);
+    PlaySpace.setAttributeNS(null, "width", GRID_SIZE+player_panel_wh);
+    PlaySpace.setAttributeNS(null, "height", GRID_SIZE);
+    PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE+player_panel_wh} ${GRID_SIZE}`);
+  }
+  else if (AppOrientation == VERT) {
+    let playHeight = grid_offset_xy+player_panel_wh+GRID_SIZE;
+    vbstr =`0 0 ${Math.max(GRID_SIZE, winRatio*playHeight)} ${playHeight}`;
+    AppSpace.setAttributeNS(null, "viewBox", vbstr);
+    PlaySpace.setAttributeNS(null, "width", GRID_SIZE);
+    PlaySpace.setAttributeNS(null, "height", GRID_SIZE+player_panel_wh);
+    PlaySpace.setAttributeNS(null, "viewBox", `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`);
+  }
+
+  if (lastOrient != AppOrientation)
+    changeLayout();
+  // console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
 }
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
 
-var chat = document.getElementById("chat_text");
-
-var is_practice = document.getElementById("is_practice").value;
-
-var ws_port = document.getElementById("ws_port").value;
-// const ws = new WebSocket('ws://drawbridgecreativegames.com:' + ws_port);
+// const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 
-ws.onmessage = function(msg) {
+function update_current_player(player) {
+  // this makes sure 'current_player' is set correctly - needed for
+  // inhibiting function of Play, Swap, Pass
+  if (player.indexOf("player1") != -1) {
+   current_player = "/player2";
+  }
+  else {
+    current_player = "/player1";
+  } 
+  
+  if (current_player == "/player1") {
+    let photo_rec = document.getElementById("player1_photo");
+    photo_rec.setAttributeNS(null, "stroke", "red");
+    photo_rec.setAttributeNS(null, "stroke-width", "3");
+    photo_rec = document.getElementById("player2_photo");
+    photo_rec.setAttributeNS(null, "stroke-width", "0");
+  } else {
+    let photo_rec = document.getElementById("player2_photo");
+    photo_rec.setAttributeNS(null, "stroke", "red");
+    photo_rec.setAttributeNS(null, "stroke-width", "3");
+    photo_rec = document.getElementById("player1_photo");
+    photo_rec.setAttributeNS(null, "stroke-width", "0");
+  }
+}
 
+ws.onmessage = function(msg) {
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
   }
 
   let err = false;
-
   let resp = JSON.parse(msg.data);
-
   // need this for vectoring control
   let type = resp.shift();
-
   // this data should be going to both players. The inactive player
   // needs to handle the data differently - ignore the new player-hand tiles
   // and just show the played tiles and scoreboard
   let player = resp.shift();
-
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
-  console.log("in onmessage: type = " + type.type);
-  console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  if (info)
-    console.log("in onmessage: info = " + info.info);
+  // console.log("in onmessage: type = " + type.type);
+  // console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
+  // if (info)
+    // console.log("in onmessage: info = " + info.info);
 
   if (type.type == "game_over") {
     handle_game_over(info);
@@ -1400,25 +1793,29 @@ ws.onmessage = function(msg) {
     if (player.player != URL_x)
       alert(info.info);
     handle_pass(resp);
+    update_current_player(player.player);
   } else if (type.type == "xchange") {
     if (player.player == URL_x) {
       handle_exchange(resp);
+      update_current_player(player.player);
     } else {
       // update the scoreboard
       let new_data = resp[0].new_data;
       for (let i = 0; i < new_data.length; i++) {
         let item;
-        if (update_scoreboard(item, new_data[i])) {
-          ;
-        }
+        if (update_scoreboard(item, new_data[i])) { ; }
       }
       alert(info.info);
     }
   } else if (type.type == "regular_play") {
-    if (player.player == URL_x)
-      err = handle_the_response(resp);
+    if (player.player == URL_x) {
+      if (!(err = handle_the_response(resp)))
+        update_current_player(player.player);
+    }
     else {
       update_the_board(resp);
+      if (!resp[0].err_msg)
+        update_current_player(player.player);
       if (info.info != "none")
         alert(info.info);
     }
@@ -1438,7 +1835,6 @@ ws.onmessage = function(msg) {
 
   // leave a clean environment
   PlayStarts = [];
-  PlayTrash = [];
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&
@@ -1457,6 +1853,39 @@ ws.onclose = function(msg) {
   console.log("in get socket: close " + msg);
 };
 
+function set_button_callbacks() {
+  // play recall swap chat
+  let btn = document.getElementById('back_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('recall_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_recall);
+  }
+
+  btn = document.getElementById('play_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_play);
+  }
+
+  btn = document.getElementById('pass_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_pass);
+  }
+
+  btn = document.getElementById('swap_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_swap_begin);
+  }
+
+  btn = document.getElementById('chat_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_chat_btn);
+  }
+}
+
 set_button_callbacks();
-draw_board();
 setup_tiles_for_drag();
+getWindowSize();

@@ -1,5 +1,5 @@
-var TileState = require('./tileState').TileState;
-var TileDefs = require('./tileDefs').TileDefs;
+var TileState = require('./tilestate').TileState;
+var TileDefs = require('./tiledefs').TileDefs;
 var logger = require('./log').logger;
 
 /*
@@ -158,9 +158,9 @@ class Tile {
   static in_pool = 0;
   static in_hand = 1;
   static on_board = 2;
-  static trashed = 4;
+  // static trashed = 4;
   static is_blank = 8;
-  static is_magic_s = 16;
+  // static is_magic_s = 16;
   static utilized = 32;
 
   static new_tile_json(json, player) {

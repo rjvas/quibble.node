@@ -1,16 +1,19 @@
 const db = require('./db');
+// const { User } = require('./user');
 var logger = require('./log').logger;
 
 class Admin {
   constructor (user, current_users) {
     this.user = user;
-    this.port = Admin.current_port--;
+    this.port = Admin.current_port > Admin.port_min ? Admin.current_port-- : Admin.port_max;
     this.ws_server = this.setup_socket();
     Admin.active_admins.push(this);
     Admin.current_users = current_users;
   }
 
-  static current_port = 26100;
+  static port_min = 25900;
+  static port_max = 26000;
+  static current_port = 26000;
   static active_admins = [];
   static current_users = null;
   static db_users = [];
@@ -66,7 +69,29 @@ class Admin {
             admin.ws_server.clients.forEach(s => s.send(ret_data));
 
           } else if (data[0].logout_user) {
-            
+
+          }  else if (data[0].save_user) {
+            let props = data[0].save_user;
+            let ufound = Admin.current_users.find(u => {
+              return u.id.toHexString() == props.id; 
+            });
+
+            if (ufound) {
+              // TODO need to resolve circular dependency to get at User staic role values
+              ufound.role = props.role_player ? 1 : 0;
+              props.role_admin ? ufound.role |= 2 : ufound.role;
+
+              ufound.display_name = props.display_name;
+              ufound.email = props.email;
+              ufound.failed_login_count = props.failed_login_count;
+              ufound.last_lockout_date = props.last_lockout;
+              ufound.last_login_date = props.last_login;
+
+              ufound.save();
+            }
+
+          } else if (data[0].delete_user) {
+
           } else if (data[0].get_active_game) {
             // find the active game that has a specific port # 
             let agame_name = data[0].get_active_game;

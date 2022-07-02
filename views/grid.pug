@@ -8,176 +8,284 @@
 html
   head
     title Heist
+    link(rel="stylesheet" type="text/css" href="./js/jsonTree.css")
     link(rel="stylesheet" type="text/css" href="heist.css")
-  body
+  body(bgcolor='#2a2a2e')
     input(id="ws_port" type="hidden" value=port)
     input(id="is_practice" type="hidden" value=is_practice)
     input(id="current_game_id" type="hidden" value=game_id)
     input(id="user" type="hidden" value=user_id)
+    input(id="is_admin" type="hidden" value=is_admin)
+    
+    div(id="swap_pop" class="swap_pop" style="{display : none}")
     
     - var cell_size = 35;
-    - var wt_w = cell_size*15  + cell_size + cell_size*9;
-    - var wt_h = cell_size*15;
+    
+    // if the layout is horizontal the scoreboard is vertical and the
+    // grid x is offset by the xy_offset. if the layout is vertical the
+    // grid y is offset by the xy_offset
+    // NOTE: THIS TEMPLATE SETS UP FOR A HORIZONTAL LAYOUT, ONLY! The 
+    // vertical layout is handled at the board.js getWindowSize callbak.
+    - var scorebd_xy_offset = cell_size*3;
+    input(id="scorebd_xy_offset" type="hidden" value=scorebd_xy_offset)
+    - var player_panel_wh = cell_size*7;
+    input(id="player_panel_wh" type="hidden" value=player_panel_wh)
+    - var player_hand_xy_offset = cell_size/2;
+    input(id="player_hand_xy_offset" type="hidden" value=player_hand_xy_offset)
+    - var tiles_left_offset = cell_size + cell_size/4;
+    input(id="tiles_left_offset" type="hidden" value=tiles_left_offset)
 
-    svg(viewBox="0 0 850 525" id='wt_board' xmlns="http:www.w3.org2000svg")
-      
-      // so we can set the background color
-      // rjv width and height are the same ...
-      rect(id="grid_background" x="0" y="0" width=wt_h height=wt_h fill="lightgray")
-      
-      // all the grid lines
-      - var i = 0;
-      while i < Game.NUM_ROWS_COLS + 1
-        line(class='line_horizontal' x1="0" y1="0" x2=wt_h y2="0" stroke="black")
-        line(class='line_vertical' x1="0" y1="0" x2="0" y2=wt_h stroke="black")
-        - i++;
-      
-      // safe and center squares 
-      each s, idx in Game.SAFE_INDEXES
-        rect(x=(s.row-1)*cell_size y=(s.col-1)*cell_size width=cell_size height=cell_size fill="lightgray"
-          stroke-width=3 stroke=Game.SAFETY_FILL class="safety_square")
-        text(x=(s.row-1)*cell_size+cell_size/2 y=(s.col-1)*cell_size+cell_size/2 width=cell_size/4 height=cell_size/4 stroke_width=1
-          fill=Game.SAFETY_FILL_LITE text-anchor="middle" alignment-baseline="central"
-          class="saftey_text")
-          |SAFE
-          
-      // center/start 
-      - var center = {row: Math.round(15/2), col: Math.round(15/2)};
-      rect(x=(center.row-1)*cell_size y=(center.col-1)*cell_size width=cell_size height=cell_size fill="lightgray"
-        stroke-width=3 stroke=Game.CENTER_FILL class="center_square")
-      
-      // Words 
-      each w, idx in game.words
-        each t, tidx in w.tiles 
-          svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size class="word_tile_svg")
-            if t.player == game.player_1
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-            else
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              
-            text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-              text-anchor="middle" alignment-baseline="central" class="tile_text"
-              onclick="tile_clicked")
-              |#{t.char}
-            text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
-              text-anchor="end" alignment-baseline="central" class='tile_points')
-              |#{t.points}        
-        
-      // player tiles    
-      if player == "/player1"
-        each t, idx in game.player_1.tiles 
-          if t
-            svg(id="tile_"+t.id x=wt_h+cell_size+idx*cell_size y="0" width=cell_size height=cell_size class="player_tile_svg")
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_1.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                text-anchor="middle" alignment-baseline="central" class="tile_text"
-                onclick="tile_clicked")
-                |#{t.char}
-              text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
-                text-anchor="end" alignment-baseline="central" class='tile_points')
-                |#{t.points}
-      else
-        each t, idx in game.player_2.tiles 
-          if t
-            svg(id="tile_"+t.id x=wt_h+cell_size+idx*cell_size y="0" width=cell_size height=cell_size class="player_tile_svg")
-              if t.is_safe
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_safe 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              else
-                rect(x="0" y="0" width=cell_size height=cell_size fill=game.player_2.tile_color_risky 
-                  stroke_width=1 stroke='#000' class="tile_rect")
-              text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                text-anchor="middle" alignment-baseline="central" class="tile_text"
-                onclick="tile_clicked")
-                |#{t.char}
-              text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
-                text-anchor="end" alignment-baseline="central" class='tile_points')
-                |#{t.points}
-      
-      // all the control buttons must go in 'foriegnobjects' (svg requirement)
-      foreignobject(id="open_fo" class="node" x="755" y="50" width="95" height="50")
-        input(id="home_btn" type="button" class="button" value="Home" height=cell_size width="50")
-      foreignobject(id="pass_fo" class="node" x=wt_h+cell_size y="50" width="95" height="50")
-        input(id="pass_btn" type="button" class="button" value="Pass" height=cell_size width="50")
-        
-      foreignobject(id="err_fo" class="node" x="600" y="260" width="430" height="400")
-        text(id="error_text" x="200" y="50" width="400" height="220")
-      foreignobject(id="color_fo" class="node" x="530" y="240" width="400" height="400")
-        button(id="color_btn" height = "50" width = "100" style="border: none")
-        
-      // the scoreboard
-      svg(id="scoreboard" class="scoreboard" x=wt_h+cell_size y="65" width="245" height="105"
-          stroke='#000' stroke_width="1")
-        text(class="scoreboard_title" id="scoreboard_title" x="123" y=cell_size/2 width="245" height=cell_size/2
-          stroke_width="2" stroke="#000" text-anchor="middle" alignment-baseline="central")
-          |#{game.name}
-        
-        rect(class = 'player_1_area' id = 'player_1_area' x = '0'  y = cell_size fill=game.player_1.tile_color_safe
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' onclick="clicked_player_area")
-        text(class="scoreboard_player_1" id="scoreboard_player_1" x="4" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left"
-          onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
+    if game.current_player == game.player_2
+      input(id="current_player" type="hidden" value="/player2")
+    else 
+      input(id="current_player" type="hidden" value="/player1")
+ 
+    - var player1_safe = "#eb008b";
+    - var player1_risky = "#f179af";
+    - var player2_safe = "#0072bc";
+    - var player2_risky = "#44c7f4";
+
+    - var grid_wh = cell_size*15;
+    - var grid_n_pp = grid_wh + player_panel_wh;
+
+    - var full_play_area = `0 0 ${grid_n_pp} ${grid_wh}`;
+    - var vert_scorebd = `0 0 ${scorebd_xy_offset} ${grid_wh}`;
+
+    svg(id="every_damn_thing" viewBox=`0 0 ${scorebd_xy_offset+grid_n_pp} ${grid_wh}` xmlns="http:www.w3.org2000svg")
+      // scoreboard for horizontal board - outside the wt_board so everything can stay 0 based
+      svg(id="scoreboard" x="0" y="0" width=scorebd_xy_offset height=grid_wh)
+        rect(id="scoreboard_bg" x="0" y="0" width=scorebd_xy_offset height=grid_wh fill="black")
+        svg(id="back_arrow" x="15" y="0" width=cell_size/2+cell_size height=cell_size*2 viewBox=`0 0 ${2*cell_size+20} ${2*cell_size+20}`)
+          g()
+            line(fill="none" stroke="#fff" stroke-width="5" x1="15" x2="65" y1="40" y2="-5")
+            line(fill="none" stroke="#fff" stroke-linejoin="miter" stroke-width="5" x1="15" x2="65" y1="40" y2="85")
+        rect(id="back_on_click" class="controls" x=5  y=15 width=cell_size/2+cell_size height=cell_size*2 fill="#fff" fill-opacity=0)
+
+        // player 1 scoreboard
+        svg(id="player1" x="15" y=cell_size*2 width=scorebd_xy_offset height=cell_size*5)
           if game.current_player == game.player_1
-            |#{game.player_1.name}
-          else 
-            |Wait ...
-        text(class="scoreboard_player_1_score" id="scoreboard_player_1_score" x="41" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left")
-          |#{game.player_1.total_points}
-          
-        rect(class = 'tiles_area' id = 'tiles_area' x = '82'  y = cell_size
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' fill="white" onclick="clicked_tiles_area(event)")
-        text(class="scoreboard_tiles_left" id="scoreboard_tiles_left" x="85" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="center" alignment-baseline="center")
-          |Tiles Left
-        text(class="scoreboard_tiles_left_value" id="scoreboard_tiles_left_value" x="123" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="center" alignment-baseline="center")
-          |#{game.tile_pool.length}
-          
-        rect(class = 'player_2_area' id = 'player_2_area' x = '163'  y = cell_size fill=game.player_2.tile_color_safe
-          width = "82" height = "70" stroke_width = "1" stroke ='#000' onclick="clicked_player_area")
-        text(class="scoreboard_player_2" id="scoreboard_player_2" x="184" y="53" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="right" alignment-baseline="right"
-          onclick="clicked_player_name(event)" ondblclick="dblclicked_player_name(event)")
-          if game.current_player == game.player_2
-            |#{game.player_2.name}
-          else 
-            |Wait ...
-        text(class="scoreboard_player_2_score" id="scoreboard_player_2_score" x="205" y="88" width="82" height="9"
-          stroke_width="1" stroke="#000" text-anchor="left" alignment-baseline="left")
-          |#{game.player_2.total_points}
+            rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky stroke="red" stroke-width="3")
+          else
+            rect(id="player1_photo" x="0" y="0" width=2*cell_size height=2*cell_size fill=player1_risky)
+          svg(id="player1_stats" x="0" y=2*cell_size+15 width=scorebd_xy_offset height=cell_size*3)
+            svg(x=0 y=0 height=cell_size width=cell_size viewBox="0 0 280 280"
+              class="player_lock_cls" id="player1_lock" preserveAspectRatio="xMidYMid meet")
+              path(class="player_lock_cls" fill=player1_safe fill-rule="evenodd"
+                  d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
+            // these consts arrived at through experiment       
+            text(id="player1_lock_pts" class="player_stats_cls" x="30" y="15" width=cell_size height=cell_size stroke_width=2 
+              stroke=player1_safe fill=player1_safe text-align="start" alignment-baseline="central")
+              |#{game.player_1.safe_points}
+            text(id="player1_score" class="player_stats_cls" x="0" y="40" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+              text-align="start" alignment-baseline="central" font-size="24")
+              |#{game.player_1.total_points}
+            text(id="player1_name" class="player_stats_cls" x="0" y="65" font-size="18"
+              width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+              text-align="start" alignment-baseline="central")
+              |#{game.player_1.name}
 
-      foreignobject(id="chat_fo" class="node" x=wt_h+cell_size y="185" width="250" height="250")
-        div(id="chat_text" height="250" width="250" )
-          p(id=chat_para)
-            |!{a_game_chat_text}
-      foreignobject(id="chat_send_fo" class="node" x=wt_h+cell_size y="440" width="200" height="50")
-        textarea(id="chat_send_text" rows="2" cols="30" wrap="hard" placeholder="Type here ...")
-      foreignobject(id="chat_send_btn_fo" class="node" x="762" y="440" width="50" height="50")
-        input(id="chat_send_btn" type="button" class="button" value="Send" height="50" width="50")
-      if is_admin
-        foreignobject(id="chat_cheat_fo" class="node" x=wt_h+cell_size y="480" width="200" height="30")
-          textarea(id="chat_cheat_text" rows="2" cols="30" wrap="soft" placeholder="Cheat here ...")
-        foreignobject(id="chat_cheat_send_btn_fo" class="node" x="762" y="480" width="50" height="30")
-          input(id="chat_cheat_send_btn" type="button" class="button" value="Send" height="30" width="50")
-      
-            
-    // this should be a comment
-    script(src="./js/vanilla-picker.js")
+        svg(id="p1_vs_p2" class="player_stats_cls" x="40" y="270" width=100 height=100 viewBox=`0 -10 ${2*cell_size} ${2*cell_size}`)
+          text(x="0" y="0" width=cell_size height=cell_size stroke_width=1 fill="white" font-size="10"
+            text-align="start" alignment-baseline="central")
+            |vs.
+
+        // player 2 scoreboard
+        svg(id="player2" x="15" y="300" width=scorebd_xy_offset height=210)
+          svg(id="player2_stats" x="0" y="45" width=scorebd_xy_offset height=cell_size*4)
+            svg(x=30 y=0 width=cell_size height=cell_size viewBox="0 0 280 280"
+              class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet")
+              path(class="player_lock_cls" fill=player2_safe fill-rule="evenodd"
+                  d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
+            text(id="player2_lock_pts" class="player_stats_cls" x="60" y="15" width=cell_size height=cell_size stroke_width=2 
+              stroke=player2_safe fill=player2_safe text-align="start" alignment-baseline="central")
+              |#{game.player_2.safe_points}
+            text(id="player2_score" class="player_stats_cls" x="50" y="42" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+              text-align="end" alignment-baseline="central" font-size="24" )
+              |#{game.player_2.total_points}
+            text(id="player2_name" class="player_stats_cls" x=75 y="70" font-size="18" 
+              width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+              text-anchor="end" alignment-baseline="central")
+              |#{game.player_2.name}
+          if game.current_player == game.player_2
+            rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky stroke="red" stroke-width="3")
+          else
+            rect(id="player2_photo" x="0" y=cell_size*4 width=2*cell_size height=2*cell_size fill=player2_risky)
+
+      svg(id='wt_board' viewBox=full_play_area x=scorebd_xy_offset y="0" width=grid_wh+player_panel_wh height=grid_wh) 
+        // so we can set the background color
+        // rjv width and height are the same, only the x offset for scoreboard handled here
+        rect(id="grid_background" x="0" y="0" width=grid_wh height=grid_wh fill="#333333")
+        
+        // all the grid lines
+        - var i = 0;
+        while i < Game.NUM_ROWS_COLS + 1
+          line(class='line_horizontal' x1="0" y1=i*cell_size x2=grid_wh y2=i*cell_size stroke="black")
+          line(class='line_vertical' x1=i*cell_size y1="0" x2=i*cell_size y2=grid_wh stroke="black")
+          - i++;
+
+        // safe squares 
+        each s, idx in Game.SAFE_INDEXES
+          svg(x=(s.row-1)*cell_size y=(s.col-1)*cell_size width=cell_size height=cell_size viewBox="-40 -30 280 280"
+            class="safety_square" fill="#555555" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
+            rect(x="-40" y="-30" width="275" height="275" fill="#555555")
+            path(class="lock" fill="black"
+                d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
+          
+        // center/start 
+        - var center = {row: Math.round(15/2), col: Math.round(15/2)};
+        rect(x=(center.row-1)*cell_size y=(center.col-1)*cell_size width=cell_size height=cell_size fill="#555"
+          stroke=Game.CENTER_FILL class="center_square")
+        
+        // Words 
+        each w, idx in game.words
+          each t, tidx in w.tiles 
+            svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size class="word_tile_svg")
+              if t.player == game.player_1
+                if t.is_safe
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player1_safe
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                else
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player1_risky
+                    stroke_width=1 stroke='#000' class="tile_rect")
+              else
+                if t.is_safe
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player2_safe
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                else
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player2_risky
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                
+              text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                text-anchor="middle" alignment-baseline="central" class="tile_text"
+                onclick="tile_clicked")
+                |#{t.char}
+              text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
+                text-anchor="end" alignment-baseline="central" class='tile_points')
+                |#{t.points}        
+              
+        rect(id="player_panel" x=grid_wh y="0" width=player_panel_wh height=grid_wh fill="black")
+
+        svg(id="tiles_left" x="275" y="125" width="640" height="480")
+          g()
+            text(fill="white" font-family="Tahoma" font-size="24" id="tiles_left_vert" stroke="#000000" 
+              stroke-width="0" text-anchor="middle" transform="rotate(-90.5876, 277.2, 136.8)" x="277.2" xml:space="preserve" y="145.2")
+              |TILES LEFT:
+
+        text(id="tiles_left_count" x=550 y=175 width=cell_size height=8*cell_size stroke="white" text-anchor="middle")
+          |#{game.tile_pool.length}
+
+        // player tiles    
+        if player == "/player1"
+          each t, idx in game.player_1.tiles 
+            if t
+              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset+idx*2*cell_size 
+                width=2*cell_size height=2*cell_size viewBox=`0 0 ${cell_size} ${cell_size}` 
+                preserveAspectRatio="xMidYMid meet" class="player_tile_svg")
+                if t.is_safe
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player1_safe
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                else
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player1_risky
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                  text-anchor="middle" alignment-baseline="central" class="tile_text"
+                  onclick="tile_clicked")
+                  |#{t.char}
+                text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
+                  text-anchor="end" alignment-baseline="central" class='tile_points')
+                  |#{t.points}
+        else
+          each t, idx in game.player_2.tiles 
+            if t
+              svg(id="tile_"+t.id x=cell_size*15+tiles_left_offset+10 y=player_hand_xy_offset + idx*2*cell_size 
+                width=2*cell_size height=2*cell_size viewBox=`0 0 ${cell_size} ${cell_size}` 
+                preserveAspectRatio="xMidYMid meet" class="player_tile_svg")
+                if t.is_safe
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player2_safe
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                else
+                  rect(x="0" y="0" width=cell_size height=cell_size fill=player2_risky
+                    stroke_width=1 stroke='#000' class="tile_rect")
+                text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                  text-anchor="middle" alignment-baseline="central" class="tile_text"
+                  onclick="tile_clicked")
+                  |#{t.char}
+                text(x=cell_size*.8 y=cell_size*.6 width=cell_size*.4 height=cell_size*.4 stroke_width="1" stroke="#000" 
+                  text-anchor="end" alignment-baseline="central" class='tile_points')
+                  |#{t.points}
+
+        //- - var controls_offset = grid_wh + tiles_left_offset + 2*cell_width + 20;
+        - var controls_offset = 700;
+        svg(class="controls" id="chat_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 35 195 125" 
+          height="60" x=controls_offset y="20")
+          path(class="chat_cls"
+            d="M43.91,159.65A15,15,0,0,1,59.3,144.12a13.57,13.57,0,0,1,11.92,6.35l-3.82,2a9.52,9.52,0,0,0-8.1-4.36c-6.08,0-10.76,4.77-10.76,11.52s4.68,11.52,10.76,11.52a9.53,9.53,0,0,0,8.1-4.37l3.82,2a13.62,13.62,0,0,1-11.92,6.34A15,15,0,0,1,43.91,159.65Z")
+          path(class="chat_cls" d="M96.83,174.63V161.22H80.22v13.41h-4.5v-30h4.5v12.6H96.83v-12.6h4.5v30Z")
+          path(class="chat_cls"
+              d="M129.41,174.63,127,168.42H112.26l-2.43,6.21h-5l11.93-30h5.62l11.93,30Zm-9.81-26.1-6,15.89h12.1Z")
+          path(class="chat_cls" d="M142.32,174.63v-26H133v-4h23.08v4h-9.27v26Z")
+          path(class="chat_cls2"
+              d="M116.47,24.83H88.69A31.51,31.51,0,0,0,57.18,56.34h0A31.52,31.52,0,0,0,88.69,87.86h13.89v23l14.66-23A31.51,31.51,0,0,0,148,56.34h0A31.52,31.52,0,0,0,116.47,24.83Z")
+        rect(id="chat_on_click" class="controls" x=controls_offset y=20 width=60 height=60 fill="#fff" fill-opacity=0)
+          
+        svg(class="controls" id="recall_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 40 185 125" 
+          height="60" x=controls_offset y="120")
+          path(class="recall_cls"
+            d="M39.7,174.63l-7.15-11.56H26.92v11.56h-4.5v-30H35.07c5.71,0,9.63,3.69,9.63,9.22a8.39,8.39,0,0,1-7.47,8.78l7.69,12Zm-5.22-26H26.92v10.53h7.56c3.24,0,5.58-2.12,5.58-5.27S37.72,148.58,34.48,148.58Z")
+          path(class="recall_cls" d="M50.23,174.63v-30H70.39v4H54.73v8.77H70.08v4H54.73v9.36H70.39v4Z")
+          path(class="recall_cls"
+              d="M74.76,159.65a15,15,0,0,1,15.39-15.53,13.57,13.57,0,0,1,11.92,6.35l-3.82,2a9.52,9.52,0,0,0-8.1-4.36c-6.08,0-10.76,4.77-10.76,11.52s4.68,11.52,10.76,11.52a9.53,9.53,0,0,0,8.1-4.37l3.82,2a13.62,13.62,0,0,1-11.92,6.34A15,15,0,0,1,74.76,159.65Z")
+          path(class="recall_cls"
+              d="M127.81,174.63l-2.43-6.21H110.67l-2.43,6.21h-4.95l11.92-30h5.63l11.92,30ZM118,148.53l-6,15.89h12.1Z")
+          path(class="recall_cls" d="M136.36,174.63v-30h4.5v26h13.63v4Z")
+          path(class="recall_cls" d="M159.44,174.63v-30h4.5v26h13.64v4Z")
+          path(class="recall_cls"
+              d="M110.89,96.27,100,107.21V62.83a1.5,1.5,0,0,0-3,0v44.38L86,96.27a1.5,1.5,0,0,0-2.12,2.12l13.5,13.5a1.49,1.49,0,0,0,1.06.44,1.51,1.51,0,0,0,1.06-.44L113,98.39a1.51,1.51,0,0,0,0-2.12A1.49,1.49,0,0,0,110.89,96.27Z")
+          path(class="recall_cls" d="M67,25.33v60h19.5a1.5,1.5,0,0,0,0-3H70v-54h57v54h-16.5a1.5,1.5,0,0,0,0,3H130v-60Z")
+        rect(id="recall_on_click" class="controls" x=controls_offset y=120 width=60 height=60 fill="#fff" fill-opacity=0)
+
+        svg(class="controls" id="play_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="80" viewBox="0 0 440 140" 
+          height="40" x="680" y="220")
+          path(class="play_cls" fill="none"
+            d="M124.66,124.44V64.55h28c13,0,20.11,8.8,20.11,19.3S165.61,103,152.68,103H137.41v21.46ZM151,75.5H137.41V92H151c5,0,8.8-3.24,8.8-8.27S156,75.5,151,75.5Z")
+          path(class="play_cls"  fill="none" d="M180.69,124.44V64.55h12.75v48.67h25.32v11.22Z")
+          path(class="play_cls" fill="none"
+            d="M269.59,124.44l-3.78-10.32H239.06l-3.78,10.32h-14l23.17-59.89h16l23.08,59.89ZM252.43,75.59l-10,27.48h19.84Z")
+          path(class="play_cls" fill="none" d="M299.75,124.44V99.93L276.68,64.55h14.54l14.91,24.06,14.73-24.06H335.4L312.51,99.93v24.51Z")
+          rect(class="play_cls2" id="play_ctrl_rect" x="18.07" y="17.58" width="418" height="152" rx="76" fill="none")
+        rect(id="play_on_click" class="controls" x=controls_offset-40 y=210 width=105 height=60 fill="#fff" fill-opacity=0)
+
+        svg(class="controls" id="swap_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 50 185 125" 
+          height="60" x=controls_offset y="320")
+          path(class="swap_cls"
+            d="M43.21,166.94a12.67,12.67,0,0,0,9.45,4.23c4.86,0,6.57-2.48,6.57-4.64,0-3.15-3.42-4.05-7.24-5-4.82-1.26-10.4-2.65-10.4-8.77,0-4.95,4.37-8.55,10.62-8.55,4.64,0,8.28,1.48,10.94,4.18l-2.61,3.33a11.73,11.73,0,0,0-8.69-3.51c-3.33,0-5.62,1.71-5.62,4.23,0,2.7,3.24,3.56,7,4.5,4.91,1.31,10.62,2.84,10.62,9.23,0,4.68-3.24,9-11.34,9-5.35,0-9.27-1.93-11.83-4.77Z")
+          path(class="swap_cls"
+              d="M92,174.63l-6.25-23.17-6.21,23.17H74.76l-8.6-30h5l6.21,24.07L84,144.62h3.64l6.53,24.07,6.21-24.07h5l-8.55,30Z")
+          path(class="swap_cls"
+              d="M128.57,174.63l-2.42-6.21H111.43L109,174.63h-5l11.93-30h5.62l11.92,30Zm-9.8-26.1-6,15.89h12.1Z")
+          path(class="swap_cls"
+              d="M137.13,174.63v-30h12.64c6.16,0,9.58,4.23,9.58,9.22s-3.46,9.23-9.58,9.23h-8.15v11.56Zm12.05-26h-7.56v10.53h7.56c3.24,0,5.54-2.12,5.54-5.27S152.42,148.58,149.18,148.58Z")
+          path(class="swap_cls"
+              d="M60.91,68.83a33,33,0,0,1,62.4-15h-14.4a1.5,1.5,0,0,0,0,3h19.5V37.33a1.5,1.5,0,0,0-3,0v14.1a36,36,0,0,0-67.5,17.4,1.5,1.5,0,1,0,3,0Z")
+          path(class="swap_cls"
+              d="M128.41,67.33a1.5,1.5,0,0,0-1.5,1.5,33,33,0,0,1-62.4,15h14.4a1.5,1.5,0,0,0,0-3H59.41v19.5a1.5,1.5,0,1,0,3,0V86.23a36,36,0,0,0,67.5-17.4A1.5,1.5,0,0,0,128.41,67.33Z")
+        rect(id="swap_on_click" class="controls" x=controls_offset y=320 width=60 height=60 fill="#fff" fill-opacity=0)
+
+        svg(class="controls" id="pass_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 50 185 125" 
+          height="60" x=controls_offset y="420")
+          path(class="pass_cls"
+            d="M39.55,174.63v-30H52.2c6.16,0,9.58,4.23,9.58,9.22s-3.46,9.23-9.58,9.23H44.05v11.56Zm12.06-26H44.05v10.53h7.56c3.24,0,5.54-2.12,5.54-5.27S54.85,148.58,51.61,148.58Z")
+          path(class="pass_cls"
+              d="M84.42,174.63,82,168.42H67.27l-2.43,6.21h-5l11.93-30h5.62l11.93,30Zm-9.81-26.1-6,15.89h12.1Z")
+          path(class="pass_cls"
+              d="M93.15,166.94a12.64,12.64,0,0,0,9.45,4.23c4.86,0,6.57-2.48,6.57-4.64,0-3.15-3.42-4.05-7.25-5-4.81-1.26-10.39-2.65-10.39-8.77,0-4.95,4.36-8.55,10.62-8.55,4.63,0,8.28,1.48,10.93,4.18l-2.61,3.33a11.69,11.69,0,0,0-8.68-3.51c-3.33,0-5.63,1.71-5.63,4.23,0,2.7,3.24,3.56,7,4.5,4.9,1.31,10.62,2.84,10.62,9.23,0,4.68-3.24,9-11.34,9-5.36,0-9.27-1.93-11.84-4.77Z")
+          path(class="pass_cls"
+              d="M119.7,166.94a12.64,12.64,0,0,0,9.45,4.23c4.86,0,6.57-2.48,6.57-4.64,0-3.15-3.42-4.05-7.25-5-4.81-1.26-10.39-2.65-10.39-8.77,0-4.95,4.36-8.55,10.62-8.55,4.63,0,8.28,1.48,10.93,4.18L137,151.68a11.69,11.69,0,0,0-8.68-3.51c-3.33,0-5.63,1.71-5.63,4.23,0,2.7,3.24,3.56,7,4.5,4.9,1.31,10.62,2.84,10.62,9.23,0,4.68-3.24,9-11.34,9-5.36,0-9.27-1.93-11.84-4.77Z")
+          path(class="pass_cls"
+              d="M125.57,58l-13.5-13.5A1.5,1.5,0,1,0,110,46.64l10.94,10.94H70.51a18,18,0,0,0,0,36,1.5,1.5,0,0,0,0-3,15,15,0,0,1,0-30h50.38L110,71.52a1.49,1.49,0,0,0,0,2.12,1.51,1.51,0,0,0,1.06.44,1.49,1.49,0,0,0,1.06-.44l13.5-13.5A1.49,1.49,0,0,0,125.57,58Z")
+        rect(id="pass_on_click" class="controls" x=controls_offset y=420 width=60 height=60 fill="#fff" fill-opacity=0)
+        
     script(src="./js/plain-draggable.min.js")
+    script(src="./js/jsonTree.js")
     script(src="./js/board.js")
+    

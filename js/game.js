@@ -1,7 +1,7 @@
 var Play = require('./play').Play;
 var Player = require('./player').Player;
 var Tile = require ('./tile').Tile;
-var TileDefs = require ('./tileDefs').TileDefs;
+var TileDefs = require ('./tiledefs').TileDefs;
 var Word = require ('./word').Word;
 var logger = require('./log').logger;
 
@@ -78,12 +78,14 @@ class Game {
         " " + date_parts[3] + " " + date_parts[4];
       this.name_time = this.name + " : " + save_date;
 
-      this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
+      // this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
+      this.player_1 = new Player(0, "Player 1", "#f179af", "#eb008b", 0);
       this.player_1.name = player1_name;
       this.player_1_play = new Play(0, this.player_1);
       this.player_1.update_hand(this, true, this.player_1_play);
 
-      this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
+      // this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
+      this.player_2 = new Player(0, "Player 2", "#44c7f4", "#0072bc", 0);
       this.player_2.name = player2_name;
       this.player_2_play = new Play(0, this.player_2);
       this.player_2.update_hand(this, true, this.player_2_play);
@@ -217,12 +219,16 @@ class Game {
     return ret_val;
   }
 
-  calculate_total_points(player) {
+  // total_points are persisted, safe_points are not
+  calculate_points(player) {
     player.total_points = 0;
+    player.safe_points = 0;
     for (let i = 0; i < this.words.length; i++) {
       for (let j = 0; j < this.words[i].tiles.length; j++) {
         if (this.words[i].tiles[j].player == player) {
           player.total_points += this.words[i].tiles[j].points;
+          if (this.words[i].tiles[j].is_safe)
+            player.safe_points += this.words[i].tiles[j].points;
         }
       }
     }
@@ -443,14 +449,16 @@ class Game {
     var new_data = [{"new_tiles" : null}];
     var hand_data = [];
 
-    this.calculate_total_points(this.player_1);
-    this.calculate_total_points(this.player_2);
+    this.calculate_points(this.player_1);
+    this.calculate_points(this.player_2);
 
     if (this.current_player == this.player_1) {
-      new_data.push({"scoreboard_player_1_name" : "Wait ..."});
+      // new_data.push({"scoreboard_player_1_name" : "Wait ..."});
       new_data.push({"scoreboard_player_1_score" : this.player_1.total_points});
-      new_data.push({"scoreboard_player_2_name" : this.player_2.name});
+      new_data.push({"scoreboard_player_1_safe_score" : this.player_1.safe_points});
+      // new_data.push({"scoreboard_player_2_name" : this.player_2.name});
       new_data.push({"scoreboard_player_2_score" : this.player_2.total_points});
+      new_data.push({"scoreboard_player_2_safe_score" : this.player_2.safe_points});
       new_data.push({"play_data" : this.player_1_play.get_played_JSONS()});
       this.plays.push(this.player_1_play);
       this.player_1_play = new Play(0, this.player_1);
@@ -459,10 +467,12 @@ class Game {
       this.current_player = this.player_2;
       this.current_play = this.player_2_play;
     } else {
-      new_data.push({"scoreboard_player_2_name" : "Wait ..."});
+      // new_data.push({"scoreboard_player_2_name" : "Wait ..."});
       new_data.push({"scoreboard_player_2_score" : this.player_2.total_points});
-      new_data.push({"scoreboard_player_1_name" : this.player_1.name});
+      new_data.push({"scoreboard_player_2_safe_score" : this.player_2.safe_points});
+      // new_data.push({"scoreboard_player_1_name" : this.player_1.name});
       new_data.push({"scoreboard_player_1_score" : this.player_1.total_points});
+      new_data.push({"scoreboard_player_1_safe_score" : this.player_1.safe_points});
       new_data.push({"play_data" : this.player_2_play.get_played_JSONS()});
       this.plays.push(this.player_2_play);
       this.player_2_play = new Play(0, this.player_2);
