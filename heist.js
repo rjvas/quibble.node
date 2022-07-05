@@ -59,7 +59,7 @@ var mimeTypes = {
   "css": "text/css"
 };
 
-function get_user_agame(remote_addr, query) {
+function get_user_agame(query) {
   var params = null;
   let user_id = null;
   let game_id = null;
@@ -74,15 +74,12 @@ function get_user_agame(remote_addr, query) {
     vs = params.get("vs");
   }
 
-  logger.debug("heist.get_user_agame remote_addr: " + remote_addr +
-    " query: " + query);
+  logger.debug("heist.get_user_agame : " + " query: " + query);
 
   let user = null;
   user_id ? user = User.current_users.find(u => {
     return  u.id.toHexString() == user_id 
-  }) : user = User.current_users.find(u => {
-    return u.request_address == remote_addr
-  });
+  }) : user = null;
 
   let agame = null;
   if (user) {
@@ -152,7 +149,7 @@ function startup() {
 
     if (pathname.indexOf("new_practice_game") != -1) {
       CurrentAGame == null;
-      let user = get_user_agame(remote_addr, query).user;
+      let user = get_user_agame(query).user;
       if (user) {
         CurrentAGame = new ActiveGame(user, user, ActiveGame.in_play|ActiveGame.practice);
         ActiveGame.all_active.push(CurrentAGame);
@@ -167,12 +164,11 @@ function startup() {
       }
 
         if (CurrentAGame)
-          logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port + " remote_addr: " +
-            remote_addr + " user.request_addr");
+          logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port ); 
     }
 
     else if (pathname.indexOf("save_game") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       CurrentAGame = ug.agame;
       let user = ug.user;
 
@@ -182,12 +178,11 @@ function startup() {
         CurrentAGame.save();
       }
 
-      logger.debug("heist.listen: <save_game> port: " + CurrentAGame.port + " remote_addr: " +
-        remote_addr + " user.request_addr: " + user.request_addr);
+      logger.debug("heist.listen: <save_game> port: " + CurrentAGame.port );
     }
 
     else if (pathname.indexOf("save_close_game") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       CurrentAGame = ug.agame;
       let user = ug.user;
 
@@ -197,12 +192,11 @@ function startup() {
         CurrentAGame.save(true, pathname);
       }
 
-      logger.debug("heist.listen: <save_close_game> port: " + CurrentAGame.port + " remote_addr: " +
-        remote_addr + " user.request_addr: " + user.request_addr);
+      logger.debug("heist.listen: <save_close_game> port: " + CurrentAGame.port );
     }
 
     else if (pathname.indexOf("play_active_game") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       // query should hold the index to the selected game
       if (ug.user) {
         CurrentAGame = ug.user.active_games[ug.game_idx];
@@ -229,13 +223,12 @@ function startup() {
         });
         response.end();
 
-        logger.debug("heist.listen: <play_active_game> port: " + CurrentAGame.port + " remote_addr: " +
-          remote_addr + " user.request_addr: " + ug.user.request_addr);
+        logger.debug("heist.listen: <play_active_game> port: " + CurrentAGame.port);
         }
     }
 
     else if (pathname.indexOf("load_game") != -1) {
-      let ugv = get_user_agame(remote_addr, query);
+      let ugv = get_user_agame(query);
       let user = ugv.user;
       // query should hold the index to the selected game
       if (user)
@@ -245,7 +238,7 @@ function startup() {
     }
 
     else if (pathname.indexOf("delete_game") != -1) {
-      let ugv = get_user_agame(remote_addr, query);
+      let ugv = get_user_agame(query);
       let user = ugv.user;
       // query should hold the index to the selected game
       if  (user && user.saved_games[ugv.game_idx])
@@ -257,7 +250,7 @@ function startup() {
     else if (pathname.indexOf("play_pickup_game") != -1) {
       let u2 = null;
       let u1 = null;
-      let ugv = get_user_agame(remote_addr, query);
+      let ugv = get_user_agame(query);
 
       if (u1 = ugv.user) {
         // this is the index of the chosen player in the pickup list
@@ -291,8 +284,7 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
 
-        logger.debug("heist.listen: <new_pickup_game> " + CurrentAGame.name + " port: "
-          + CurrentAGame.port + " remote_addr: " + remote_addr);
+        logger.debug("heist.listen: <new_pickup_game> " + CurrentAGame.name + " port: " + CurrentAGame.port);
       }
       else {
         logger.error("heist.listen: <new_pickup_game> u1: ", u1, " u2: ", u2);
@@ -300,7 +292,7 @@ function startup() {
     }
 
     else if (pathname.indexOf("add_pickup_name") != -1) {
-      let user = get_user_agame(remote_addr, query).user;
+      let user = get_user_agame(query).user;
       if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
         User.pickup_gamers.push(user.display_name);
         response.end(pug_user({
@@ -316,7 +308,6 @@ function startup() {
 
     else if (pathname == "/") {
       response.end(pug_welcome({"error" : query}));
-      logger.debug("heist.listen: </> remote_addr: " + remote_addr);
     }
 
     // async
@@ -331,7 +322,7 @@ function startup() {
     }
 
     else if (pathname == "/logout") {
-      let user = get_user_agame(remote_addr, query).user;
+      let user = get_user_agame(query).user;
       // give the user a chance to clean up
       if (user) {
         let remove_ags = [];
@@ -380,13 +371,12 @@ function startup() {
 
         user.logout(response);
 
-        logger.debug("heist.listen: </logout> remote_addr: " +
-          remote_addr + " user.request_addr: " + user.request_addr);
+        logger.debug("heist.listen: </logout> : "); 
       }
     }
 
     else if (pathname.indexOf("home_page") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       if (ug.user) {
         let glist = massage_user_lists(ug.user);
         response.end(pug_user({
@@ -396,23 +386,21 @@ function startup() {
           'a_games' : ug.user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug("heist.listen: <home_page> remote_addr: " +
-          remote_addr + " user.request_addr: " + ug.user.request_addr);
+        logger.debug("heist.listen: <home_page>"); 
       }
     }
 
     else if (pathname.indexOf("wh_admin_user") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       if (ug.user) {
         response.end(JSON.stringify(ug.user.get_JSON()));
 
-        logger.debug("heist.listen: <wh_admin_user> remote_addr: " +
-          remote_addr + " user.request_addr: " + ug.user.request_addr);
+        logger.debug("heist.listen: <wh_admin_user>"); 
       }
     }
 
     else if (pathname.indexOf("wh_admin") != -1) {
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       if (ug.user) {
         response.end(pug_admin({
           'admin' : ug.user.admin,
@@ -423,8 +411,7 @@ function startup() {
           'all_active_games' : ActiveGame.all_active
         }));
 
-        logger.debug("heist.listen: <wh_admin> remote_addr: " +
-          remote_addr + " user.request_addr: " + ug.user.request_addr);
+        logger.debug("heist.listen: <wh_admin>");
       }
     }
 
@@ -432,7 +419,7 @@ function startup() {
     else if (pathname === "/player1" || pathname === "/player2") {
       logger.debug("heist.listen: <regular play> query: " + query);
 
-      let ug = get_user_agame(remote_addr, query);
+      let ug = get_user_agame(query);
       let player = pathname;
 
       CurrentAGame = ug.agame;
@@ -465,8 +452,7 @@ function startup() {
           'Word' : Word,
           'player' : player}));
 
-        logger.debug("heist.listen: <regular play> /player: " + user.display_name + " userport: " + CurrentAGame.port + " remote_addr: " +
-          remote_addr + " user.request_addr: " + user.request_addr);
+        logger.debug("heist.listen: <regular play> /player: " + user.display_name + " userport: " + CurrentAGame.port);
       }
     }
 

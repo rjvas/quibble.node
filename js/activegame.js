@@ -250,6 +250,8 @@ class ActiveGame {
     // is deleted and a new socket created and 'pushed'
     ws_server.on('connection', function(socket) {
 
+      logger.debug("activegame.socket.on.connection: new connection" );
+
       // Both players requests for updates wind up here and are distinguished
       // by the current_player. CurrentGame processes the request info and then
       // returns the new state of play in 'resp_data' which is then vectored to
@@ -294,7 +296,8 @@ class ActiveGame {
             return;
           }
           else {
-            // a_game.log_pre(player, play_data);
+            a_game.log_pre(player, play_data);
+
             if (a_game.status & ActiveGame.admin_peek) {
               let peek_data = {
                 "peek" : "Client to Server",
@@ -315,7 +318,7 @@ class ActiveGame {
                 a_game.admin_peek_socket.send(JSON.stringify(peek_data));
             }
 
-            // a_game.log_post(player, resp_data);
+            a_game.log_post(player, resp_data);
 
             // look for an error on the play - if not found, save
             let found = resp_data.find(item => {
@@ -336,6 +339,7 @@ class ActiveGame {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
+        logger.debug("activegame.socket.on.close");
       });
     
     });

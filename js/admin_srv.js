@@ -116,6 +116,7 @@ class Admin {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
+        logger.debug("admin_srv.socket closed: ");
       });
     });
 

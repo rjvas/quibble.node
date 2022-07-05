@@ -335,8 +335,6 @@ function get_formatted_datetime(db_dt) {
   if (db_dt) {
     let parts = db_dt.split(" ");
     let day = parts[2];
-    if (day < 10)
-      day = "0" + day;
     ret_val = parts[3] + "-" + months[parts[1]] + "-" + day; 
     ret_val += "T" + parts[4];
   }
