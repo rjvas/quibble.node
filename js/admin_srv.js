@@ -55,6 +55,9 @@ class Admin {
     // is deleted and a new socket created and 'pushed'.
     server.on('connection', function(socket) {
 
+      console.log("admin_srv.socket connected: ");
+      logger.debug("admin_srv.socket connected: ");
+
       socket.on('message', function(msg) {
         let admin = Admin.active_admins.find(a => {
           return a.ws_server.clients.has(socket);
@@ -116,6 +119,7 @@ class Admin {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
+        console.log("admin_srv.socket closed: ");
         logger.debug("admin_srv.socket closed: ");
       });
     });

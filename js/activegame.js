@@ -250,6 +250,7 @@ class ActiveGame {
     // is deleted and a new socket created and 'pushed'
     ws_server.on('connection', function(socket) {
 
+      console.log("activegame.socket.on.connection: new connection" );
       logger.debug("activegame.socket.on.connection: new connection" );
 
       // Both players requests for updates wind up here and are distinguished
@@ -339,6 +340,7 @@ class ActiveGame {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
+        console.log("activegame.socket.on.close");
         logger.debug("activegame.socket.on.close");
       });
     

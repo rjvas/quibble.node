@@ -22,9 +22,12 @@ var ws_port = document.getElementById("ws_port").value;
 var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
+
 var ChatWin = null;
 var ChatDoc = null;
 var Chat = null;
+var chat_width = 300;
+var chat_height = 600;
 
 const NUM_ROWS_COLS = 15;
 const CELL_SIZE = 35;
@@ -1224,8 +1227,15 @@ function clicked_peek_board_btn() {
 }
 
 function clicked_chat_btn() {
-  // RJV TEMP
-  ChatWin = window.open("", "Chat", "width=300,height=600"); 
+  // if it's already up ...
+  if (ChatWin) return;
+
+  let sl = window.screenLeft > chat_width ? window.screenLeft - chat_width : window.outerWidth;
+  ChatWin = window.open("", "Chat", `width=${chat_width},height=${chat_height},popup,left=${sl}`); 
+  ChatWin.addEventListener('unload', event => {
+    // called on interactive 'X'
+    ChatWin = null;
+   });
   ChatDoc = ChatWin.document;
 
   let dv = ChatDoc.createElement("div");
@@ -1337,6 +1347,8 @@ function clicked_home_btn(event) {
       console.log("home_btn.callback: port: " + ws_port);
     }
   }
+
+  if (ChatWin) { ChatWin.close(); ChatWin = null; }
 
   console.log("clicked_home_btn port: " + ws_port);
   xhr.send(null);
@@ -1647,6 +1659,8 @@ function toggle_player() {
     }
   }
 
+  if (ChatWin) { ChatWin.close(); ChatWin = null; }
+
   xhr.send(null);
 
 }
@@ -1734,6 +1748,7 @@ function getWindowSize() {
     changeLayout();
   // console.log(`winWidth=${winWidth} winHeight=${winHeight} viewbox=${vbstr}`);
 }
+
 window.onresize = getWindowSize;
 window.onload = getWindowSize;
 
