@@ -155,7 +155,6 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         user.active_games.push(CurrentAGame);
         pathname = "/player1";
-        logger.info("NEW GAME!!");
         response.writeHead(302 , {
            'Location' : pathname + "?game=" + CurrentAGame.name +
             "&user=" + user.id.toHexString()
@@ -164,7 +163,8 @@ function startup() {
       }
 
         if (CurrentAGame)
-          logger.debug("heist.listen: <new_practice_game> port: " + CurrentAGame.port ); 
+          logger.debug(`heist.new_practice_game user=${user.display_name}/${user.id.toHexString()} 
+            game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
     }
 
     else if (pathname.indexOf("save_game") != -1) {
@@ -176,9 +176,9 @@ function startup() {
         pathname.indexOf("player1") != -1 ? pathname = "/player1" :
           pathname = "/player2";
         CurrentAGame.save();
+        logger.debug(`heist.save_game user=${user.display_name}/${user.id.toHexString()} 
+          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
-
-      logger.debug("heist.listen: <save_game> port: " + CurrentAGame.port );
     }
 
     else if (pathname.indexOf("save_close_game") != -1) {
@@ -190,9 +190,9 @@ function startup() {
         pathname.indexOf("player1") != -1 ? pathname = "/player1" :
           pathname = "/player2";
         CurrentAGame.save(true, pathname);
+        logger.debug(`heist.save_close_game user=${user.display_name}/${user.id.toHexString()} 
+          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
-
-      logger.debug("heist.listen: <save_close_game> port: " + CurrentAGame.port );
     }
 
     else if (pathname.indexOf("play_active_game") != -1) {
@@ -200,9 +200,6 @@ function startup() {
       // query should hold the index to the selected game
       if (ug.user) {
         CurrentAGame = ug.user.active_games[ug.game_idx];
-
-        logger.debug("heist.listen: <play_active_game> CurrentAGame.name: " +
-          CurrentAGame.name + " query: " + query);
 
         // if the game is a practice game ug.user is *both* user1 and user2
         // so, set pathname with game.current_player
@@ -223,7 +220,8 @@ function startup() {
         });
         response.end();
 
-        logger.debug("heist.listen: <play_active_game> port: " + CurrentAGame.port);
+        logger.debug(`heist.play_active_game user=${ug.user.display_name}/${ug.user.id.toHexString()} 
+          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
         }
     }
 
@@ -234,7 +232,8 @@ function startup() {
       if (user)
         ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
 
-      logger.debug("heist.listen: <load_game> ActiveGame.all_active list idx: " + query);
+      logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
+        game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
     }
 
     else if (pathname.indexOf("delete_game") != -1) {
@@ -244,7 +243,8 @@ function startup() {
       if  (user && user.saved_games[ugv.game_idx])
         ActiveGame.delete_game(user.saved_games[ugv.game_idx], response, user);
 
-      logger.debug("heist.listen: <delete_game> user.saved_games list idx: " + query);
+      logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
+        game=${user.saved_games[ugv.game_idx].game.name_time} port: ${user.saved_games[ugv.game_idx].port}`); 
     }
 
     else if (pathname.indexOf("play_pickup_game") != -1) {
@@ -284,10 +284,10 @@ function startup() {
           'Word' : Word,
           'player' : pathname}));
 
-        logger.debug("heist.listen: <new_pickup_game> " + CurrentAGame.name + " port: " + CurrentAGame.port);
+        logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
       else {
-        logger.error("heist.listen: <new_pickup_game> u1: ", u1, " u2: ", u2);
+        logger.error("heist.new_pickup_game u1: ", u1, " u2: ", u2);
       }
     }
 
@@ -302,7 +302,7 @@ function startup() {
           'a_games' : user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug("heist.listen: <add_pickup_name>" );
+        logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
       }
     }
 
@@ -318,7 +318,7 @@ function startup() {
     // async
     else if (pathname == "/login") {
       User.login(query, remote_addr, response);
-      logger.debug("heist.listen: </login> remote_addr: " + remote_addr);
+      logger.debug("heist.login query: " + query);
     }
 
     else if (pathname == "/logout") {
@@ -369,9 +369,10 @@ function startup() {
           }
         });
 
+        logger.debug(`heist.logout user=${user.display_name}/${user.id.toHexString()}`); 
+ 
         user.logout(response);
 
-        logger.debug("heist.listen: </logout> : "); 
       }
     }
 
@@ -386,7 +387,7 @@ function startup() {
           'a_games' : ug.user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug("heist.listen: <home_page>"); 
+        logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
       }
     }
 
@@ -395,7 +396,7 @@ function startup() {
       if (ug.user) {
         response.end(JSON.stringify(ug.user.get_JSON()));
 
-        logger.debug("heist.listen: <wh_admin_user>"); 
+        logger.debug(`heist.wh_admin_user user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
       }
     }
 
@@ -411,14 +412,12 @@ function startup() {
           'all_active_games' : ActiveGame.all_active
         }));
 
-        logger.debug("heist.listen: <wh_admin>");
+        logger.debug(`heist.wh_admin user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
       }
     }
 
     // This will refresh the player's page with the currrent state of CurrentAGame
     else if (pathname === "/player1" || pathname === "/player2") {
-      logger.debug("heist.listen: <regular play> query: " + query);
-
       let ug = get_user_agame(query);
       let player = pathname;
 
@@ -452,7 +451,8 @@ function startup() {
           'Word' : Word,
           'player' : player}));
 
-        logger.debug("heist.listen: <regular play> /player: " + user.display_name + " userport: " + CurrentAGame.port);
+        logger.debug(`heist.regular_play user=${user.display_name}/${user.id.toHexString()} 
+          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
     }
 
@@ -471,7 +471,7 @@ function startup() {
         });
         fileStream.pipe(response);
       } catch (e) {
-        logger.error('heist.listen: File does not exist: ' + filename);
+        logger.error('heist.error: File does not exist: ' + filename);
         response.writeHead(404, {
           'Content-Type': 'text/plain'
         });
@@ -479,7 +479,7 @@ function startup() {
         response.end();
         return;
       }
-      logger.debug("heist.listen <files> pathname: " + pathname + " filename: " + filename)
+      logger.debug("heist.support_files pathname: " + pathname + " filename: " + filename)
       return;
     }
   });

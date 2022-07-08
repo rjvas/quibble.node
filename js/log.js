@@ -27,6 +27,7 @@ const logger = winston.createLogger({
   levels: config.levels,
   format: winston.format.combine(
     winston.format.colorize(),
+    winston.format.json(),
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss'
     }),

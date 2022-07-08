@@ -122,14 +122,14 @@ class ActiveGame {
     this.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));
 
     logger.debug("activegame.send_msg: type: message player: " + player +
-      "msg: " + msg);
+      "data: " + JSON.stringify(data));
   }
 
   log_pre(player_name, data) {
     console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
     logger.debug("activegame.onmessage pre-finish_the_play player: ", player_name);
     console.dir(data);
-    logger.debug(data);
+    logger.debug(JSON.stringify(data));
   }
 
   log_post(player_name, data) {
@@ -138,7 +138,7 @@ class ActiveGame {
 
     data.forEach((item, i) => {
       console.dir(item);
-      logger.debug(item);
+      logger.debug(JSON.stringify(item));
     });
     console.log("new_tiles:");
     logger.debug("new_tiles");
@@ -146,7 +146,7 @@ class ActiveGame {
         data[3].new_data[1] && data[3].new_data[1].new_tiles)
       data[3].new_data[1].new_tiles.forEach((item, i) => {
         console.dir(item);
-        logger.debug(item);
+        logger.debug(JSON.stringify(item));
       });
 
     console.log("play_data:");
@@ -155,7 +155,7 @@ class ActiveGame {
         data[3].new_data[6] && data[3].new_data[6].play_data)
       data[3].new_data[6].play_data.forEach((item, i) => {
         console.dir(item);
-        logger.debug(item);
+        logger.debug(JSON.stringify(item));
       });
   }
 
