@@ -159,6 +159,44 @@ class ActiveGame {
       });
   }
 
+  tail_log(socket, play_data) {
+    let user = play_data[1].player;
+    let llog = play_data[2].info;
+    let player = null;
+
+    if (this.status & ActiveGame.practice) {
+      player = this.game.current_player;
+      play_data[1].player = this.user1.display_name;
+    }
+    else if (this.user1 && this.user1.id.toHexString() == user) {
+      player = this.game.player_1;
+      play_data[1].player = this.user1.display_name;
+    }
+    else if (this.user2) {
+      player = this.game.player_2;
+      play_data[1].player = this.user2.display_name;
+    }
+
+    // the 'llog' - which log 
+    let cmd = `tail -n 150 ${llog}`; 
+
+    exec(cmd, (err, stdout, stderr) => {
+      if (err) {
+        play_data[2].info = "Error executing: " + cmd;
+        socket.send(JSON.stringify(play_data));
+        console.error(err)
+      } else {
+       // the *entire* stdout and stderr (buffered)
+       if (stdout) {
+         play_data[2].info = stdout;
+         socket.send(JSON.stringify(play_data));
+       }
+       console.log(`stdout: ${stdout}`);
+       console.log(`stderr: ${stderr}`);
+      }
+    });
+  }
+
   cheat(socket, play_data) {
     let user = play_data[1].player;
     let tpl = play_data[2].info;
@@ -294,6 +332,10 @@ class ActiveGame {
           }
           else if (type == "peek") {
             a_game.peek(this, play_data);
+            return;
+          }
+          else if (type == "tail_log") {
+            a_game.tail_log(this, play_data);
             return;
           }
           else {

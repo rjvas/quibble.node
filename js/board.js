@@ -1205,6 +1205,17 @@ function clicked_swap_end(event) {
   // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
+function clicked_tail_log_btn() {
+  var user = document.getElementById("user").value;
+  if (user) {
+    let msg = [];
+    msg.push({"type" : "tail_log"});
+    msg.push({"player" : user});
+    msg.push({"info" : "./wordheist.log"});
+    ws.send(JSON.stringify(msg));
+  }
+}
+
 function clicked_cheat_send_btn(event) {
   var cheat = ChatDoc.getElementById("cheat_text");
   var user = document.getElementById("user").value;
@@ -1305,6 +1316,16 @@ function clicked_chat_btn() {
     sb.height="30";
     sb.width = "50";
     sb.onclick = clicked_peek_board_btn;
+    ctrls.appendChild(sb);
+
+    sb = ChatDoc.createElement("input");
+    sb.id = "tail_log_btn";
+    sb.type = "button";
+    sb.class="button";
+    sb.value = "Logs"
+    sb.height="30";
+    sb.width = "50";
+    sb.onclick = clicked_tail_log_btn;
     ctrls.appendChild(sb);
   }
 
@@ -1665,9 +1686,17 @@ function toggle_player() {
 
 }
 
+function handle_tail_log(player, msg) {
+  let matches = msg.split('\n');
+  Chat.innerHTML += "<br><b>" + player + "</b>:<br>";
+  for (let i = 0; i<matches.length; i++) {
+    Chat.innerHTML += matches[i] + " <br>";
+  };
+}
+
 function handle_cheat(player, msg) {
   let matches = msg.split('\n');
-  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>";
+  Chat.innerHTML += "<br><b>" + player + "</b>:<br>";
   for (let i = 0; i<matches.length; i++) {
     let idx = matches[i].indexOf(':');
     Chat.innerHTML += matches[i].slice(-(matches[i].length-idx-1)) + "<br>";
@@ -1675,7 +1704,7 @@ function handle_cheat(player, msg) {
 }
 
 function handle_chat(player, msg) {
-  Chat.innerHTML += "<br><br><b>" + player + "</b>:<br>" + msg;
+  Chat.innerHTML += "<br><b>" + player + "</b>:<br>" + msg;
 }
 
 function handle_game_over(info) {
@@ -1844,6 +1873,9 @@ ws.onmessage = function(msg) {
   else if (type.type == "cheat") {
     handle_cheat(player.player, info.info);
   }
+  else if (type.type == "tail_log") {
+    handle_tail_log(player.player, info.info);
+  }
   else {
     console.log("in onmessage: no play type");
   }
@@ -1853,7 +1885,7 @@ ws.onmessage = function(msg) {
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&
-    type.type != "chat" && type.type != "cheat") {
+    type.type != "chat" && type.type != "cheat" && type.type != "tail_log") {
     toggle_player();
   }
 }
