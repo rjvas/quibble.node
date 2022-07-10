@@ -177,6 +177,9 @@ class Tile {
   }
 
   is_collision(row,col) {
+    // console.log(`Tile.is_collision: row/col: ${row}/${col}`);
+
+    // check against all played tiles
     let collide = Tile.word_tiles.find((item, i) => {
       let xl = item.getAttributeNS(null, "x");
       let yl = item.getAttributeNS(null, "y");
@@ -191,7 +194,13 @@ class Tile {
         return item != this && item.row == row && item.column == col;
       });
       if (collide) return true;
+      else if ((AppOrientation == HORIZ && (col < 1 || row > 15 )) ||
+                (AppOrientation == VERT && (col > 15 || row < 1))) {
+        console.log(`Tile.is_collision: collided with edge row/col: ${row}/${col}`);
+        return true;
+      }
     }
+
     return false;
   }
 
@@ -1458,6 +1467,11 @@ function tile_moving(new_position) {
   if (PlayerHand.is_in_hand(x, y)) {
     console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
     PlayerHand.rearrange_hand(svg, tile.player_hand_idx);
+  } 
+  // if we're moving off the board (except for the player-hand area)
+  else if (tile && tile.is_collision(row, col)) {
+      row = tile.row;
+      col = tile.column;
   } 
   else if (Tile.is_on_board(row, col)) {
     console.log(`tile_moving - tile on board rc : ${row}/${col}`);
