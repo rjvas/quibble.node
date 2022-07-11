@@ -229,22 +229,24 @@ function startup() {
       let ugv = get_user_agame(query);
       let user = ugv.user;
       // query should hold the index to the selected game
-      if (user)
+      if (user) {
         ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
 
-      logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
-        game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
+        logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
+          game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
+      }
     }
 
     else if (pathname.indexOf("delete_game") != -1) {
       let ugv = get_user_agame(query);
       let user = ugv.user;
       // query should hold the index to the selected game
-      if  (user && user.saved_games[ugv.game_idx])
+      if  (user && user.saved_games[ugv.game_idx]) {
         ActiveGame.delete_game(user.saved_games[ugv.game_idx], response, user);
 
-      logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
-        game=${user.saved_games[ugv.game_idx].game.name_time} port: ${user.saved_games[ugv.game_idx].port}`); 
+        logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
+          game=${user.saved_games[ugv.game_idx].game.name_time} port: ${user.saved_games[ugv.game_idx].port}`); 
+      }
     }
 
     else if (pathname.indexOf("play_pickup_game") != -1) {
