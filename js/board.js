@@ -1215,12 +1215,13 @@ function clicked_swap_end(event) {
 }
 
 function clicked_tail_log_btn() {
+  var logf_name = ChatDoc.getElementById("log_name").value;
   var user = document.getElementById("user").value;
   if (user) {
     let msg = [];
     msg.push({"type" : "tail_log"});
     msg.push({"player" : user});
-    msg.push({"info" : "./wordheist.log"});
+    msg.push({"info" : logf_name});
     ws.send(JSON.stringify(msg));
   }
 }
@@ -1327,11 +1328,19 @@ function clicked_chat_btn() {
     sb.onclick = clicked_peek_board_btn;
     ctrls.appendChild(sb);
 
+    ta = document.createElement("textarea"); 
+    ta.id = "log_name";
+    ta.rows = "1"
+    ta.cols = "30";
+    ta.wrap = "soft";
+    ta.placeholder = "tail-file path/name ...";
+    ctrls.appendChild(ta);
+    
     sb = ChatDoc.createElement("input");
     sb.id = "tail_log_btn";
     sb.type = "button";
     sb.class="button";
-    sb.value = "Logs"
+    sb.value = "Send"
     sb.height="30";
     sb.width = "50";
     sb.onclick = clicked_tail_log_btn;
