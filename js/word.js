@@ -150,9 +150,10 @@ class Word {
     return ret_val;
   }
 
-  addLetter(tile, player) {
+  addLetter(tile, player, play) {
     this.points += tile.points;
     this.player = player;
+    this.play = !this.play ? play : null;
 
     this.tiles.push(tile);
     tile.word_id = this.id;
@@ -266,7 +267,9 @@ class Word {
         return i;
       }
     }
-    return -1;
+    if (valid)
+      return -1;
+    return 0;
   }
 
   // from the specs:
@@ -298,23 +301,22 @@ class Word {
     }
   }
 
-  update_tile_safety(game, tile, dont_follow) {
+  update_tile_state(game, tile, dont_follow) {
 
     if (!tile.is_safe) {
       game.update_play(tile);
       if ( this.player != tile.player) {
-        tile.push_state(new Tile.TileState(tile, Tile.TileState.setplayer, this.play));
+        tile.push_state(new Tile.TileState(tile, Tile.TileState.setplayer, game.current_play));
         tile.player = this.player;
       }
       if (this.is_safe && !dont_follow) {
         // this is for rolling back a play
-        tile.push_state(new Tile.TileState(tile, Tile.TileState.setissafe, this.play));
+        tile.push_state(new Tile.TileState(tile, Tile.TileState.setissafe, game.current_play));
         tile.is_safe = true;
       } else {
         tile.is_safe = false;
       }
     }
-
   }
 
 follow_adjacencies(game, orientation, tile, dont_follow) {
@@ -339,7 +341,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
         if (!dont_follow && t.word_id == this.id) {
           if (t.up || t.down) {ortho.push(t);}
         }
-        this.update_tile_safety(game, t, dont_follow);
+        this.update_tile_state(game, t, dont_follow);
         t = t.right;
       }
       // by now the first word is done
@@ -373,7 +375,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
         if (!dont_follow && t.word_id == this.id) {
           if (t.left || t.right) {ortho.push(t);}
         }
-        this.update_tile_safety(game, t, dont_follow);
+        this.update_tile_state(game, t, dont_follow);
         t = t.down;
       }
       // by now the first word is done
@@ -424,6 +426,9 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
         return a.row - b.row;
       });
     }
+
+    // insure the 'play' is set ... (needs more investigation)
+    if (!this.play) this.play = game.current_play;
 
     this.start_row = this.tiles[0].row;
     this.start_column = this.tiles[0].column;

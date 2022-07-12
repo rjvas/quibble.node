@@ -125,16 +125,16 @@ class ActiveGame {
       "data: " + JSON.stringify(data));
   }
 
-  log_pre(player_name, data) {
-    console.log("activegame.onmessage pre-finish_the_play player: ", player_name);
-    logger.debug("activegame.onmessage pre-finish_the_play player: ", player_name);
+  log_pre(player, data) {
+    console.log("activegame.onmessage pre-finish_the_play player: ", player.name);
+    logger.debug("activegame.onmessage pre-finish_the_play player: ", player.name);
     console.dir(data);
     logger.debug(JSON.stringify(data));
   }
 
-  log_post(player_name, data) {
-    console.log("activegame.onmessage post-finish_the_play player: ", player_name);
-    logger.debug("activegame.onmessage post-finish_the_play player: ", player_name);
+  log_post(player, data) {
+    console.log("activegame.onmessage post-finish_the_play player: ", player.name);
+    logger.debug("activegame.onmessage post-finish_the_play player: ", player.name);
 
     data.forEach((item, i) => {
       console.dir(item);

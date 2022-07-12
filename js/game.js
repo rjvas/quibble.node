@@ -101,8 +101,6 @@ class Game {
     // do this last
     let g = new Game(js._id, null, null, true);
 
-    g.new_word = new Word(0, null, null, "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
-
     // only counts consecutive passes - the player1 passes, player2 does not, then
     // pass count resets. when both pass, game over. managed on finish_the_play
     // and handle_pass
@@ -151,6 +149,8 @@ class Game {
       word.set_adjacencies(g);
       g.words.push(word);
     });
+
+    g.new_word = new Word(0, g.current_play, g.current_player, "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
 
     return g;
   }
@@ -323,7 +323,7 @@ class Game {
       this.played_tiles.push(item);
       Tile.set_adjacencies(this, item);
       this.update_play(item);
-      this.new_word.addLetter(item, this.current_player);
+      this.new_word.addLetter(item, this.current_player, this.current_play);
     });
 
     // finalize the word building

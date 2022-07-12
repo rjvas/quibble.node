@@ -245,7 +245,7 @@ function startup() {
         ActiveGame.delete_game(user.saved_games[ugv.game_idx], response, user);
 
         logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${user.saved_games[ugv.game_idx].game.name_time} port: ${user.saved_games[ugv.game_idx].port}`); 
+          game=${user.saved_games[ugv.game_idx].name}`); 
       }
     }
 
