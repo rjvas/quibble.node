@@ -103,7 +103,8 @@ const NUM_PLAYER_TILES = 7;
 const RECT_POSITION = 0;
 const TEXT_POSITION = 1;
 const BLANK_TILE = " ";
-const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
+const char_regex = /^([a-r]|[t-z]){1}$|^([A-R]|[T-Z]){1}$/;
+// const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
 const back_ground = "#f5efe6ff";
 var scoreboard = null;
 
@@ -1583,7 +1584,8 @@ function tile_moved(new_position) {
         letter = window.prompt("Please type the letter to use: ");
         if (letter) {
           while (!char_regex.test(letter)) {
-            letter = window.prompt("ONLY A SINGLE CHARACTER a-z or A-Z is acceptable!");
+            letter = window.prompt("A SINGLE CHARACTER a-z or A-Z - EXCEPT S- is acceptable! " + 
+              "OR - " + "\nA SINGLE CHARACHTER a/A-r/R or t/T - z/Z. NO s/S");
           }
           tile.char = letter.trim().toLowerCase();
           svg.childNodes[TEXT_POSITION].textContent = tile.char;
