@@ -8,10 +8,20 @@ html(lang="en")
     link(rel='stylesheet', href='views/welcome.css')
   body
     #error
-      if error == "error_password"
-        div.label Error with password or user name!
+      if error == "error_reg_pass"
+        div.label Error: passwords don't match!
+      else if error == "error_reg_email"
+        div.label Error: please enter valid email!
+      else if error == "error_reg_display_name"
+        div.label Error: please enter an alias for other players to see (display name)!
+      else if error == "error_reg_prior"
+        div.label Error: user already registered!
+      else if error == "error_reg_success"
+        div.label Congratulations! You may now login!
+      else if error == "error_password"
+        div.label Error: with password or user name!
       else if error == "error_login"
-        div.label Error - User already logged in.
+        div.label Error: User already logged in!
     #both
       #first
         form(action="login")
@@ -27,11 +37,13 @@ html(lang="en")
         form(action="register")
           div.label or register
           div.reg_username
-            input(type="text" name="username" placeholder="username")
+            input(type="text" name="username" placeholder="user name")
           div.reg_displayname
-            input(type="text" name="displayname" placeholder="displayname")
+            input(type="text" name="displayname" placeholder="display name")
           div.reg_password
             input(type="password" name="password" placeholder="password")
+          div.reg_password2
+            input(type="password" name="password2" placeholder="retype password")
           div.reg_email
             input(type="text" name="email" placeholder="foo@bar.com")
           div.reg_submit

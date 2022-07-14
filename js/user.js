@@ -206,25 +206,63 @@ class User {
     let user_name = params.get("username");
     let display_name = params.get("displayname")
     let passw = params.get("password");
+    let passw2 = params.get("password2");
     let email = params.get("email")
 
-    let salt = bcrypt.genSaltSync(salt_rounds);
-    let pw_hashed = bcrypt.hashSync(passw, salt);
-
-    const q = { user_name: user_name };
-    const update =
-      { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
-    const options = { upsert: true };
-    db.get_db().collection('users').updateOne(q, update, options)
-      .then(res => {
-        response.writeHead(302 , {
-           'Location' : '/'
-        });
-        response.end();
-      })
-      .catch((e) => {
-        console.error(e);
+    // passwords don't match - error and try again
+    if (passw != passw2) {
+      logger.error("registration error - " + "passwords do NOT match - please try again");
+      response.writeHead(302 , {
+          'Location' : '/?error_reg_pass'
       });
+      response.end();
+    }
+    else if (!email || email == "foo@bar.com") {
+      logger.error("registration error - " + "please enter valid email");
+      response.writeHead(302 , {
+          'Location' : '/?error_reg_email'
+      });
+      response.end();
+    }
+    else if (!display_name) {
+      logger.error("registration error - " + "please enter display name");
+      response.writeHead(302 , {
+          'Location' : '/?error_reg_display_name'
+      });
+      response.end();
+    }
+
+    // check for existing user_name
+    let dbq = { "user_name": user_name };
+    let usr = db.get_db().collection('users').findOne(dbq)
+      .then((usr) => {
+        if (usr) {
+          logger.error("registration error - " + user_name + " already registered - please login");
+          response.writeHead(302 , {
+              'Location' : '/?error_reg_prior'
+          });
+          response.end();
+        }
+        else {
+          let salt = bcrypt.genSaltSync(salt_rounds);
+          let pw_hashed = bcrypt.hashSync(passw, salt);
+          const q = { user_name: user_name };
+          const update =
+            { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
+          const options = { upsert: true };
+          db.get_db().collection('users').updateOne(q, update, options)
+            .then(res => {
+              response.writeHead(302 , {
+                'Location' : '/?error_reg_success'
+              });
+              response.end();
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        }
+      })
+      .catch((e) => console.error(e));
   }
 }
 
