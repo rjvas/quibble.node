@@ -102,7 +102,7 @@ class TileDefs {
         char: "Q",
         count: 1,
         is_safe : false,
-        points: 5
+        points: 6
       },
       {
         char: "R",
