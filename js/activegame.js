@@ -178,7 +178,7 @@ class ActiveGame {
     }
 
     // the 'llog' - which log 
-    let cmd = `tail -n 150 ${llog}`; 
+    let cmd = `tail -n 1000 ${llog}`; 
 
     exec(cmd, (err, stdout, stderr) => {
       if (err) {
