@@ -47,4 +47,10 @@ const logger = winston.createLogger({
   ]
 });
 
+logger.trim_tiles = function(key, value) {
+  if (key == 'player')
+    return value.name;
+  return value;
+}
+
 module.exports.logger = logger;

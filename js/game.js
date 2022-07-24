@@ -267,19 +267,19 @@ class Game {
     return ret_val;
   }
 
-  build_the_response(err_idx, tiles) {
+  get_the_errors(err_idx, tiles) {
 
     if (err_idx == 99) {
       tiles.unshift(
         {"err_msg" : `ERROR: Not all tiles are on the same row or column OR are unused`});
-      logger.debug("game.build_the_response: err_msg : " + tiles[0].err_msg);
+      logger.debug("game.get_the_errors: err_msg : " + tiles[0].err_msg);
     }
     else if (err_idx != -1) {
       tiles.unshift(
         {"err_msg" : this.new_word.check_words[err_idx] + " is not a valid word"});
-      logger.debug("game.build_the_response: err_msg : " + tiles[0].err_msg);
+      logger.debug("game.get_the_errors: err_msg : " + tiles[0].err_msg);
     }
-    // logger.info("in build_the_response: " + tiles)
+    // logger.info("in get_the_errors: " + tiles)
     return tiles;
   }
 
@@ -326,9 +326,17 @@ class Game {
       this.new_word.addLetter(item, this.current_player, this.current_play);
     });
 
+    console.log(`game.handle_regular_play 1 played_tiles, this.new_word`);
+    logger.debug(`game.handle_regular_play 1 played_tiles, this.new_word :`);
+    played_tiles.forEach(t => {
+      console.dir(t.get_JSON());
+      logger.debug(`${JSON.stringify(t.get_JSON())}`);
+    });
+    console.dir(this.new_word);
+    logger.debug(`${JSON.stringify(this.new_word.get_JSON(), logger.trim_tiles)}`)
+
     // finalize the word building
-    if (this.new_word.tiles.length > 0) {
-      if (played_tiles.length > 6) {
+    if (this.new_word.tiles.length > 0 && played_tiles.length > 6) {
         this.new_word.is_safe = true;
       }
 
@@ -337,22 +345,36 @@ class Game {
       if ((err_idx = this.new_word.finalize(this)) == -1) {
         let new_data = this.toggle_player_new_play();
         let word_tiles = this.words[this.words.length - 1].get_tiles_JSON();
-        ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
+
+        console.log(`game.handle_regular_play.finalized new_data, word_tiles: `);
+        console.dir(new_data);
+        console.dir(word_tiles);
+        logger.debug(`game.handle_regular_play.finalized new_data, word_tiles : ` +
+          `${JSON.stringify(new_data)} \n${JSON.stringify(word_tiles)}`);
+
+        ret_val = this.get_the_errors(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
         let msg_words = this.words[this.words.length - 1].check_words.join(" ");
         ret_val.unshift({"info" : player.name + " played the word(s): " + msg_words});
         this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
+          
       } else {
         let roll_back_tiles = this.roll_back_current_play();
         // must happen before the new Word - the invalid word is at
         // this.new_word.check_words[err_idx]
-        ret_val = this.build_the_response(err_idx, roll_back_tiles);
+        ret_val = this.get_the_errors(err_idx, roll_back_tiles);
         ret_val.unshift({"info" : "none"});
+
+        console.log(`game.handle_regular_play.errored roll_back_tiles, ret_val: `);
+        console.dir(roll_back_tiles);
+        console.dir(ret_val);
+        logger.debug(`game.handle_regular_play.errored roll_back_tiles, ret_val :` +
+          ` ${JSON.stringify(roll_back_tiles)} \n${JSON.stringify(ret_val)}`);
+
         this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
       }
-    }
 
     return ret_val;
   }
@@ -387,7 +409,7 @@ class Game {
 
     let err_idx = -1;
     let new_data = this.toggle_player_new_play();
-    let ret_val = this.build_the_response(err_idx, [{"new_data" : new_data,
+    let ret_val = this.get_the_errors(err_idx, [{"new_data" : new_data,
                                                  "xchanged_tiles" : xchanged_tiles}]);
     ret_val.unshift({"info" : player.name + " has exchanged tiles - your turn."});
 
@@ -398,7 +420,7 @@ class Game {
   handle_pass(player, play_data) {
     this.consecutive_pass_count--;
     let new_data = this.toggle_player_new_play();
-    let ret_val = this.build_the_response(-1, [{"new_data" : new_data}]);
+    let ret_val = this.get_the_errors(-1, [{"new_data" : new_data}]);
     ret_val.unshift({"info" : player.name + " has passed - your turn."});
     return ret_val;
   }
@@ -409,7 +431,15 @@ class Game {
     // get the type of play and take it off the play_data
     var play_type = play_data.shift();
 
+    console.log(`game.finish_the_play 1 play_data=`);
+    console.dir(play_data);
+    logger.debug(`game.finish_the_play 1 play_data = ${JSON.stringify(play_data)}`);
+
     var played_tiles = this.played_tiles_update(player, play_data);
+
+    console.log(`game.finish_the_play 2 played_tiles=`);
+    console.dir(played_tiles);
+    logger.debug(`game.finish_the_play 2 played_tiles = ${JSON.stringify(played_tiles, logger.trim_tiles)}`);
 
     if (play_type.type == "regular_play") {
       this.consecutive_pass_count = 2;
@@ -430,7 +460,6 @@ class Game {
     if (player.get_tile_count() == 0 || this.consecutive_pass_count < 1)
       ret_val = this.end_game(player_txt);
 
-    // logger.info("in finish the play: ", ret_val);
     return ret_val;
   }
 
