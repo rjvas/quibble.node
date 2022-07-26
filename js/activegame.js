@@ -276,6 +276,28 @@ class ActiveGame {
     console.log("activegame.peek");
   }
 
+  bookmark_log(socket, play_data) {
+    let user = play_data[1].player;
+    let bookmark_txt = play_data[2].info;
+    let player = null;
+
+    if (this.status & ActiveGame.practice) {
+      player = this.game.current_player;
+      play_data[1].player = this.user1.display_name;
+    }
+    else if (this.user1 && this.user1.id.toHexString() == user) {
+      player = this.game.player_1;
+      play_data[1].player = this.user1.display_name;
+    }
+    else if (this.user2) {
+      player = this.game.player_2;
+      play_data[1].player = this.user2.display_name;
+    }
+    console.log("Bookmark Log: ");
+    console.dir(bookmark_txt);
+    logger.warn(`Bookmark Log player/msg: ${player.name} says ${bookmark_txt}`);
+  }
+
   setup_socket() {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
@@ -337,6 +359,9 @@ class ActiveGame {
           else if (type == "tail_log") {
             a_game.tail_log(this, play_data);
             return;
+          }
+          else if (type == "bookmark_log") {
+            a_game.bookmark_log(this, play_data);
           }
           else {
             a_game.log_pre(player, play_data);

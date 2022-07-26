@@ -333,9 +333,9 @@ class Game {
       logger.debug(`${JSON.stringify(t.get_JSON())}`);
     });
     console.dir(this.new_word);
-    logger.debug(`${JSON.stringify(this.new_word.get_JSON(), logger.trim_tiles)}`)
+    logger.debug(`${JSON.stringify(this.new_word.get_JSON())}`);
 
-    // finalize the word building
+    // if all 7 tiles in the player's hand are used in a word it is 'safe'
     if (this.new_word.tiles.length > 0 && played_tiles.length > 6) {
         this.new_word.is_safe = true;
       }
@@ -399,10 +399,11 @@ class Game {
 
       // make sure any tiles released to the pool have
       // safety set according to the tile definiations
-      let def = this.tile_defs.defs.find(item => {
-        return item.char == played_tiles[i].char;
-      });
-      def ? played_tiles[i].is_safe = def.is_safe : played_tiles[i].is_safe = false;
+      // 20220726 NO SAFE TILES!
+      // let def = this.tile_defs.defs.find(item => {
+        // return item.char == played_tiles[i].char;
+      // });
+      // def ? played_tiles[i].is_safe = def.is_safe : played_tiles[i].is_safe = false;
 
       this.tile_pool.push(played_tiles[i]);
     }
@@ -439,7 +440,10 @@ class Game {
 
     console.log(`game.finish_the_play 2 played_tiles=`);
     console.dir(played_tiles);
-    logger.debug(`game.finish_the_play 2 played_tiles = ${JSON.stringify(played_tiles, logger.trim_tiles)}`);
+    logger.debug(`game.finish_the_play 2 played_tiles = `);
+    played_tiles.forEach(t => {
+      logger.debug(JSON.stringify(t.get_JSON()));
+    });
 
     if (play_type.type == "regular_play") {
       this.consecutive_pass_count = 2;

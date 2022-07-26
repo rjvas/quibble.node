@@ -87,17 +87,19 @@ class Player {
       }
     }
 
+    // Magic S is out!!
+
     // Case of the Extra 'S' Tile
-    if (this.tiles.length == Player.num_player_tiles + 1) {
-      // gotta get rid of the extra tile position
-      if (this.tiles[this.tiles.length - 1] == null )
-        this.tiles.pop();
-      else {
-        // for tiles in the player hand, ensure that the tile state has the current play
-        let tile = this.tiles[this.tiles.length - 1];
-        if (tile) tile.fixup_tilestates(play);
-      }
-    }
+    // if (this.tiles.length == Player.num_player_tiles + 1) {
+    //   // gotta get rid of the extra tile position
+    //   if (this.tiles[this.tiles.length - 1] == null )
+    //     this.tiles.pop();
+    //   else {
+    //     // for tiles in the player hand, ensure that the tile state has the current play
+    //     let tile = this.tiles[this.tiles.length - 1];
+    //     if (tile) tile.fixup_tilestates(play);
+    //   }
+    // }
 
     // if (initial) {
     //   let tile = game.get_tile("S");

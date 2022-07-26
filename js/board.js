@@ -29,6 +29,12 @@ var Chat = null;
 var chat_width = 300;
 var chat_height = 600;
 
+var BookMKWin = null;
+var BookMKDoc = null;
+var BookMK = null;
+var BookMK_width = 300;
+var BookMK_height = 600;
+
 const NUM_ROWS_COLS = 15;
 const CELL_SIZE = 35;
 const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
@@ -1394,6 +1400,79 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
+function clicked_bookmark_log(event) {
+  if (BookMKWin) return;
+
+  let sl = window.screenLeft > BookMK_width ? window.screenLeft - BookMK_width : window.outerWidth;
+  BookMKWin = window.open("", "Bookmark Log", `width=${BookMK_width},height=${BookMK_height},popup,left=${sl}`); 
+  BookMKWin.addEventListener('unload', event => {
+    // called on interactive 'X'
+    BookMKWin = null;
+   });
+  BookMKDoc = BookMKWin.document;
+
+  let dv = BookMKDoc.createElement("div");
+  dv.id = "bookmk_text";
+  dv.height = "80%";
+  dv.width = "100%";
+
+  let ctrls = BookMKDoc.createElement("div");
+  ctrls.id = "ctrls";
+  ctrls.height = "20%";
+  ctrls.width = "100%";
+  // pu.style.display = "none";
+
+  let p = BookMKDoc.createElement("p");
+  p.id="bookmk_para"; 
+  p.x = "0";
+  p.y = "0";
+  p.height = "260";
+  p.width = "100%";
+  p.textContent = "Enter as much info about this heinous event as you can - words played, tiles which should be somewhere else, etc."
+  dv.appendChild(p);
+  
+  let ta = BookMKDoc.createElement("textarea");
+  ta.id = "bookmk_send_text";
+  ta.x = "0";
+  ta.y = "80%";
+  ta.rows = "10";
+  ta.cols = "30";
+  ta.wrap = "hard";
+  ta.placeholder = "Complain here ...";
+  ctrls.appendChild(ta);
+
+  let sb = BookMKDoc.createElement("input");
+  sb.id = "bookmk_send_btn";
+  sb.type = "button";
+  sb.class="button";
+  sb.value = "Send";
+  sb.height="30";
+  sb.width = "50";
+  sb.onclick = clicked_bookmk_send_btn;
+  ctrls.appendChild(sb);
+
+  BookMKDoc.body.appendChild(dv);
+  BookMKDoc.body.appendChild(ctrls);
+
+  BookMK = BookMKDoc.getElementById("bookmk_para");
+}
+
+function clicked_bookmk_send_btn(event) {
+  let txt = BookMKDoc.getElementById("bookmk_send_text");
+  var user = document.getElementById("user").value;
+  if (txt && user) {
+    let msg = [];
+    msg.push({"type" : "bookmark_log"});
+    msg.push({"player" : user});
+    msg.push({"info" : txt.value});
+    txt.value = "";
+
+    ws.send(JSON.stringify(msg));
+
+    if (BookMKWin) { BookMKWin.close(); BookMKWin = null; }
+  }
+}
+
 function clicked_pass(event) {
   if (!URL_x) {
     let url = window.location.href;
@@ -1930,6 +2009,11 @@ function set_button_callbacks() {
   let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('bookmark_log');
+  if (btn) {
+    btn.addEventListener("click", clicked_bookmark_log);
   }
 
   btn = document.getElementById('recall_on_click');
