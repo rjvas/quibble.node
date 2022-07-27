@@ -787,10 +787,11 @@ function setup_tile_for_play(tile, no_drag) {
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   if (svg) {
-    idx = PlayerHand.get_open_slot();
-    
-    if (!no_drag) svg.setAttributeNS(null, 'class', 'player_tile_svg');
-    
+    if (!no_drag) {
+      idx = PlayerHand.get_open_slot();
+      svg.setAttributeNS(null, 'class', 'player_tile_svg');
+    }
+
     build_sub_struct(tile, idx, svg);
 
     PlaySpace.append(svg);
