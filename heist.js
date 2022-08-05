@@ -40,6 +40,7 @@ var Word = require('./js/word').Word;
 var User = require('./js/user').User;
 var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
+var WtDebug = require('./js/log').WT_DEBUG;
 
 const main_port = 3042;
 // const hostname = 'www.dbc-games.com';

@@ -47,4 +47,7 @@ const logger = winston.createLogger({
   ]
 });
 
+const WT_DEBUG = true;
+
 module.exports.logger = logger;
+module.exports.WT_DEBUG = WT_DEBUG;

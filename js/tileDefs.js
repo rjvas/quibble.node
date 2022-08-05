@@ -36,7 +36,7 @@ class TileDefs {
         char: "F",
         count: 2,
         is_safe : false,
-        points: 4
+        points: 3
       },
       {
         char: "G",
@@ -66,7 +66,7 @@ class TileDefs {
         char: "K",
         count: 1,
         is_safe : false,
-        points: 5
+        points: 4
       },
       {
         char: "L",
@@ -102,7 +102,7 @@ class TileDefs {
         char: "Q",
         count: 1,
         is_safe : false,
-        points: 6
+        points: 5
       },
       {
         char: "R",
@@ -132,13 +132,13 @@ class TileDefs {
         char: "V",
         count: 2,
         is_safe : false,
-        points: 5
+        points: 4
       },
       {
         char: "W",
         count: 2,
         is_safe : false,
-        points: 4
+        points: 3
       },
       {
         char: "X",
