@@ -113,7 +113,9 @@ function massage_user_lists(user) {
   let ag = null;
   glist.forEach((item, i) => {
     if (ag = ActiveGame.all_active.find(ag => {return ag.name == item.name})) {
-      item.active = false;
+      // Since the user now sees only one list do not inactivate menu items
+      // item.active = false;
+
       if (!user.active_games.find(ag => {return ag.name == item.name})) {
         user.active_games.push(ag);
         // if an ag of this user is found in the ActiveGame.all_active list
@@ -127,6 +129,39 @@ function massage_user_lists(user) {
   });
 
   return glist;
+}
+
+function play_active_game(query, response) {
+  let ret_val = true;
+  let ug = get_user_agame(query);
+  // query should hold the index to the selected game
+  if (ug.user) {
+    CurrentAGame = ug.user.active_games[ug.game_idx];
+    if (CurrentAGame) {
+      // if the game is a practice game ug.user is *both* user1 and user2
+      // so, set pathname with game.current_player
+      if (CurrentAGame.status & ActiveGame.practice) {
+        CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
+          pathname = "/player1" : pathname = "/player2";
+      } else {
+        ug.user == CurrentAGame.user1 ? pathname = "/player1" :
+          pathname = "/player2";
+      }
+        ActiveGame.all_active.push(CurrentAGame);
+
+      response.writeHead(302 , {
+          'Location' : pathname + "?game=" + CurrentAGame.game_id_str +
+              "&user=" + ug.user.id.toHexString()
+      });
+      response.end();
+
+      logger.debug(`heist.play_active_game user=${ug.user.display_name}/${ug.user.id.toHexString()} 
+        game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+    }
+    else ret_val = false;
+  }
+
+  return ret_val;
 }
 
 function startup() {
@@ -197,44 +232,20 @@ function startup() {
     }
 
     else if (pathname.indexOf("play_active_game") != -1) {
-      let ug = get_user_agame(query);
-      // query should hold the index to the selected game
-      if (ug.user) {
-        CurrentAGame = ug.user.active_games[ug.game_idx];
-
-        // if the game is a practice game ug.user is *both* user1 and user2
-        // so, set pathname with game.current_player
-        if (CurrentAGame.status & ActiveGame.practice) {
-          CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
-            pathname = "/player1" : pathname = "/player2";
-        } else {
-          ug.user == CurrentAGame.user1 ? pathname = "/player1" :
-            pathname = "/player2";
-        }
-
-        if (ActiveGame.all_active.indexOf(CurrentAGame) == -1)
-          ActiveGame.all_active.push(CurrentAGame);
-
-        response.writeHead(302 , {
-           'Location' : pathname + "?game=" + CurrentAGame.game_id_str +
-            "&user=" + ug.user.id.toHexString()
-        });
-        response.end();
-
-        logger.debug(`heist.play_active_game user=${ug.user.display_name}/${ug.user.id.toHexString()} 
-          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
-        }
+      play_active_game(query, response);
     }
 
     else if (pathname.indexOf("load_game") != -1) {
-      let ugv = get_user_agame(query);
-      let user = ugv.user;
-      // query should hold the index to the selected game
-      if (user) {
-        ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
+      if (!play_active_game(query, response)) {
+        let ugv = get_user_agame(query);
+        let user = ugv.user;
+        // query should hold the index to the selected game
+        if (user) {
+          ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
 
-        logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
+          logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
+            game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
+        }
       }
     }
 

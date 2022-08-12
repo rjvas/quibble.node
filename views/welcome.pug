@@ -1,4 +1,3 @@
-//- W3hubs.com - Download Free Responsive Website Layout Templates designed on HTML5 CSS3,Bootstrap,Tailwind CSS which are 100% Mobile friendly. w3Hubs all Layouts are responsive cross browser supported, best quality world class designs.
 doctype html
 html(lang="en")
   head
@@ -6,45 +5,48 @@ html(lang="en")
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width), initial-scale=1.0')
     link(rel='stylesheet', href='views/welcome.css')
+    link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
   body
     #error
       if error == "error_reg_pass"
-        div.label Error: passwords don't match!
+        div.error_label Error: passwords don't match!
       else if error == "error_reg_email"
-        div.label Error: please enter valid email!
+        div.error_label Error: please enter valid email!
       else if error == "error_reg_display_name"
-        div.label Error: please enter an alias for other players to see (display name)!
+        div.error_label Error: please enter an alias for other players to see (display name)!
       else if error == "error_reg_prior"
-        div.label Error: user already registered!
+        div.error_label Error: user already registered!
       else if error == "error_reg_success"
-        div.label Congratulations! You may now login!
+        div.error_label Congratulations! You may now login!
       else if error == "error_password"
-        div.label Error: with password or user name!
+        div.error_label Error: with password or user name!
       else if error == "error_login"
-        div.label Error: User already logged in!
+        div.error_label Error: User already logged in!
+
     #both
+      div#top_label Hello!
       #first
+        div.section_label Login
         form(action="login")
-          div.label Welcome to Word Heist! Please login
           div.username
-            input(type="text" name="username" autocapitalize="off" placeholder="username")
+            input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="username")
           div.password
-            input(type="password" name="password" placeholder="password")
+            input(type="password" class="in_fields" name="password" placeholder="password")
           div.submit
-            button(type="submit") login
+            button(type="submit" id="login_submit" class="in_fields" ) LOGIN
                 
       #second
         form(action="register")
-          div.label or register
+          div.section_label New Player?
           div.reg_username
-            input(type="text" name="username" placeholder="user name")
+            input(type="text" class="in_fields" name="username" placeholder="user name (your private login name)")
           div.reg_displayname
-            input(type="text" name="displayname" placeholder="display name")
+            input(type="text" class="in_fields" name="displayname" placeholder="display name (other players see this)")
           div.reg_password
-            input(type="password" name="password" placeholder="password")
+            input(type="password" class="in_fields" name="password" placeholder="password")
           div.reg_password2
-            input(type="password" name="password2" placeholder="retype password")
+            input(type="password" class="in_fields" name="password2" placeholder="retype password")
           div.reg_email
-            input(type="text" name="email" placeholder="foo@bar.com")
+            input(type="text" class="in_fields" name="email" placeholder="email (foo@bar.com)")
           div.reg_submit
-            button(type="submit") register
+            button(type="submit" id="new_submit" class="in_fields" ) CREATE ACCOUNT

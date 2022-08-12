@@ -457,14 +457,14 @@ class ActiveGame {
   static new_active_game_json(ag_json, user, response) {
 
     // don't allow a reload of an active game
-    let found = ActiveGame.all_active.find(
-      ag => {return ag._id && ag._id.equals(ag_json._id)}
-    );
-    if (found) {
-      logger.error("activegame.new_active_game_json: Game already loaded: " +
-        ag_json._id);
-      return;
-    }
+    // let found = ActiveGame.all_active.find(
+    //   ag => {return ag._id && ag._id.equals(ag_json._id)}
+    // );
+    // if (found) {
+    //   logger.error("activegame.new_active_game_json: Game already loaded: " +
+    //     ag_json._id);
+    //   return;
+    // }
 
     let new_ag;
     let dbq = { "_id": ag_json.game_id };

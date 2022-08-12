@@ -41,7 +41,7 @@ function clicked_delete_game_btn(event) {
         }
     }
 
-    // console.log("clicked_saved_games_btn port: " + ws_port);
+    // console.log("clicked_games_btn port: " + ws_port);
     xhr.send(null);
   }
 }
@@ -62,7 +62,7 @@ function clicked_active_games_btn(event) {
   }
 }
 
-function clicked_saved_games_btn(event) {
+function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
   var saved = document.getElementById("saved_games_lst").value;
 
@@ -153,9 +153,9 @@ function init() {
     btn.addEventListener("click", clicked_active_games_btn);
   }
 
-  btn = document.getElementById('saved_games_btn');
+  btn = document.getElementById('games_btn');
   if (btn) {
-    btn.addEventListener("click", clicked_saved_games_btn);
+    btn.addEventListener("click", clicked_games_btn);
   }
 
   btn = document.getElementById('delete_game_btn');

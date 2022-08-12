@@ -1,41 +1,78 @@
 /* */
 
-/* body {
-  background-image: url('./bridge_hero_large.jpg');
-  padding: 0;
-  margin: 0px;
-  font-family: 'Lato', sans-serif;
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  font-family: museo-sans, sans-serif;
+  font-style: normal;
+  background-color: #555555;
 }
-*/
+
+
 div {
-  border: 1px solid black;
-  padding: 10px;
-  margin: 10px;
+  padding: 5;
+}
+
+.error_label {
+  font-weight: 800;
+  background-color: black;
+  color: red;
+  margin-left: 10%;
+}
+
+#top_label {
+  font-weight: 800;
+  color: white;
+  margin-left: 10%;
+}
+
+.section_label {
+  font-weight: 500;
+  color: white;
 }
 
 #both {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 90%;
+  background-color: #333333;
+  width: 50%;
 }
 
 #first {
+  padding-top: 30px;
   justify-content: center;
   align-items: center;
-  width: 50%;
+  width: 100%;
+  margin-left: 10%;
 }
 
 #second {
-  padding: 30px;
+  padding-top: 30px;
   justify-content: center;
   align-items: center;
-  width: 50%;
+  width: 100%;
+  margin-left: 10%;
 }
 
 form {
   height: 100%;
   width: 100%;
-  padding: 30px;
+}
+
+.in_fields {
+  padding: 5px;
+  margin: 5px;
+  border-radius: 10px;
+  width: 80%;
+}
+
+#login_submit {
+  color: white;
+  background-color: #f179af;
+}
+
+#new_submit {
+  color: white;
+  background-color: #44c7f4;
 }
