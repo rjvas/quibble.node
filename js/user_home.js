@@ -27,7 +27,7 @@ function clicked_delete_game_btn(event) {
   if (!window.confirm("Are you sure you want to delete this game? It cannot be undone!"))
     return;
 
-  var deleted = document.getElementById("saved_games_lst").value;
+  var deleted = document.getElementById("games_lst").value;
   var user = document.getElementById("user").value;
 
   if (deleted > -1) {
@@ -64,7 +64,7 @@ function clicked_active_games_btn(event) {
 
 function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
-  var saved = document.getElementById("saved_games_lst").value;
+  var saved = document.getElementById("games_lst").value;
 
   if (saved > -1) {
     let xhr = new XMLHttpRequest();
@@ -119,9 +119,10 @@ function clicked_play_pickup_btn(event) {
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/player1";
-      }
+    var user = document.getElementById("user").value;
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      document.location.href = `/player1?user=${user}`;
+    }
   }
   xhr.send(null);
 }
@@ -134,9 +135,10 @@ function clicked_admin_btn(event) {
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/wh_admin?user=" + user;
-      }
+    let user = document.getElementById("user").value;
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      document.location.href = "/wh_admin?user=" + user;
+    }
   }
   xhr.send(null);
 }

@@ -678,17 +678,50 @@ function reposition_tiles_left() {
   let tmp = left_tiles_count.getAttributeNS(null, "x");
 
   if (AppOrientation == HORIZ) {
-    left_tiles.setAttributeNS(null, "x", 275);
-    left_tiles.setAttributeNS(null, "y", 125);
-    left_tiles_vert.setAttributeNS(null, "transform", "rotate(-90.5876, 277.2, 136.8)");
+    left_tiles.setAttributeNS(null, "x", 380);
+    left_tiles.setAttributeNS(null, "y", 130);
+    left_tiles_vert.setAttributeNS(null, "transform", "rotate(-90.5876, 277.2, 241.8)");
     left_tiles_count.setAttributeNS(null, "x", 550);
-    left_tiles_count.setAttributeNS(null, "y", 175);
+    left_tiles_count.setAttributeNS(null, "y", 290);
   } else {
-    left_tiles.setAttributeNS(null, "x", -20);
+    left_tiles.setAttributeNS(null, "x", -120);
     left_tiles.setAttributeNS(null, "y", 415);
     left_tiles_vert.setAttributeNS(null, "transform", "rotate(0, 277.2, 136.8)");
-    left_tiles_count.setAttributeNS(null, "x", 350);
+    left_tiles_count.setAttributeNS(null, "x", 250);
     left_tiles_count.setAttributeNS(null, "y", 557);
+  }
+}
+
+function reposition_s_count() {
+  var svg  = document.querySelector('#s_count');
+  var ss = document.querySelectorAll('.s_count');
+  let tmp = null;
+
+  // first reorient th S's
+  ss.forEach(t => {
+    tmp = t.getAttributeNS(null, "x");
+    t.setAttributeNS(null, "x", t.getAttributeNS(null, "y"));
+    t.setAttributeNS(null, "y", tmp);
+  });
+
+  // now the svg
+  if (AppOrientation == HORIZ) {
+    let tmp = svg.getAttributeNS(null, "x");
+    svg.setAttributeNS(null, "x", svg.getAttributeNS(null, "y"));
+    svg.setAttributeNS(null, "y", "90");
+    tmp = svg.getAttributeNS(null, "width");
+    svg.setAttributeNS(null, "width", svg.getAttributeNS(null, "height"));
+    svg.setAttributeNS(null, "height", tmp);
+    svg.setAttributeNS(null, "viewBox", "-10 -20 35 140");
+  }
+  else {
+    let tmp = svg.getAttributeNS(null, "x");
+    svg.setAttributeNS(null, "x", "320");
+    svg.setAttributeNS(null, "y", tmp);
+    tmp = svg.getAttributeNS(null, "width");
+    svg.setAttributeNS(null, "width", svg.getAttributeNS(null, "height"));
+    svg.setAttributeNS(null, "height", tmp);
+    svg.setAttributeNS(null, "viewBox", "-20 -20 140 35");
   }
 }
 
@@ -712,6 +745,7 @@ function reposition_board() {
   reposition_grid();
   reposition_controls();
   reposition_tiles_left();
+  reposition_s_count();
   reposition_player_hand();
 }
 
@@ -880,30 +914,51 @@ function handle_err_response(resp) {
   clicked_recall();
 }
 
+function update_played_s_count(played_s_count) {
+  let items = document.querySelectorAll(".s_count");
+  for (let i=0; i< played_s_count; i++) {
+    items[i].setAttributeNS(null, "stroke", "white");
+  }
+}
+
 function update_scoreboard(item, data) {
   let ret_val = true;
   if (data.scoreboard_player_1_name) {
     item = document.getElementById("player1_name");
     if (item) item.textContent = data.scoreboard_player_1_name;
-  } else if (data.scoreboard_player_1_score) {
+  }
+  else if (data.scoreboard_player_1_score) {
     item = document.getElementById("player1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
-  } else if (data.scoreboard_player_1_safe_score) {
+  } 
+  else if (data.scoreboard_player_1_safe_score) {
     item = document.getElementById("player1_lock_pts");
     if (item) item.textContent = data.scoreboard_player_1_safe_score;
-  } else if (data.scoreboard_player_2_name) {
+  } 
+  else if (data.scoreboard_player_2_name) {
     item = document.getElementById("player2_name");
     if (item) item.textContent = data.scoreboard_player_2_name;
-  } else if (data.scoreboard_player_2_score) {
+  } 
+  else if (data.scoreboard_player_2_score) {
     item = document.getElementById("player2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
-  } else if (data.scoreboard_player_2_safe_score) {
+  } 
+  else if (data.scoreboard_player_2_safe_score) {
     item = document.getElementById("player2_lock_pts");
     if (item) item.textContent = data.scoreboard_player_2_safe_score;
-  } else if (data.tiles_left_value >= 0) {
+  } 
+  else if (data.tiles_left_value >= 0) {
     item = document.getElementById("tiles_left_count");
     if (item) item.textContent = data.tiles_left_value;
-  } else
+  } 
+  else if (data.tiles_left_value >= 0) {
+    item = document.getElementById("tiles_left_count");
+    if (item) item.textContent = data.tiles_left_value;
+  } 
+  else if (data.scoreboard_played_s_count > 0) {
+    update_played_s_count(data.scoreboard_played_s_count);
+  } 
+  else
     ret_val = false;
 
   return ret_val;

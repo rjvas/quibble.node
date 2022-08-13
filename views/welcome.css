@@ -36,7 +36,8 @@ div {
 
 #both {
   background-color: #333333;
-  width: 50%;
+  width: 90%;
+  height: 90%;
 }
 
 #first {
@@ -61,18 +62,20 @@ form {
 }
 
 .in_fields {
-  padding: 5px;
   margin: 5px;
   border-radius: 10px;
   width: 80%;
+  height: 30px;
 }
 
 #login_submit {
+  width: 20%;
   color: white;
   background-color: #f179af;
 }
 
 #new_submit {
+  width: 40%;
   color: white;
   background-color: #44c7f4;
 }

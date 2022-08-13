@@ -9,6 +9,7 @@ html
   head
     title Heist
     link(rel="stylesheet" type="text/css" href="./js/jsonTree.css")
+    link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
     link(rel="stylesheet" type="text/css" href="heist.css")
   body(bgcolor='#2a2a2e')
     input(id="ws_port" type="hidden" value=port)
@@ -166,14 +167,28 @@ html
               
         rect(id="player_panel" x=grid_wh y="0" width=player_panel_wh height=grid_wh fill="black")
 
-        svg(id="tiles_left" x="275" y="125" width="640" height="480")
+        svg(id="tiles_left" x="275" y="230" width="640" height="480")
           g()
             text(fill="white" font-family="Tahoma" font-size="24" id="tiles_left_vert" stroke="#000000" 
               stroke-width="0" text-anchor="middle" transform="rotate(-90.5876, 277.2, 136.8)" x="277.2" xml:space="preserve" y="145.2")
-              |TILES LEFT:
-
-        text(id="tiles_left_count" x=550 y=175 width=cell_size height=8*cell_size stroke="white" text-anchor="middle")
+              |TILES LEFT
+        text(id="tiles_left_count" x=550 y=290 width=cell_size height=8*cell_size stroke="white" text-anchor="middle")
           |#{game.tile_pool.length}
+
+        svg(id="s_count" x="540" y="90" width=cell_size height=game.total_s_count*cell_size
+          viewBox="-10 -20 35 140")
+          g()
+            - var i = 1;
+            while i <= game.total_s_count
+              if i <= game.played_s_count
+                text(fill="white" font-family="Tahoma" font-size="24" class="s_count" id="s_count"+i stroke="white" 
+                  stroke-width="2" text-anchor="middle" x="0" y=(i-1)*cell_size)
+                  |S
+              else 
+                text(fill="grey" font-family="Tahoma" font-size="24" class="s_count" id="s_count"+i stroke="grey" 
+                  stroke-width="2" text-anchor="middle" x="0" y=(i-1)*cell_size)
+                  |S
+              - i++
 
         // player tiles    
         if player == "/player1"

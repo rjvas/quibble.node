@@ -14,12 +14,13 @@ div {
 }
 
 .button {
-  padding-top: 10px;
+  height: 30px;
   border-radius: 10px;
-  width: 100%;
+  width: 30%;
 }
 
 .label {
+  padding-top: 20px;
   font-weight: 800;
   color: white;
 }
@@ -30,7 +31,8 @@ div {
 }
 
 #all {
-  width : 70%;
+  width : 90%;
+  height : 90%;
 }
 
 #welcome {
@@ -41,7 +43,7 @@ div {
 
 .logout_button {
   border-radius: 10px;
-  width: 40%;
+  width: 30%;
 }
 
 #games {
@@ -63,7 +65,10 @@ div {
   background-color:  #44c7f4;
 }
 
-#pickup_lst {
+#add_pickup_btn {
+  width: 40%;
+}
+#pickup_lst, #games_lst {
   padding: 5px;
   margin: 5px;
   border-radius: 10px;

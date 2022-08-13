@@ -283,7 +283,7 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         u1.active_games.push(CurrentAGame);
         u2.active_games.push(CurrentAGame);
-        pathname = "/player1";
+        // pathname = "/player1";
         logger.info("NEW GAME!!");
         // response.end(CurrentAGame.game_id_str);
         response.end(pug_grid({

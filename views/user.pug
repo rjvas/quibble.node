@@ -22,7 +22,7 @@ html(lang="en")
       #games
         div.label Your Games
           if games.length > 0
-            select(id="saved_games_lst" class="button")
+            select(id="games_lst")
               option(value=-1) Select A Game
               each val, idx in games
                 if val.active 
@@ -38,14 +38,10 @@ html(lang="en")
 
           p.sub1 Or select a player from the existing player pool
 
-          if gamers.length > 0
-            select(id="pickup_lst")
-              option(value=-1) Select A Player
-              each val, idx in gamers
-                option(value=idx) #{val}
-          else 
-            |No players in the pool
-            
+          select(id="pickup_lst")
+            option(value=-1) Select A Player
+            each val, idx in gamers
+              option(value=idx) #{val}
           
           input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
 

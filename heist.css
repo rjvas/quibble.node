@@ -51,12 +51,13 @@ form {
 }
 
 .play_cls {
-  fill: #636466;
+  fill: white;
+  stroke: white;
 }
 
 .play_cls2 {
   fill: none;
-  stroke: #636466;
+  stroke: white;
   /* stroke-miterlimit: 10; */
   stroke-width: 6px;
 }

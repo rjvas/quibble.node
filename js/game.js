@@ -69,6 +69,14 @@ class Game {
     if (!clean) {
       Tile.init_Tile(this);
 
+      // s_count is the total number of S's in the tile pool at start
+      // s_count is used to display # of played S's to users
+      let def = this.tile_defs.defs.find(item => {
+        return item.char == "S";
+      });
+      def ? this.total_s_count = def.count : this.total_s_count = 0;
+      this.played_s_count = 0;
+
       this.default_name = "Game " + this.id;
       player1_name && player2_name ? this.name = player1_name + " vs " + player2_name :
         this.name = this.default_name;
@@ -95,7 +103,7 @@ class Game {
       this.current_play.player = this.player_1;
     }
 
-  }
+}
 
   static new_game_json(js) {
     // do this last
@@ -112,6 +120,8 @@ class Game {
     });
 
     g.tile_defs = new TileDefs();
+    g.total_s_count = js.total_s_count;
+    g.played_s_count = js.played_s_count;
 
     g.default_name = js.default_name;
     g.name = js.name;
@@ -180,6 +190,8 @@ class Game {
 
       "tile_pool" : this.get_tile_pool_JSONS(),
       "played_tiles" : this.get_played_tiles_JSONS,
+      "total_s_count" : this.total_s_count,
+      "played_s_count" : this.played_s_count, 
 
       "name" : this.name,
       "default_name" : this.default_name,
@@ -343,6 +355,9 @@ class Game {
       // finalize returns the index of the first non-valid word
       let err_idx = -1;
       if ((err_idx = this.new_word.finalize(this)) == -1) {
+        this.new_word.tiles.forEach(t => {
+          if (t.char == 'S') this.played_s_count++;
+        });
         let new_data = this.toggle_player_new_play();
         let word_tiles = this.words[this.words.length - 1].get_tiles_JSON();
 
@@ -492,6 +507,8 @@ class Game {
       // new_data.push({"scoreboard_player_2_name" : this.player_2.name});
       new_data.push({"scoreboard_player_2_score" : this.player_2.total_points});
       new_data.push({"scoreboard_player_2_safe_score" : this.player_2.safe_points});
+      new_data.push({"scoreboard_total_s_count" : this.total_s_count});
+      new_data.push({"scoreboard_played_s_count" : this.played_s_count});
       new_data.push({"play_data" : this.player_1_play.get_played_JSONS()});
       this.plays.push(this.player_1_play);
       this.player_1_play = new Play(0, this.player_1);
@@ -506,6 +523,8 @@ class Game {
       // new_data.push({"scoreboard_player_1_name" : this.player_1.name});
       new_data.push({"scoreboard_player_1_score" : this.player_1.total_points});
       new_data.push({"scoreboard_player_1_safe_score" : this.player_1.safe_points});
+      new_data.push({"scoreboard_total_s_count" : this.total_s_count});
+      new_data.push({"scoreboard_played_s_count" : this.played_s_count});
       new_data.push({"play_data" : this.player_2_play.get_played_JSONS()});
       this.plays.push(this.player_2_play);
       this.player_2_play = new Play(0, this.player_2);
