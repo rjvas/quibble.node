@@ -417,55 +417,55 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
   finalize(game) {
     var ret_val = -1;
 
-    if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-      this.tiles.sort(function (a, b) {
-        return a.column - b.column;
-      });
-    } else if (this.orientation == Word.ORIENTATIONS.VERT) {
-      this.tiles.sort(function (a, b) {
-        return a.row - b.row;
-      });
-    }
-
-    // insure the 'play' is set ... (needs more investigation)
-    if (!this.play) this.play = game.current_play;
-
     if (!this.tiles || !this.tiles[0])
       ret_val = 99;
     else {
+      if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+        this.tiles.sort(function (a, b) {
+          return a.column - b.column;
+        });
+      } else if (this.orientation == Word.ORIENTATIONS.VERT) {
+        this.tiles.sort(function (a, b) {
+          return a.row - b.row;
+        });
+      }
+
+      // insure the 'play' is set ... (needs more investigation)
+      if (!this.play) this.play = game.current_play;
+
       this.start_row = this.tiles[0].row;
       this.start_column = this.tiles[0].column;
-    }
 
-    this.handle_safe();
+      this.handle_safe();
 
-    // follow all adjacencies to build words
-    // and set safety
-    this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
+      // follow all adjacencies to build words
+      // and set safety
+      this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
 
-    // now, insure all tiles are in the same column or same row
-    if (this.tiles.length > 1) {
-      if (this.orientation == Word.ORIENTATIONS.NONE)
-        ret_val = 99;
-      else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-        let row = this.tiles[0].row;
-        let t = this.tiles.find((item, i) => {
-          if (!(item.status & Tile.utilized))
-            ret_val = 99;
-          return item.row != row;
-        });
-        if (t) // NOT on same row
+      // now, insure all tiles are in the same column or same row
+      if (this.tiles.length > 1) {
+        if (this.orientation == Word.ORIENTATIONS.NONE)
           ret_val = 99;
-      }
-      else if (this.orientation == Word.ORIENTATIONS.VERT) {
-        let col = this.tiles[0].column;
-        let t = this.tiles.find((item, i) => {
-          if (!(item.status & Tile.utilized))
+        else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+          let row = this.tiles[0].row;
+          let t = this.tiles.find((item, i) => {
+            if (!(item.status & Tile.utilized))
+              ret_val = 99;
+            return item.row != row;
+          });
+          if (t) // NOT on same row
             ret_val = 99;
-          return item.column != col;
-        });
-        if (t) // NOT on same column
-          ret_val = 99;
+        }
+        else if (this.orientation == Word.ORIENTATIONS.VERT) {
+          let col = this.tiles[0].column;
+          let t = this.tiles.find((item, i) => {
+            if (!(item.status & Tile.utilized))
+              ret_val = 99;
+            return item.column != col;
+          });
+          if (t) // NOT on same column
+            ret_val = 99;
+        }
       }
     }
 
