@@ -430,8 +430,12 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
     // insure the 'play' is set ... (needs more investigation)
     if (!this.play) this.play = game.current_play;
 
-    this.start_row = this.tiles[0].row;
-    this.start_column = this.tiles[0].column;
+    if (!this.tiles || !this.tiles[0])
+      ret_val = 99;
+    else {
+      this.start_row = this.tiles[0].row;
+      this.start_column = this.tiles[0].column;
+    }
 
     this.handle_safe();
 
@@ -467,7 +471,11 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
 
     // returns idx of non-valid word
     if (ret_val != 99 && (ret_val = this.all_words_valid()) == -1) {
-      // this.cleanup_drag();
+      // set the status of all valid-word tiles to 'on_board'
+      this.tiles.forEach(w => {
+        if (w.status & Tile.in_hand) w.status ^= Tile.in_hand;
+        w.status |= Tile.on_board;
+      });
       game.words.push(this);
     }
 

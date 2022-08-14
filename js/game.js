@@ -260,18 +260,24 @@ class Game {
     let ret_val = [];
     let play = this.current_play;
     play.tiles.forEach((item, i) => {
+      if (item.status & Tile.utilized) item.status ^= Tile.utilized;
+      if (this.new_word && this.new_word.tiles.includes(item) &&
+          item.status & Tile.is_blank) {
+        item.char = BLANK_TILE;
+      }
       // need to revert state BEFORE Getting
       // the json state for the client - this keeps
       // stolen tiles from reverting to the wrong
       // player hand. Also, the revert_state returns false
       // if there is no valid revert for this play.
-      if (item.revert_state(this, play) && item.player == this.current_player) {
+
+      // ALERT! The following check for NOT Tile.on_board should be sufficient for
+      // for returning the JSON. Sadly, existing games will not be in the correct 
+      // state. However, should be able to remove the check before going LIVE
+      // (see word.finalize)
+      if (item.revert_state(this, play) && !(item.status & Tile.on_board) &&
+          item.player == this.current_player) {
         ret_val.push(item.get_JSON());
-      }
-      if (item.status & Tile.utilized) item.status ^= Tile.utilized;
-      if (this.new_word && this.new_word.tiles.includes(item) &&
-          item.status & Tile.is_blank) {
-        item.char = BLANK_TILE;
       }
     });
     // make sure the play is initialised
