@@ -420,11 +420,11 @@ class ActiveGame {
     let dbq = { "_id": ag_json.game_id };
     let result = db.get_db().collection("games").deleteOne(dbq)
       .then((result) => {
+        // remove from saved_games list
+        user.saved_games = user.saved_games.filter(
+          g => g.name != ag_json.name
+        );
         if (result && result.deletedCount === 1) {
-          // remove from saved_games list
-          user.saved_games = user.saved_games.filter(
-            g => g.name != ag_json.name
-          );
           dbq = { "_id": ag_json._id };
           return result = db.get_db().collection("active_games").deleteOne(dbq);
         } else {

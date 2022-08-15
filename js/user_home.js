@@ -121,7 +121,7 @@ function clicked_play_pickup_btn(event) {
   xhr.onreadystatechange = function () {
     var user = document.getElementById("user").value;
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = `/player1?user=${user}`;
+      document.location.href = xhr.response;
     }
   }
   xhr.send(null);

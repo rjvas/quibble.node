@@ -104,29 +104,25 @@ function get_user_agame(query) {
   return {"user" : user, "agame" : agame, "game_idx" : game_idx, "vs" : vs};
 }
 
-function massage_user_lists(user) {
+function massage_user_lists(ugv) {
   // look at names of all_active and 'disable' those that are Also
   // in the users saved games list
 
   // first get the list to be submitted to pug
-  let glist = user.get_saved_game_list();
-  let ag = null;
-  glist.forEach((item, i) => {
-    if (ag = ActiveGame.all_active.find(ag => {return ag.name == item.name})) {
-      // Since the user now sees only one list do not inactivate menu items
-      // item.active = false;
+  let glist = ugv.user.get_saved_game_list();
+  if (ugv.agame && !glist.find(gl => {return gl.name ==  ugv.agame.name}))
+     glist.push({"name" : ugv.agame.name, "active" : true});
 
-      if (!user.active_games.find(ag => {return ag.name == item.name})) {
-        user.active_games.push(ag);
+      // if (!user.active_games.find(ag => {return ag.name == item.name})) {
+        // user.active_games.push(ag);
         // if an ag of this user is found in the ActiveGame.all_active list
         // AND this user is not u1 or u2, stuff it in the empy slot
-        if (!ag.user1)
-          ag.user1 = user;
-        else if (!ag.user2)
-          ag.user2 = user;
-      }
-    }
-  });
+        // if (!ag.user1)
+          // ag.user1 = user;
+        // else if (!ag.user2)
+          // ag.user2 = user;
+      // }
+    // }
 
   return glist;
 }
@@ -147,6 +143,7 @@ function play_active_game(query, response) {
         ug.user == CurrentAGame.user1 ? pathname = "/player1" :
           pathname = "/player2";
       }
+      if (!ActiveGame.all_active.find(ag => {return ag.name == CurrentAGame.name}))
         ActiveGame.all_active.push(CurrentAGame);
 
       response.writeHead(302 , {
@@ -283,20 +280,7 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         u1.active_games.push(CurrentAGame);
         u2.active_games.push(CurrentAGame);
-        // pathname = "/player1";
-        logger.info("NEW GAME!!");
-        // response.end(CurrentAGame.game_id_str);
-        response.end(pug_grid({
-          'a_game_chat_text' : CurrentAGame.chat_text,
-          'is_admin' : ugv.user.role & User.admin ? "true" : "false", 
-          'user_id' : ugv.user.id.toHexString(),
-          'game_id' : CurrentAGame.game_id_str,
-          'is_practice' : false,
-          'port' : CurrentAGame.port,
-          'game': CurrentAGame.game,
-          'Game' : Game,
-          'Word' : Word,
-          'player' : pathname}));
+        response.end(`/player1?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
 
         logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
@@ -393,7 +377,7 @@ function startup() {
     else if (pathname.indexOf("home_page") != -1) {
       let ug = get_user_agame(query);
       if (ug.user) {
-        let glist = massage_user_lists(ug.user);
+        let glist = massage_user_lists(ug);
         response.end(pug_user({
           'User' : User,
           'user': ug.user,
