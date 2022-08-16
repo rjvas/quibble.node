@@ -27,12 +27,13 @@ function clicked_delete_game_btn(event) {
   if (!window.confirm("Are you sure you want to delete this game? It cannot be undone!"))
     return;
 
-  var deleted = document.getElementById("games_lst").value;
+  var deleted = document.getElementById("games_lst");
+  let option = deleted.options [deleted.selectedIndex];  
   var user = document.getElementById("user").value;
 
-  if (deleted > -1) {
+  if (option.value > -1) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/delete_game?game_idx=" + deleted + "&user=" + user, true);
+    xhr.open("GET", "/delete_game?game_name=" + option.text + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -46,29 +47,14 @@ function clicked_delete_game_btn(event) {
   }
 }
 
-function clicked_active_games_btn(event) {
-  var user = document.getElementById("user").value;
-  var active = document.getElementById("active_games_lst").value;
-
-  if (active > -1) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/play_active_game?game_idx=" + active + "&user=" + user, true);
-    xhr.setRequestHeader("Content-Type", "text/html");
-
-    xhr.onreadystatechange = function () {
-      document.location.href = this.responseURL;
-    }
-    xhr.send(null);
-  }
-}
-
 function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
-  var saved = document.getElementById("games_lst").value;
+  var saved = document.getElementById("games_lst");
+  let option = saved.options [saved.selectedIndex];  
 
-  if (saved > -1) {
+  if (option.value > -1) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/load_game?game_idx=" + saved + "&user=" + user, true);
+    xhr.open("GET", "/load_game?game_name=" + option.text + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {

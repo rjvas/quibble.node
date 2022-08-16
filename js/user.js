@@ -110,6 +110,10 @@ class User {
     return ret_val;
   }
 
+  get_game(name) {
+    return this.saved_games.find(g => {return g.name == name});
+  }
+
   get_user_page() {
     let games = this.getGameList();
     let gamers = User.get_pickup_gamers();

@@ -64,14 +64,14 @@ function get_user_agame(query) {
   var params = null;
   let user_id = null;
   let game_id = null;
-  let game_idx = -1;
+  let game_name = null;
   let vs = null;
 
   if (query) {
     params = new URLSearchParams(query);
     user_id = params.get("user");
     game_id = params.get("game");
-    game_idx = params.get("game_idx")
+    game_name = params.get("game_name")
     vs = params.get("vs");
   }
 
@@ -89,6 +89,11 @@ function get_user_agame(query) {
         return g.game_id_str == game_id ||
               g.name == game_id;
       });
+    else if (game_name) {
+      agame = ActiveGame.all_active.find(g => {
+        return g.game_name == game_name;
+      });
+    }
     else
       agame = ActiveGame.all_active.find(g => {
         return g.user1 == user || g.user2 == user;
@@ -101,7 +106,7 @@ function get_user_agame(query) {
       logger.debug("heist.get_user_agame: user= " + user.display_name);
 
   }
-  return {"user" : user, "agame" : agame, "game_idx" : game_idx, "vs" : vs};
+  return {"user" : user, "agame" : agame, "game_name" : game_name, "vs" : vs};
 }
 
 function massage_user_lists(ugv) {
@@ -132,7 +137,7 @@ function play_active_game(query, response) {
   let ug = get_user_agame(query);
   // query should hold the index to the selected game
   if (ug.user) {
-    CurrentAGame = ug.user.active_games[ug.game_idx];
+    CurrentAGame = ug.agame;
     if (CurrentAGame) {
       // if the game is a practice game ug.user is *both* user1 and user2
       // so, set pathname with game.current_player
@@ -157,6 +162,7 @@ function play_active_game(query, response) {
     }
     else ret_val = false;
   }
+
 
   return ret_val;
 }
@@ -238,10 +244,10 @@ function startup() {
         let user = ugv.user;
         // query should hold the index to the selected game
         if (user) {
-          ActiveGame.new_active_game_json(user.saved_games[ugv.game_idx], user, response);
+          ActiveGame.new_active_game_json(user.get_game(ugv.game_name), user, response);
 
           logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
-            game=${user.saved_games[ugv.game_idx].game_id_str} port: ${user.saved_games[ugv.game_idx].port}`); 
+            game=${user.get_game(ugv.game_name)} port: ${user.get_game(ugv.game_name).port}`); 
         }
       }
     }
@@ -250,11 +256,11 @@ function startup() {
       let ugv = get_user_agame(query);
       let user = ugv.user;
       // query should hold the index to the selected game
-      if  (user && user.saved_games[ugv.game_idx]) {
-        ActiveGame.delete_game(user.saved_games[ugv.game_idx], response, user);
+      if  (user && user.get_game(ugv.game_name)) {
+        ActiveGame.delete_game(user.get_game(ugv.game_name), response, user);
 
         logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${user.saved_games[ugv.game_idx].name}`); 
+          game=${ugv.game_name}`); 
       }
     }
 
@@ -297,7 +303,6 @@ function startup() {
           'User' : User,
           'user': user,
           'games': user.get_saved_game_list(),
-          'a_games' : user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
         logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
@@ -382,7 +387,6 @@ function startup() {
           'User' : User,
           'user': ug.user,
           'games': glist,
-          'a_games' : ug.user.get_a_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
         logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
