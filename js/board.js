@@ -1551,24 +1551,17 @@ function clicked_pass(event) {
 function tile_move_start(new_position) {
   let svg = this.element;
 
-  let phi = -1;
-  let tile = PlayerHand.tiles.find((t, idx) => {
-    if (t && t.svg == svg) {
-      phi = idx;
-      return t;
-    }
+  let tile = PlayStarts.find(t => {
+    return t && t.svg == svg;
   });
 
-  // if the tile wasn't in the PlayerHand, it's in the
-  // PlayStarts array.
+  // if not already in PlayStarts find it and push it
   if (!tile) {
-    tile = PlayStarts.find(t => {
-      return t && t.svg == svg
+    tile = PlayerHand.tiles.find(t => {
+        return t && t.svg == svg;
     });
+    if (tile) PlayStarts.push(tile);
   }
-
-  if (tile) PlayStarts.push(tile);
-
     // console.log("tile_move_start: ", tile.get_JSON());
 }
 

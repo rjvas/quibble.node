@@ -277,6 +277,18 @@ class Game {
       // (see word.finalize)
       if (item.revert_state(this, play) && !(item.status & Tile.on_board) &&
           item.player == this.current_player) {
+        // by now the PlayerHand[item index] is null. Find the index and restuff
+        // the tile
+        let null_idx = -1;
+        this.current_player.tiles.find((t, idx) => {
+          if (!t) {
+            null_idx = idx;
+            return;
+          }
+        });
+        item.player_hand_idx = null_idx;
+        this.current_player.tiles[null_idx] = item;
+        Tile.clear_adjacencies(this, item);
         ret_val.push(item.get_JSON());
       }
     });
