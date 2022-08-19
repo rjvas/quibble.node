@@ -1,7 +1,7 @@
 body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   width: 100%;
   font-family: museo-sans, sans-serif;
@@ -16,11 +16,12 @@ div {
 .button {
   height: 30px;
   border-radius: 10px;
-  width: 30%;
+  width: 200px;
 }
 
 .label {
   padding-top: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: white;
 }
@@ -28,14 +29,18 @@ div {
 .sub1 {
   font-weight: 400;
   color: white;
+  font-size: 14px;
 }
 
 #all {
+  margin-left: 15%;
   width : 90%;
   height : 90%;
+  align-items: center;
 }
 
 #welcome {
+  font-size: 20px;
   font-weight: 800;
   color: white;
   display: flex;
