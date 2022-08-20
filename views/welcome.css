@@ -3,7 +3,7 @@
 body {
   display: flex;
   flex-direction: column;
-  align-items: left;
+  align-items: center;
   width: 100%;
   font-family: museo-sans, sans-serif;
   font-style: normal;
@@ -37,9 +37,11 @@ div {
 }
 
 #both {
+  align-self: center;
   background-color: #333333;
   width: 90%;
   height: 90%;
+  max-width: 600px;
 }
 
 #first {
