@@ -320,12 +320,12 @@ class Game {
     if (this.current_play && this.current_player == player) {
       data.forEach((item, i) => {
         let id = parseInt(item.id.split("_")[1]);
-        let t = player.tiles.find((tile, i) => {
+        let t = player.tiles.find((tile, j) => {
           if (tile == null) return;
           else if (tile.id == id) {
             // have to convert player_hand_idx between client and Server
             // due to ability to rearrange tiles in the player-hand
-            tile.player_hand_idx = i;
+            tile.player_hand_idx = j;
             return tile;
           }
         });
