@@ -113,11 +113,11 @@ class Tile {
           this.is_safe = s.is_safe;
         }
         if (s.ctrl & TileState.setplayerhandidx) {
-          // stuff it back in the player hand
-          this.row = -1;
-          this.column = -1;
-          Tile.clear_adjacencies(game, this);
-          this.player.tiles[this.player_hand_idx] = this;
+          //  this stuff is done at the game level now
+          // this.row = -1;
+          // this.column = -1;
+          // Tile.clear_adjacencies(game, this);
+          // this.player.tiles[this.player_hand_idx] = this;
 
           // 20220726 No tiles have default safe any longer
           // make sure it has default 'is_safe'

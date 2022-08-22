@@ -286,10 +286,12 @@ class Game {
             return;
           }
         });
-        item.player_hand_idx = null_idx;
-        this.current_player.tiles[null_idx] = item;
-        Tile.clear_adjacencies(this, item);
-        ret_val.push(item.get_JSON());
+        if (null_idx != -1) {
+          item.player_hand_idx = null_idx;
+          this.current_player.tiles[null_idx] = item;
+          Tile.clear_adjacencies(this, item);
+          ret_val.push(item.get_JSON());
+        }
       }
     });
     // make sure the play is initialised
@@ -329,8 +331,8 @@ class Game {
             return tile;
           }
         });
-        // remove from player's hand place on the board
-        if (t) {
+        // remove from player's hand 
+        if (t && t.player_hand_idx != -1) {
           player.tiles[t.player_hand_idx] = null;
           t.row = item.row;
           t.column = item.col;
