@@ -797,11 +797,11 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     // t.addEventListener("click", tile_clicked);
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    p.setAttributeNS(null, 'x', CELL_SIZE*.8);
-    p.setAttributeNS(null, 'y', CELL_SIZE*.6);
+    p.setAttributeNS(null, 'x', CELL_SIZE - 3);
+    p.setAttributeNS(null, 'y', CELL_SIZE - 8);
     // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
-    p.setAttributeNS(null, 'width', CELL_SIZE*.4);
-    p.setAttributeNS(null, 'height', CELL_SIZE*.4);
+    p.setAttributeNS(null, 'width', CELL_SIZE*.2);
+    p.setAttributeNS(null, 'height', CELL_SIZE*.2);
     p.setAttributeNS(null, 'stroke_width', 1);
     p.setAttributeNS(null, 'stroke', '#000');
     t.setAttributeNS(null, 'fill', '#000');

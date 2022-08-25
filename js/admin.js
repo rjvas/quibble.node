@@ -53,6 +53,17 @@ function clicked_peek_email(event) {
   }
 }
 
+function clicked_players_email_btn(event) {
+  var body = document.getElementById("players_email_body").value;
+  var subj = document.getElementById("players_email_subj").value;
+
+  if (subj) {
+    data_ws.send(JSON.stringify([
+      {"active_players_email_subj" : subj,
+        "active_players_email_body" : body }]));
+  }
+}
+
 function changed_user(event) {
   let new_user = event.currentTarget.labels[0].innerText;
   var user = document.getElementById("user").value;
@@ -506,6 +517,11 @@ function init() {
   el = document.getElementById("peek_email");
   if (el) {
     el.addEventListener("click", clicked_peek_email);
+  }
+
+  el = document.getElementById("players_email_btn");
+  if (el) {
+    el.addEventListener("click", clicked_players_email_btn);
   }
 
   el = document.getElementsByClassName("user_save_btns");

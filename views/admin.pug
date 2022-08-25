@@ -94,7 +94,7 @@ html(lang="en")
           #chat_text
             p(id=chat_para)
               |!{a_game_chat_text}
-          textarea(id="chat_send_text" rows="2" cols="25" wrap="hard" placeholder="Type here ...")
+          textarea(id="chat_send_text" rows="2" cols="25" wrap="soft" placeholder="Type here ...")
           #chat_ctrls
             input(id="chat_send_btn" type="button" class="button" value="Send")
             //- input(id="broadcast_btn" type="button" class="button" value="'Cast")
@@ -108,15 +108,23 @@ html(lang="en")
             label(for="peek_chk") Peek
             input(id="peek_email" type="button" class="button" value="Email")
           
-    #all_active_games
-      |All Active Games
-      if all_active_games.length > 0
-        select(id="all_active_games_lst")
-          option(value=-1) No Selection
-          each val, idx in all_active_games
-            option(value=val.port) #{val.name}
-      else 
-        |No Active Games
+    #sys_admin
+      #sys_email
+        |Email logged in users
+        textarea(id="players_email_subj" rows="1" cols="45" wrap="soft" placeholder="Type subject here ...")
+        textarea(id="players_email_body" rows="3" cols="45" wrap="soft" placeholder="Type message here ...")
+        input(id="players_email_btn" type="button" class="button" value="Mail it")
+
+
+      #all_active_games
+        |All Active Games
+        if all_active_games.length > 0
+          select(id="all_active_games_lst")
+            option(value=-1) No Selection
+            each val, idx in all_active_games
+              option(value=val.port) #{val.name}
+        else 
+          |No Active Games
 
     script(src="../js/admin.js")
     //- script(src="./node_modules/jsoneditor/dist/jsoneditor.min.js")

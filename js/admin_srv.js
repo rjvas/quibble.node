@@ -1,6 +1,7 @@
 const db = require('./db');
 // const { User } = require('./user');
 var logger = require('./log').logger;
+const {exec} = require('child_process');
 
 class Admin {
   constructor (user, current_users) {
@@ -94,6 +95,37 @@ class Admin {
             }
 
           } else if (data[0].delete_user) {
+
+          } else if (data[0].active_players_email_subj) {
+            let body = data[0].active_players_email_body;
+            let subj = data[0].active_players_email_subj;
+            let to = [];
+            
+            Admin.current_users.forEach(u => { to.push(u.email); });
+
+            let cmd = `mail -s "${subj}" ${to.join(",")} <<< '${body}'`; 
+
+            try {
+              exec(cmd, (err, stdout, stderr) => {
+                if (err) {
+                  data[0].info = "Error executing: " + cmd;
+                  socket.send(JSON.stringify(data));
+                  console.error(err)
+                } else {
+                // the *entire* stdout and stderr (buffered)
+                if (stdout) {
+                  data[0].info = stdout;
+                  socket.send(JSON.stringify(data));
+                }
+                console.log(`stdout: ${stdout}`);
+                console.log(`stderr: ${stderr}`);
+                }
+              });
+            } catch(error) {
+                data[0].info = "Error executing: " + cmd;
+                socket.send(JSON.stringify(data));
+                console.error(err)
+            }
 
           } else if (data[0].get_active_game) {
             // find the active game that has a specific port # 
