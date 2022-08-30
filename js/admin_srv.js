@@ -81,7 +81,7 @@ class Admin {
             });
 
             if (ufound) {
-              // TODO need to resolve circular dependency to get at User staic role values
+              // TODO need to resolve circular dependency to get at User static role values
               ufound.role = props.role_player ? 1 : 0;
               props.role_admin ? ufound.role |= 2 : ufound.role;
 
@@ -112,19 +112,19 @@ class Admin {
                   socket.send(JSON.stringify(data));
                   console.error(err)
                 } else {
-                // the *entire* stdout and stderr (buffered)
-                if (stdout) {
-                  data[0].info = stdout;
-                  socket.send(JSON.stringify(data));
+                  // the *entire* stdout and stderr (buffered)
+                  if (stdout) {
+                    data[0].info = cmd + " successful " + stdout;
+                    socket.send(JSON.stringify(data));
                 }
-                console.log(`stdout: ${stdout}`);
-                console.log(`stderr: ${stderr}`);
+                console.log(`${cmd} stdout: ${stdout}`);
+                console.log(`${cmd} stderr: ${stderr}`);
                 }
               });
             } catch(error) {
                 data[0].info = "Error executing: " + cmd;
                 socket.send(JSON.stringify(data));
-                console.error(err)
+                console.error(error)
             }
 
           } else if (data[0].get_active_game) {
