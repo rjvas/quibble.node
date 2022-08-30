@@ -816,7 +816,7 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
   }
 
 // these are NEW tiles created async during play
-function setup_tile_for_play(tile, no_drag) {
+function setup_jtile_for_play(tile_json, no_drag) {
   let idx = -1;
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -826,7 +826,7 @@ function setup_tile_for_play(tile, no_drag) {
       svg.setAttributeNS(null, 'class', 'player_tile_svg');
     }
 
-    build_sub_struct(tile, idx, svg);
+    build_sub_struct(tile_json, idx, svg);
 
     PlaySpace.append(svg);
 
@@ -846,23 +846,23 @@ function setup_tile_for_play(tile, no_drag) {
       } 
 
       drag_rec.snap = {CELL_SIZE};
-      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand, tile.points);
+      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand, tile_json.points);
     }
     else Tile.word_tiles.push(svg);
   }
 
-  // console.log("in setup_tile_for_play: ", PlayerHand.tiles[idx]);
+  // console.log("in setup_jtile_for_play: ", PlayerHand.tiles[idx]);
   return svg;
 }
 
-function set_tile_props(jtile) {
+function set_jtile_props(jtile) {
   let svg = document.getElementById("tile_" + jtile.id);
   if (svg) {
     let r = svg.childNodes[0];
     r.setAttributeNS(null, 'fill', jtile.fill);
     svg.classList.remove('player_tile_svg');
   } else {
-    svg = setup_tile_for_play(jtile, true);
+    svg = setup_jtile_for_play(jtile, true);
   }
 }
 
@@ -870,39 +870,10 @@ function get_played_JSONS() {
   let check_jsons = [];
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
 
-  // for now, a sanity check
-  // DEBUG
-  tile_svgs.forEach(item => {
-    let x = item.getAttributeNS(null, "x");
-    let y = item.getAttributeNS(null, "y");
-    let col = Math.round(x / CELL_SIZE) + 1;
-    let row = Math.round(y / CELL_SIZE) + 1;
-    // if these are the played tiles ...
-    if (x >= 0 && y >= 0 &&
-      x < NUM_ROWS_COLS * CELL_SIZE && y < NUM_ROWS_COLS * CELL_SIZE) {
-      check_jsons.push({
-        id: item.id,
-        row : row,
-        column : col
-      });
-    }
-  });
-
   let jsons = [];
   PlayStarts.forEach((item, i) => {
-    if (cross_chk(item.id))
-      jsons.push(item.get_JSON());
-    else {
-      console.log(`ERROR: get_played_JSONS: ${item.char}/${item.id} not on the board`);
-    }
+    jsons.push(item.get_JSON());
   });
-
-  function cross_chk(id) {
-    for (let i = 0; i < check_jsons.length; i++) {
-      if (check_jsons[i].id == id) return true;
-    }
-    return false;
-  }
 
   return jsons;
 }
@@ -997,13 +968,13 @@ function handle_the_response(resp) {
         ;
       } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
-          set_tile_props(item);
+          set_jtile_props(item);
         });
       }
       // new tiles
       else if (new_data[i].new_tiles) {
         new_data[i].new_tiles.forEach((item, idx) => {
-          setup_tile_for_play(item, false);
+          setup_jtile_for_play(item, false);
         });
       }
     }
@@ -1040,11 +1011,8 @@ function clicked_play(event) {
     "type": "regular_play"
   });
 
-  // console.log("in clicked_play: " + JSON.stringify(jsons));
   if (jsons.length > 1)
     ws.send(JSON.stringify(jsons));
-
-  // console.log("clicked on ", event.currentTarget.innerHTML);
 }
 
 function get_player_hand_JSONS() {
@@ -1183,14 +1151,6 @@ function clicked_swap_begin(event) {
     } 
   });
 
-  // svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  // let ctrl_tile = new Tile(svg, null, new_idx+1, Tile.in_hand, -1);
-  // ctrl_tile.char = "Select All";
-  // build_sub_struct(ctrl_tile, new_idx+1, svg, "swap_");
-  // ctrl_tile.char = "Select All";
-  // ctrl_tile.setAttributeNS(null, "fill", fill);
-  // pu.appendChild(svg);
-
   // now the controls
   var sel = document.createElement("BUTTON"); 
   sel.id = "swap_sel_all";
@@ -1217,13 +1177,6 @@ function clicked_swap_begin(event) {
   pu.appendChild(cancel);
 
   pu.style.display = "block";
-
-  // When the user clicks anywhere outside of the modal, close it
-  // window.onclick = function(event) {
-    // if (event.target != pu) {
-      // clicked_swap_cancel(event);
-    // }
-  // } 
 }
 
 function clicked_swap_end(event) {
@@ -1273,8 +1226,6 @@ function clicked_swap_end(event) {
       });
     ws.send(JSON.stringify(jsons));
   }
-
-  // console.log("clicked on " + event.currentTarget.innerHTML);
 }
 
 function clicked_tail_log_btn() {
@@ -1570,8 +1521,6 @@ function tile_moving(new_position) {
   // using 0-based coordinate system for x/y and 1-based coord system
   // for row/col
 
-  // console.log(`tile_moving new_pos: ${Math.round(new_position.left)},${Math.round(new_position.top)}`);
-
   // just initing ...
   let row = -1;
   let col = -1;
@@ -1728,7 +1677,7 @@ function tile_moved(new_position) {
 }
 
 // Only called on a page load
-function setup_tiles_for_drag() {
+function setup_svgtiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
   tile_svgs.forEach((item, idx) => {
     item.setAttributeNS(null, "width", CELL_SIZE*2);
@@ -1752,7 +1701,7 @@ function setup_tiles_for_drag() {
     PlayerHand.tiles.push(new Tile(item, drag_rec, idx, Tile.in_hand));
   });
 
-  // now stuff the word tiles into an easily accessable list - for drag control
+  // now stuff the word svgs into an easily accessable list - for drag control
   Tile.word_tiles = [];
   tile_svgs = document.querySelectorAll('.word_tile_svg');
   tile_svgs.forEach((item, idx) => {
@@ -1777,7 +1726,7 @@ function update_the_board(resp) {
         ;
       } else if (new_data[i].play_data) {
         new_data[i].play_data.forEach((item, idx) => {
-          set_tile_props(item);
+          set_jtile_props(item);
         });
       }
     }
@@ -1802,7 +1751,7 @@ function handle_exchange(resp) {
 
   // new tiles
   xchanged_tiles.forEach((item, idx) => {
-    setup_tile_for_play(item, false);
+    setup_jtile_for_play(item, false);
   });
 }
 
@@ -2047,7 +1996,7 @@ ws.onopen = function() {
   // ws.send("daddy's HOOOME!!");
 };
 ws.onerror = function(msg) {
-  console.log("in get socket: error " + msg);
+  console.error("in get socket: error " + msg);
 };
 ws.onclose = function(msg) {
   console.log("in get socket: close " + msg);
@@ -2092,5 +2041,5 @@ function set_button_callbacks() {
 }
 
 set_button_callbacks();
-setup_tiles_for_drag();
+setup_svgtiles_for_drag();
 getWindowSize();

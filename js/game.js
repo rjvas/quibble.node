@@ -261,6 +261,7 @@ class Game {
     let play = this.current_play;
     play.tiles.forEach((item, i) => {
       if (item.status & Tile.utilized) item.status ^= Tile.utilized;
+      if (item.status & Tile.on_board) item.status ^= Tile.on_board;
       if (this.new_word && this.new_word.tiles.includes(item) &&
           item.status & Tile.is_blank) {
         item.char = BLANK_TILE;
@@ -271,14 +272,7 @@ class Game {
       // player hand. Also, the revert_state returns false
       // if there is no valid revert for this play.
 
-      // ALERT! The following check for NOT Tile.on_board should be sufficient for
-      // for returning the JSON. Sadly, existing games will not be in the correct 
-      // state. However, should be able to remove the check before going LIVE
-      // (see word.finalize)
-      if (item.revert_state(this, play) && !(item.status & Tile.on_board) &&
-          item.player == this.current_player) {
-        // by now the PlayerHand[item index] is null. Find the index and restuff
-        // the tile
+      if (item.revert_state(play) && item.player == this.current_player) {
         let null_idx = -1;
         this.current_player.tiles.find((t, idx) => {
           if (!t) {
@@ -322,25 +316,24 @@ class Game {
     if (this.current_play && this.current_player == player) {
       data.forEach((item, i) => {
         let id = parseInt(item.id.split("_")[1]);
-        let t = player.tiles.find((tile, j) => {
-          if (tile == null) return;
-          else if (tile.id == id) {
+        let tile = player.tiles.find((t, j) => {
+          if (t && t.id == id) {
             // have to convert player_hand_idx between client and Server
             // due to ability to rearrange tiles in the player-hand
-            tile.player_hand_idx = j;
-            return tile;
+            t.player_hand_idx = j;
+            return t;
           }
         });
         // remove from player's hand 
-        if (t && t.player_hand_idx != -1) {
-          player.tiles[t.player_hand_idx] = null;
-          t.row = item.row;
-          t.column = item.col;
+        if (tile && tile.player_hand_idx != -1) {
+          player.tiles[tile.player_hand_idx] = null;
+          tile.row = item.row;
+          tile.column = item.col;
           // if this is a blank tile, set the character (sent in the play_data)
-          if (t.status & Tile.is_blank) {
-            t.char = item.char;
+          if (tile.status & Tile.is_blank) {
+            tile.char = item.char;
           }
-          played_tiles.push(t);
+          played_tiles.push(tile);
         }
       });
     }

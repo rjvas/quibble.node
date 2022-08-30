@@ -99,7 +99,7 @@ class Tile {
     } else { this.update_states_inplay(play); }
   }
 
-  revert_state(game, play) {
+  revert_state(play) {
     var ret_val = true;
     for (let i = this.states.length - 1; i > -1; i--) {
       if (this.states[i].in_play == play) {
@@ -113,19 +113,6 @@ class Tile {
           this.is_safe = s.is_safe;
         }
         if (s.ctrl & TileState.setplayerhandidx) {
-          //  this stuff is done at the game level now
-          // this.row = -1;
-          // this.column = -1;
-          // Tile.clear_adjacencies(game, this);
-          // this.player.tiles[this.player_hand_idx] = this;
-
-          // 20220726 No tiles have default safe any longer
-          // make sure it has default 'is_safe'
-          // let def = game.tile_defs.defs.find(item => {
-          //   return item.char == this.char;
-          // });
-          // def ? this.is_safe = def.is_safe : this.is_safe = false;
-
           // NOTE - this state MUST ALWAYS be in place and always be at [0]
           this.states.push(s);
         }
