@@ -992,6 +992,11 @@ function handle_the_response(resp) {
   return has_error;
 }
 
+var ZoomOnTileDrag = true;
+function clicked_toggle_zoom(event) {
+  ZoomOnTileDrag ? ZoomOnTileDrag = false : ZoomOnTileDrag = true;
+}
+
 // jsonify the just-played-tiles and send them back to the server
 function clicked_play(event) {
 
@@ -1499,6 +1504,51 @@ function clicked_pass(event) {
   ws.send(JSON.stringify(jsons));
 }
 
+var FullVertVB = `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`; 
+var ViewStack = [FullVertVB];
+const vb_wide_hi = 9*CELL_SIZE;
+
+function magnify_view(x, y) {
+  let x_from, y_from, x_to, y_to = 0;
+  let vals = null;
+
+  vals = ViewStack[ViewStack.length - 1].split(" ");
+
+  x_from = parseInt(vals[0]);
+  y_from = parseInt(vals[1]);
+
+  let x2 = x_from + vb_wide_hi;
+  let y2 = y_from + vb_wide_hi;
+
+  if (x2 < GRID_SIZE && x > x2 - CELL_SIZE)
+    x_from += 10;
+  else if (y2 < GRID_SIZE && y > y2 - CELL_SIZE)
+    y_from += 10;
+  else if (x_from > 0 && x < x_from + CELL_SIZE) 
+    x_from -= 10;
+  else if (y_from > 0 && y < y_from + CELL_SIZE)
+    y_from -= 10;
+
+  let vbstr = `${x_from} ${y_from} ${vb_wide_hi} ${vb_wide_hi}`;
+  console.log(`magnify_view x/y: ${x}/${y} vbstr - ${vbstr}`);
+
+  // if the vb has been modified ...
+  if (vbstr != ViewStack[length - 1]) {
+    // otherwise, if we're already zooming pop the stack and push the new view
+    if (ViewStack.length > 1)
+      ViewStack.pop();
+    ViewStack.push(vbstr);
+    PlaySpace.setAttributeNS(null, "viewBox", vbstr);
+  }
+}
+
+function reset_view() {
+  if (ViewStack.length > 1)
+    ViewStack.pop();
+  let zoom_to = ViewStack[0]
+  PlaySpace.setAttributeNS(null, "viewBox", zoom_to);
+}
+
 function tile_move_start(new_position) {
   let svg = this.element;
 
@@ -1551,8 +1601,12 @@ function tile_moving(new_position) {
   x = (col - 1) * CELL_SIZE;
   y = (row - 1) * CELL_SIZE;
 
+  if (AppOrientation == VERT && ZoomOnTileDrag)
+    magnify_view(x, y);
+
   if (PlayerHand.is_in_hand(x, y)) {
-    console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
+    if (ZoomOnTileDrag) reset_view();
+    // console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
     PlayerHand.rearrange_hand(svg, tile.player_hand_idx);
   } 
   // if we're moving off the board (except for the player-hand area)
@@ -1561,7 +1615,7 @@ function tile_moving(new_position) {
       col = tile.column;
   } 
   else if (Tile.is_on_board(row, col)) {
-    console.log(`tile_moving - tile on board rc : ${row}/${col}`);
+    // console.log(`tile_moving - tile on board rc : ${row}/${col}`);
     svg.setAttributeNS(null, "width", CELL_SIZE);
     svg.setAttributeNS(null, "height", CELL_SIZE);
     // if we're moving into another tile, don't let it
@@ -1608,6 +1662,8 @@ function tile_moved(new_position) {
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
   });
+
+  reset_view();
 
   // if the tile wasn't in the PlayerHand, it's in the
   // PlayStarts array.
@@ -2007,6 +2063,11 @@ function set_button_callbacks() {
   let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('player2_photo');
+  if (btn) {
+    btn.addEventListener("click", clicked_toggle_zoom);
   }
 
   btn = document.getElementById('bookmark_log');
