@@ -1506,30 +1506,38 @@ function clicked_pass(event) {
 
 var FullVertVB = `0 0 ${GRID_SIZE} ${GRID_SIZE+player_panel_wh}`; 
 var ViewStack = [FullVertVB];
-const vb_wide_hi = 9*CELL_SIZE;
+const vb_wide = 9*CELL_SIZE;
+const vb_heigh =  vb_wide*(GRID_SIZE+player_panel_wh)/GRID_SIZE;
 
-function magnify_view(x, y) {
+function magnify_view(tile, x, y) {
   let x_from, y_from, x_to, y_to = 0;
   let vals = null;
 
-  vals = ViewStack[ViewStack.length - 1].split(" ");
+  if (ViewStack.length > 1) {
+    vals = ViewStack[ViewStack.length - 1].split(" ");
+    x_from = parseInt(vals[0]);
+    y_from = parseInt(vals[1]);
+  } else {
+    // set bounds on x_from, y_from
+    x_from =  Math.max(x - vb_wide/2, 0);
+    x_from = Math.min(x_from, GRID_SIZE - vb_wide);
+    y_from = Math.max(y - vb_heigh/2, 0);
+    y_from = Math.min(y_from, GRID_SIZE + player_panel_wh - vb_heigh - CELL_SIZE);
+  }
 
-  x_from = parseInt(vals[0]);
-  y_from = parseInt(vals[1]);
+  x_to = x_from + vb_wide;
+  y_to = y_from + vb_heigh;
 
-  let x2 = x_from + vb_wide_hi;
-  let y2 = y_from + vb_wide_hi;
-
-  if (x2 < GRID_SIZE && x > x2 - CELL_SIZE)
+  if (x_to < GRID_SIZE && x > x_to - 2*CELL_SIZE)
     x_from += 10;
-  else if (y2 < GRID_SIZE && y > y2 - CELL_SIZE)
+  else if (y_to < GRID_SIZE+player_panel_wh && y > y_to - 2*CELL_SIZE)
     y_from += 10;
-  else if (x_from > 0 && x < x_from + CELL_SIZE) 
+  else if (x_from > 0 && x < x_from + 2*CELL_SIZE) 
     x_from -= 10;
-  else if (y_from > 0 && y < y_from + CELL_SIZE)
+  else if (y_from > 0 && y < y_from + 2*CELL_SIZE)
     y_from -= 10;
 
-  let vbstr = `${x_from} ${y_from} ${vb_wide_hi} ${vb_wide_hi}`;
+  let vbstr = `${x_from} ${y_from} ${vb_wide} ${vb_heigh}`;
   console.log(`magnify_view x/y: ${x}/${y} vbstr - ${vbstr}`);
 
   // if the vb has been modified ...
@@ -1539,14 +1547,16 @@ function magnify_view(x, y) {
       ViewStack.pop();
     ViewStack.push(vbstr);
     PlaySpace.setAttributeNS(null, "viewBox", vbstr);
+    tile.drag.position();
   }
 }
 
-function reset_view() {
+function reset_view(tile) {
   if (ViewStack.length > 1)
     ViewStack.pop();
   let zoom_to = ViewStack[0]
   PlaySpace.setAttributeNS(null, "viewBox", zoom_to);
+  tile.drag.position();
 }
 
 function tile_move_start(new_position) {
@@ -1563,6 +1573,7 @@ function tile_move_start(new_position) {
     });
     if (tile) PlayStarts.push(tile);
   }
+
     // console.log("tile_move_start: ", tile.get_JSON());
 }
 
@@ -1580,6 +1591,7 @@ function tile_moving(new_position) {
   let playXY = screenToSVG(PlaySpace, new_position.left, new_position.top);
   console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
 
+  // odd - during the move these coords are reversed
   let y = playXY.x;
   let x = playXY.y;
 
@@ -1602,10 +1614,9 @@ function tile_moving(new_position) {
   y = (row - 1) * CELL_SIZE;
 
   if (AppOrientation == VERT && ZoomOnTileDrag)
-    magnify_view(x, y);
+    magnify_view(tile, x, y);
 
   if (PlayerHand.is_in_hand(x, y)) {
-    if (ZoomOnTileDrag) reset_view();
     // console.log(`tile_moving - tile in_hand xy: ${x}/${y}`);
     PlayerHand.rearrange_hand(svg, tile.player_hand_idx);
   } 
@@ -1663,7 +1674,8 @@ function tile_moved(new_position) {
     return t && t.svg == svg
   });
 
-  reset_view();
+  if (AppOrientation == VERT && ZoomOnTileDrag)
+    reset_view(tile);
 
   // if the tile wasn't in the PlayerHand, it's in the
   // PlayStarts array.
