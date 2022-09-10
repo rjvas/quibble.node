@@ -91,7 +91,7 @@ function get_user_agame(query) {
       });
     else if (game_name) {
       agame = ActiveGame.all_active.find(g => {
-        return g.game_name == game_name;
+        return g.name == game_name;
       });
     }
     else
@@ -320,7 +320,7 @@ function startup() {
 
     // async
     else if (pathname == "/login") {
-      User.login(query, remote_addr, response);
+      User.login(query, remote_addr, response, ActiveGame.game_over);
       logger.debug("heist.login query: " + query);
     }
 

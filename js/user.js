@@ -128,7 +128,7 @@ class User {
      return User.pickup_gamers;
   }
 
-  static login (query, request_addr, response) {
+  static login (query, request_addr, response, game_over) {
 
     var new_user = null;
     var params = new URLSearchParams(query);
@@ -194,7 +194,10 @@ class User {
 
       }).then(result => {
         if (new_user) {
-          new_user.saved_games = result;
+          // filter out any 'game_over' games
+          new_user.saved_games = result.filter(ag => {
+            return !(ag.status & game_over);
+          });
           response.writeHead(302 , {
              'Location' : '/home_page?user=' + new_user.id.toHexString()
           });

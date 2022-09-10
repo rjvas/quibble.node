@@ -41,7 +41,7 @@ class ActiveGame {
 
   static none = -1;
   static in_play = 1;
-  static finished = 2;
+  static game_over = 2;
   static waiting = 4;
   static invited = 8;
   static practice = 32;
@@ -363,6 +363,10 @@ class ActiveGame {
           else if (type == "bookmark_log") {
             a_game.bookmark_log(this, play_data);
           }
+          else if (type == "last_played_word") {
+            play_data.push({"tiles" : a_game.game.handle_last_played_word()});
+            resp_data =  play_data;
+          }
           else {
             a_game.log_pre(player, play_data);
 
@@ -388,8 +392,17 @@ class ActiveGame {
 
             a_game.log_post(player, resp_data);
 
-            // look for an error on the play - if not found, save
+            // check for a finished game
             let found = resp_data.find(item => {
+              return item.type && item.type == "game_over";
+            });
+            if (found) {
+              if (a_game.status & ActiveGame.in_play) a_game.status ^= ActiveGame.in_play;
+              a_game.status |= ActiveGame.game_over;
+            }
+
+            // look for an error on the play - if not found, save
+            found = resp_data.find(item => {
               return item.err_msg
             });
             if (!found) {
@@ -517,4 +530,3 @@ class ActiveGame {
 }
 
 exports.ActiveGame = ActiveGame;
-exports.AllActiveGames = ActiveGame.all_active;

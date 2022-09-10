@@ -992,7 +992,24 @@ function handle_the_response(resp) {
   return has_error;
 }
 
-var ZoomOnTileDrag = true;
+function clicked_hilight_last_word(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  let jsons = [];
+  jsons.unshift({
+    "player": URL_x
+  });
+  jsons.unshift({
+    "type": "last_played_word"
+  });
+
+  ws.send(JSON.stringify(jsons));
+}
+
+var ZoomOnTileDrag = false;
 function clicked_toggle_zoom(event) {
   ZoomOnTileDrag ? ZoomOnTileDrag = false : ZoomOnTileDrag = true;
 }
@@ -1856,6 +1873,21 @@ function toggle_player() {
 
 }
 
+function handle_last_played_word(player, tiles) {
+  let svg = null;
+  tiles.forEach(t => {
+    svg = Tile.word_tiles.find(wt => {
+      return wt.id == "tile_" + t.id;
+    });
+    if (svg) {
+      svg.childNodes[RECT_POSITION].setAttributeNS(null, "width", CELL_SIZE - 4);
+      svg.childNodes[RECT_POSITION].setAttributeNS(null, "height", CELL_SIZE - 4);
+      svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "red");
+      svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "3");
+    }
+  });
+}
+
 function handle_tail_log(player, msg) {
   let matches = msg.split('\n');
   Chat.innerHTML += "<br><b>" + player + "</b>:<br>";
@@ -2046,6 +2078,10 @@ ws.onmessage = function(msg) {
   else if (type.type == "tail_log") {
     handle_tail_log(player.player, info.info);
   }
+  else if (type.type == "last_played_word") {
+    if (player.player == URL_x)
+      handle_last_played_word(player.player, info.tiles);
+  }
   else {
     console.log("in onmessage: no play type");
   }
@@ -2055,7 +2091,8 @@ ws.onmessage = function(msg) {
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&
-    type.type != "chat" && type.type != "cheat" && type.type != "tail_log") {
+    type.type != "chat" && type.type != "cheat" && type.type != "tail_log" &&
+    type.type != "last_played_word") {
     toggle_player();
   }
 }
@@ -2071,7 +2108,6 @@ ws.onclose = function(msg) {
 };
 
 function set_button_callbacks() {
-  // play recall swap chat
   let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
@@ -2080,6 +2116,11 @@ function set_button_callbacks() {
   btn = document.getElementById('player2_photo');
   if (btn) {
     btn.addEventListener("click", clicked_toggle_zoom);
+  }
+
+  btn = document.getElementById('player1_photo');
+  if (btn) {
+    btn.addEventListener("click", clicked_hilight_last_word);
   }
 
   btn = document.getElementById('bookmark_log');

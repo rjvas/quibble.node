@@ -454,6 +454,15 @@ class Game {
     return ret_val;
   }
 
+  handle_last_played_word() {
+    var ret_val = [];
+    let play = this.plays[this.plays.length - 1];
+    play.tiles.forEach(t => {
+      ret_val.push(t.get_JSON());
+    });
+    return ret_val;
+  }
+
   finish_the_play(player, play_data) {
     var ret_val = [];
 
@@ -591,8 +600,6 @@ class Game {
     this.player_1.tiles.forEach((item, i) => {
         if (item) p1_hand_points += item.points;
     });
-    // remove from player 1
-    // don't 7/3/2021
     // this.player_1.total_points -= p1_hand_points;
     // add to player 2
     this.player_2.total_points += p1_hand_points;
