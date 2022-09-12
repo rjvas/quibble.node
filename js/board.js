@@ -992,10 +992,22 @@ function handle_the_response(resp) {
   return has_error;
 }
 
-function clicked_hilight_last_word(event) {
+var LastWordHilite = false;
+var HiliteWords = [];
+function clicked_hilite_last_word(event) {
   if (!URL_x) {
     let url = window.location.href;
     url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  // if already hiliteing the last word, clear the hilite and return
+  if (LastWordHilite) {
+    HiliteWords.forEach(svg => {
+      if (svg) unhilite_tile(svg);
+    });
+    HiliteWords = [];
+    LastWordHilite = false;
+    return;
   }
 
   let jsons = [];
@@ -1092,14 +1104,14 @@ function swap_toggle_highlight(svg, no_toggle) {
   })
   if (!found_id) { // select it
     Tile.swapped_tiles.push(svg.getAttributeNS(null, "id"));
-    let highlite = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    highlite.setAttributeNS(null, "x", 2);
-    highlite.setAttributeNS(null, "y", 2);
-    highlite.setAttributeNS(null, "width", CELL_SIZE - 4);
-    highlite.setAttributeNS(null, "height", CELL_SIZE - 4);
-    highlite.setAttributeNS(null, "stroke", "red");
-    highlite.setAttributeNS(null, "stroke-width", "3");
-    svg.appendChild(highlite);
+    let hilite = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    hilite.setAttributeNS(null, "x", 2);
+    hilite.setAttributeNS(null, "y", 2);
+    hilite.setAttributeNS(null, "width", CELL_SIZE - 4);
+    hilite.setAttributeNS(null, "height", CELL_SIZE - 4);
+    hilite.setAttributeNS(null, "stroke", "red");
+    hilite.setAttributeNS(null, "stroke-width", "3");
+    svg.appendChild(hilite);
   } else if (!no_toggle) { // unselect it
       let idx = Tile.swapped_tiles.indexOf(found_id);
       if (idx >= 0 && idx < Tile.swapped_tiles.length)
@@ -1873,17 +1885,38 @@ function toggle_player() {
 
 }
 
+function hilite_tile(svg) {
+  if (svg) {
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "x", 2);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "y", 2);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "width", CELL_SIZE - 4);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "height", CELL_SIZE - 4);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "red");
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "3");
+  }
+}
+
+function unhilite_tile(svg) {
+  if (svg) {
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "x", 0);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "y", 0);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "width", CELL_SIZE);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "height", CELL_SIZE);
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "black");
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "1");
+  }
+}
+
 function handle_last_played_word(player, tiles) {
+  LastWordHilite = true;
   let svg = null;
   tiles.forEach(t => {
     svg = Tile.word_tiles.find(wt => {
       return wt.id == "tile_" + t.id;
     });
     if (svg) {
-      svg.childNodes[RECT_POSITION].setAttributeNS(null, "width", CELL_SIZE - 4);
-      svg.childNodes[RECT_POSITION].setAttributeNS(null, "height", CELL_SIZE - 4);
-      svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "red");
-      svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "3");
+      hilite_tile(svg);
+      HiliteWords.push(svg);
     }
   });
 }
@@ -2120,7 +2153,7 @@ function set_button_callbacks() {
 
   btn = document.getElementById('player1_photo');
   if (btn) {
-    btn.addEventListener("click", clicked_hilight_last_word);
+    btn.addEventListener("click", clicked_hilite_last_word);
   }
 
   btn = document.getElementById('bookmark_log');

@@ -145,6 +145,14 @@ function play_active_game(query, response) {
         CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
           pathname = "/player1" : pathname = "/player2";
       } else {
+        // first, make sure both users are represented in the active game (if
+        // on user logs in and opens the game before the other user is logged in
+        // one of the AG users will be 'undefined')
+        if (!CurrentAGame.user1 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
+          CurrentAGame.user1 = ug.user;
+        else if (!CurrentAGame.user2 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
+          CurrentAGame.user2 = ug.user;
+
         ug.user == CurrentAGame.user1 ? pathname = "/player1" :
           pathname = "/player2";
       }
