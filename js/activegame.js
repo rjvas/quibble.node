@@ -367,6 +367,10 @@ class ActiveGame {
             play_data.push({"tiles" : a_game.game.handle_last_played_word()});
             resp_data =  play_data;
           }
+          else if (type == "dictionary_lookup") {
+            a_game.game.handle_dictionary_lookup(this, play_data);
+            return;
+          }
           else {
             a_game.log_pre(player, play_data);
 

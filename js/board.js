@@ -760,6 +760,8 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
       svg.setAttributeNS(null, 'y', (tile.row - 1) * CELL_SIZE);
       svg.setAttributeNS(null, 'width', CELL_SIZE);
       svg.setAttributeNS(null, 'height', CELL_SIZE);
+      if (id_prefix == "tile_")
+        svg.addEventListener("click", tile_clicked);
     } else {
       svg.setAttributeNS(null, 'x', AppOrientation==HORIZ ? PlayerHand.squares[idx].x : PlayerHand.squares[idx].y);
       svg.setAttributeNS(null, 'y', AppOrientation==HORIZ ? PlayerHand.squares[idx].y : PlayerHand.squares[idx].x);
@@ -793,8 +795,8 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     t.setAttributeNS(null, 'text-anchor', "middle");
     t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
-    t.textContent = tile.char;
     // t.addEventListener("click", tile_clicked);
+    t.textContent = tile.char;
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     p.setAttributeNS(null, 'x', CELL_SIZE - 3);
@@ -809,6 +811,16 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     p.setAttributeNS(null, 'alignment-baseline', "central");
     p.setAttributeNS(null, 'class', 'tile_points');
     p.textContent = tile.points;
+
+    // let th = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    // th.setAttributeNS(null, 'x', 0);
+    // th.setAttributeNS(null, 'y', 0);
+    // th.setAttributeNS(null, 'width', CELL_SIZE);
+    // th.setAttributeNS(null, 'height', CELL_SIZE);
+    // th.setAttributeNS(null, 'fill-opacity', 0);
+    // // r.setAttributeNS(null, 'stroke_width', 1);
+    // th.setAttributeNS(null, 'stroke', '#000');
+    // th.setAttributeNS(null, 'class', 'tilehook');
 
     svg.append(r);
     svg.append(t);
@@ -957,6 +969,7 @@ function handle_the_response(resp) {
         tile.svg.classList.remove('player_tile_svg');
         tile.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
         // finally, stuff it in the Tile.word_tiles for collision control
+        tile.svg.addEventListener("click", tile_clicked);
         Tile.word_tiles.push(tile.svg);
       }
     }
@@ -1588,6 +1601,23 @@ function reset_view(tile) {
   tile.drag.position();
 }
 
+function tile_clicked(event) {
+  if (!URL_x) {
+    let url = window.location.href;
+    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
+  }
+
+  let id_ary = this.id.split("_");
+  let id = parseInt(id_ary[1]);
+
+  let jsons = [];
+  jsons.push({ "type": "dictionary_lookup"});
+  jsons.push({"player": URL_x});
+  jsons.push({"info": id});
+
+  ws.send(JSON.stringify(jsons));
+}
+
 function tile_move_start(new_position) {
   let svg = this.element;
 
@@ -1676,9 +1706,7 @@ function tile_moving(new_position) {
 
   // Upto this point all tiles have a PlainDraggable wrapper that uses
   // css' translate. So, the tiles.svg have the original player_hand
-  // coordinates and a translate field. In tile_clicked this causes issues
-  // with cycling through the player colors because setting the rect color
-  // directly doesn't use the css translate. So, fix up the svg coords here.
+  // coordinates and a translate field. 
   svg.setAttributeNS(null, 'transform', "");
   svg.setAttributeNS(null, 'x', x);
   svg.setAttributeNS(null, 'y', y);
@@ -1773,7 +1801,7 @@ function tile_moved(new_position) {
   }
 }
 
-// Only called on a page load
+// Only called on a page load for PlayerHand tiles
 function setup_svgtiles_for_drag() {
   let tile_svgs = document.querySelectorAll('.player_tile_svg');
   tile_svgs.forEach((item, idx) => {
@@ -1905,6 +1933,13 @@ function unhilite_tile(svg) {
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "black");
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "1");
   }
+}
+
+function handle_dictionary_lookup(defs) {
+  let msg = "";
+  defs.forEach(item => { 
+    msg += JSON.stringify(item) + "\n"; });
+  alert(msg);
 }
 
 function handle_last_played_word(player, tiles) {
@@ -2115,6 +2150,10 @@ ws.onmessage = function(msg) {
     if (player.player == URL_x)
       handle_last_played_word(player.player, info.tiles);
   }
+  else if (type.type == "dictionary_lookup") {
+    if (player.player == URL_x)
+      handle_dictionary_lookup(resp);
+  }
   else {
     console.log("in onmessage: no play type");
   }
@@ -2187,6 +2226,14 @@ function set_button_callbacks() {
   }
 }
 
+function set_word_tile_click() {
+  var tilehooks = document.querySelectorAll('.tilehook');
+  tilehooks.forEach(th => {
+    th.addEventListener("click", tile_clicked);
+  });
+}
+
 set_button_callbacks();
+set_word_tile_click();
 setup_svgtiles_for_drag();
 getWindowSize();

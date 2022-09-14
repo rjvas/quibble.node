@@ -141,7 +141,8 @@ html
         // Words 
         each w, idx in game.words
           each t, tidx in w.tiles 
-            svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size class="word_tile_svg")
+            svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size 
+              class="word_tile_svg")
               if t.player == game.player_1
                 if t.is_safe
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player1_safe
@@ -158,12 +159,13 @@ html
                     stroke_width=1 stroke='#000' class="tile_rect")
                 
               text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                text-anchor="middle" alignment-baseline="central" class="tile_text"
-                onclick="tile_clicked")
+                text-anchor="middle" alignment-baseline="central" class="tile_text")
                 |#{t.char}
               text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                 text-anchor="end" alignment-baseline="central" class='tile_points')
                 |#{t.points}        
+            rect(class="tilehook" fill="#fff" fill-opacity=0 
+              id="tilehook_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size) 
               
         rect(id="player_panel" x=grid_wh y="0" width=player_panel_wh height=grid_wh fill="black")
 
@@ -204,8 +206,7 @@ html
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player1_risky
                     stroke_width=1 stroke='#000' class="tile_rect")
                 text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                  text-anchor="middle" alignment-baseline="central" class="tile_text"
-                  onclick="tile_clicked")
+                  text-anchor="middle" alignment-baseline="central" class="tile_text")
                   |#{t.char}
                 text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
@@ -223,8 +224,7 @@ html
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player2_risky
                     stroke_width=1 stroke='#000' class="tile_rect")
                 text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                  text-anchor="middle" alignment-baseline="central" class="tile_text"
-                  onclick="tile_clicked")
+                  text-anchor="middle" alignment-baseline="central" class="tile_text")
                   |#{t.char}
                 text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')

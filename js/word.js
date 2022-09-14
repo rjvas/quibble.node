@@ -16,32 +16,6 @@ var words13letter = require('./13-letter-words');
 var words14letter = require('./14-letter-words');
 var words15letter = require('./15-letter-words');
 
-/*
-var mongoose = require('mongoose');
-
-var Schema = mongoose.Schema;
-
-var WordSchema = new Schema(
-  {
-    start_row: {type: Integer, required: true},
-    start_column: {type: Integer, required: true},
-    orientation: {type: Integer, required: true},
-    is_safe: {type: boolean, required: true},
-
-    // an array of ascii word that must verify for the
-    // play to proceed - otherwise cancel the play
-    check_words = [{type: String, required: true, maxlength: 15}];
-
-    player_id: {type: Schema.Types.ObjectId, ref: 'Player', required: true},
-    tiles = [{type: Schema.Types.ObjectId, ref: 'Tile', required: true}];
-  }
-);
-
-
-//Export model
-module.exports = mongoose.model('Word', WordSchema);
-*/
-
 class Word {
   constructor(id, play, player, word, points, start_row, start_col, orient, is_safe) {
 
@@ -61,6 +35,7 @@ class Word {
     // an array of ascii word that must verify for the
     // play to proceed - otherwise cancel the play
     this.check_words = [];
+    this.check_word_starts = [];
     this.points = points;
     this.start_row = start_row;
     this.start_column = start_col;
@@ -82,6 +57,7 @@ class Word {
         js.start_row, js.start_column, js.orientation, js.is_safe);
 
     w.check_words = js.check_words;
+    w.check_word_starts = js.check_word_starts;
 
     js.tiles.forEach((item, i) => {
       if (item.player_id == player1.id)
@@ -131,6 +107,7 @@ class Word {
       "player_id" : this.player.id,
       "play_id" : this.play ? this.play.id : -1,
       "check_words" : this.check_words,
+      "check_word_starts" : this.check_word_starts,
       "points" : this.points,
       "start_row" : this.start_row,
       "start_column" : this.start_column,
@@ -262,8 +239,6 @@ class Word {
       if (valid) {
         continue;
       } else {
-        // TODO:
-        // window.alert("Not a valid word: " + this.check_words[i].toUpperCase());
         return i;
       }
     }
@@ -325,7 +300,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
 
     // a stack of orthogonal tiles to test for wordishness
     var ortho = [];
-
+    var word_start = null;
     var cword;
 
     // always go left to right, top down
@@ -334,6 +309,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       while (t.left) {t = t.left;}
       while (t) {
         w.push(t.char);
+        if (w.length == 1) word_start = t.id;
         t.status |= Tile.utilized;
         // if additional words are created need to come back
         // and build the words - BUT - don't follow the other
@@ -347,7 +323,10 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       // by now the first word is done
       cword = w.join("");
       if (!this.check_words.includes(cword))
+      {
         this.check_words.push(cword);
+        this.check_word_starts.push(word_start);
+      }
       while (ortho.length > 0) {
         t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)
@@ -368,6 +347,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       while (t.up) {t = t.up;}
       while (t) {
         w.push(t.char);
+        if (w.length == 1) word_start = t.id;
         t.status |= Tile.utilized;
         // if additional words are created need to come back
         // and build the words - BUT - don't follow the other
@@ -380,8 +360,10 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       }
       // by now the first word is done
       cword = w.join("");
-      if (!this.check_words.includes(cword))
+      if (!this.check_words.includes(cword)) {
         this.check_words.push(cword);
+        this.check_word_starts.push(word_start);
+      }
       while (ortho.length > 0) {
         t = ortho.pop();
         // if a tile is a 'source' of safeness (those defined as such by TileDefs)

@@ -4,6 +4,7 @@ var Tile = require ('./tile').Tile;
 var TileDefs = require ('./tiledefs').TileDefs;
 var Word = require ('./word').Word;
 var logger = require('./log').logger;
+const https = require('https');
 
 const BLANK_TILE = " ";
 
@@ -461,6 +462,64 @@ class Game {
       ret_val.push(t.get_JSON());
     });
     return ret_val;
+  }
+
+  cleanup_definitions(full_defs) {
+    let ret_val = [];
+    if (full_defs && full_defs[0] && full_defs[0].meanings) {
+      full_defs[0].meanings.forEach(m => {
+        let defs = [];
+        m.definitions.forEach(d => {
+          defs.push(d.definition);
+        });
+        ret_val.push({"partOfSpeech" : m.partOfSpeech});
+        ret_val.push({"definitions" : defs});
+      }); 
+    }
+    return ret_val;
+  }
+
+  handle_dictionary_lookup(sock, play_data) {
+    let search_id = -1;
+    let idx = -1;
+    let lookup_words = [];
+
+    if (play_data[2] && play_data[2].info)
+      search_id = play_data[2].info;
+    this.words.forEach(w => {
+      w.check_word_starts.forEach((s, idx) => { 
+        if (s == search_id)
+          lookup_words.push(w.check_words[idx]);
+      });
+    });
+
+    let count = lookup_words.length;
+    lookup_words.forEach(w => {
+      let url = `https://api.dictionaryapi.dev/api/v2/entries/en/${w}`;
+
+      const request = https.request(url, (response) => {
+        let data = '';
+        response.on('data', (chunk) => {
+            data = data + chunk.toString();
+        });
+  
+        response.on('end', () => {
+          count--;
+          const body = JSON.parse(data);
+          play_data.push({"word" : w});
+          play_data.push({"definitions" : this.cleanup_definitions(body)});
+          if (count == 0)
+            sock.send(JSON.stringify(play_data));
+          console.log(body);
+        });
+      })
+  
+      request.on('error', (error) => {
+          console.log('An error', error);
+      });
+  
+      request.end() 
+    });
   }
 
   finish_the_play(player, play_data) {
