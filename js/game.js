@@ -487,10 +487,12 @@ class Game {
     if (play_data[2] && play_data[2].info)
       search_id = play_data[2].info;
     this.words.forEach(w => {
-      w.check_word_starts.forEach((s, idx) => { 
-        if (s == search_id)
-          lookup_words.push(w.check_words[idx]);
-      });
+      if (w.check_word_starts) {
+        w.check_word_starts.forEach((s, idx) => { 
+          if (s == search_id)
+            lookup_words.push(w.check_words[idx]);
+        });
+      }
     });
 
     let count = lookup_words.length;
