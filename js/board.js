@@ -1176,6 +1176,12 @@ function clicked_swap_begin(event) {
     return;
   }
 
+  let tiles_left = parseInt(document.getElementById("tiles_left_count").textContent);
+  if (tiles_left < 11) {
+    alert("Tile swaps are limited to tile pool sizes of 10 or more - no swap!");
+    return;
+  }
+
   let pu = document.getElementById("swap_pop");
 
   // don't allow multiple displays of PlayerHand
