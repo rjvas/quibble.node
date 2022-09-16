@@ -1942,9 +1942,32 @@ function unhilite_tile(svg) {
 }
 
 function handle_dictionary_lookup(defs) {
+  // defs has a specific form:
+  // defs[0] {word : <firstWord>}
+  // defs[1] {definitions: <array>}
+  // defs[1].definitions[0] {partOfSpeech : <pos>}
+  // defs[1].definitions[1] {definitions : <array>}
+  // defs[1].definitions[2] {partOfSpeech : <pos>}
+  // defs[1].definitions[3] {definitions : <array>}
+  // and so on for each part of speech
+  // Then repeating at defs[2] if there is a second word
+  // Note: there can be only 2 words at max: 1 vertical, 1 horizontal
+
+  let word;
   let msg = "";
-  defs.forEach(item => { 
-    msg += JSON.stringify(item) + "\n"; });
+  for (let i= 0; i<defs.length; i++) {
+    if (defs[i].word) word = defs[i].word;
+    else if (defs[i].definitions) { 
+      for (let j=0; j<defs[i].definitions.length; j++) {
+        if (defs[i].definitions[j].partOfSpeech) 
+          msg += `${word} : ${defs[i].definitions[j].partOfSpeech}\n`;
+        else if (defs[i].definitions[j].definitions)
+          defs[i].definitions[j].definitions.forEach((def, idx) => {
+            msg += `${idx+1}: ${def}\n`;
+          });
+        }
+      }
+    }
   alert(msg);
 }
 
