@@ -6,6 +6,8 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "debug": "~2.6.9",
+    "dotenv": "^16.0.2",
+    "envfile": "^6.18.0",
     "http-errors": "~1.6.3",
     "jsoneditor": "^9.8.0",
     "jsonwebtoken": "^8.5.1",

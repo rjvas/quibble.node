@@ -19,6 +19,7 @@ db.connect()
         // process.exit(1);
     });
 
+const jwt = require('jsonwebtoken');
 const http = require('http');
 const pug = require('pug');
 var fs = require('fs');
@@ -26,7 +27,7 @@ var url = require('url');
 var path = require('path');
 
 
-// pug is a template engine that can pre-compile template defs
+// pug is a template engine that can pre-compile template defskkkkk
 var pug_grid = pug.compileFile('views/grid.pug');
 var pug_welcome = pug.compileFile('views/welcome.pug');
 var pug_user = pug.compileFile('views/user.pug');
@@ -189,6 +190,7 @@ function startup() {
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
+    var user_agent = request.headers["user-agent"];
     var filename = null;
 
     if (Admin && ActiveGame && !Admin.active_games)
@@ -328,7 +330,7 @@ function startup() {
 
     // async
     else if (pathname == "/login") {
-      User.login(query, remote_addr, response, ActiveGame.game_over);
+      User.login(query, remote_addr, user_agent, response, ActiveGame.game_over);
       logger.debug("heist.login query: " + query);
     }
 

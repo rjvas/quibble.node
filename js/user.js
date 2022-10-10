@@ -2,6 +2,7 @@
 The class that represents a user of the system - currently player and administrator
 */
 
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
@@ -29,6 +30,7 @@ class User {
     this.friends = sonj.friends;
     this.request_address = sonj.request_address;
     this.admin = null;
+    this.jwt = null;
   }
 
   static current_users = [];
@@ -128,7 +130,7 @@ class User {
      return User.pickup_gamers;
   }
 
-  static login (query, request_addr, response, game_over) {
+  static login (query, request_addr, user_agent, response, game_over) {
 
     var new_user = null;
     var params = new URLSearchParams(query);
@@ -151,7 +153,16 @@ class User {
           'Location' : '/?error_login'
         });
       }
-      response.end();
+      // logged in from an Adroid app
+      if (logged_in && (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone")) {
+        let jsons = [];
+        logged_in.last_login_date = Date();
+        jsons.push({"user" : logged_in.id.toHexString()});
+        jsons.push({"games" : logged_in.saved_games});
+        response.end(JSON.stringify(jsons));
+      }
+      else
+        response.end();
       return;
     }
 
@@ -201,7 +212,13 @@ class User {
           response.writeHead(302 , {
              'Location' : '/home_page?user=' + new_user.id.toHexString()
           });
-          response.end();
+          if (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone") {
+            let jsons = [];
+            jsons.push({"user" : new_user.id.toHexString()});
+            jsons.push({"games" : new_user.saved_games});
+            response.end(JSON.stringify(jsons));
+          } else
+            response.end();
         }
       })
 
