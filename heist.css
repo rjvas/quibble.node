@@ -7,7 +7,7 @@ For the board:
   line_horizontal - all horizontal lines in the grid
   line_vertical - all vertical lines in the grid
   safety_rect - the safety rectangles
-  center_rect - the board center
+  center_square - the board center
 
 For the tiles:
   tile_rect - the fill rectangle for the tiles
@@ -47,7 +47,12 @@ form {
   fill: #555555;
 }
 .center_square {
-  fill: #888;
+  fill: #333333;
+}
+.center_text {
+  font-size: 50%;
+  stroke: #555555;
+  font-family:  museo-sans, sans-serif;
 }
 
 .play_cls {
@@ -65,35 +70,35 @@ form {
 #p1_vs_p2 {
   /* fill: white; */
   stroke: white;
-  font-family: Tahoma, sans-serif;
+  font-family:  museo-sans, sans-serif;
 }
 
 #player1_stats {
 /* fill-rule: nonzero; */
 fill: white;
 stroke: white;
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 display: flex;
 flex-direction: column;
 }
 #player2_stats {
 fill: white;
 stroke: white;
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 display: flex;
 flex-direction: column;
 }
 
 .tile_text {
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 }
 .tile_points {
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 font-size: 60%;
 }
 
 .safety_text {
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 font-size: 70%;
 stroke : '#44bb55';
 font-style: italic;
@@ -118,7 +123,7 @@ background-color: #dddddd;
 }
 
 #chat_text {
-font-family: Tahoma, sans-serif;
+font-family:  museo-sans, sans-serif;
 font-size:      10pt;
 /* font-weight:    bold; */
 background-color: #dddddd;

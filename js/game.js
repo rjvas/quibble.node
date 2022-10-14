@@ -696,9 +696,6 @@ class Game {
   static Tile = Tile;
 
   static NUM_ROWS_COLS = 15;
-  static SAFETY_FILL = 'rgba(68,187,85,1)';
-  static SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
-  static CENTER_FILL = 'rgba(255,153,204,1)';
   static SAFE_INDEXES = [
     {row: 1, col: 1, rect: null},
     {row: 1, col: Game.NUM_ROWS_COLS, rect: null},

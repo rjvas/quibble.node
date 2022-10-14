@@ -15,6 +15,9 @@ var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value)
 var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
 var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
 var tiles_left_offset = parseInt(document.getElementById("tiles_left_offset").value);
+var tile_points_offX = parseInt(document.getElementById("tile_points_offX").value);
+var tile_points_offY = parseInt(document.getElementById("tile_points_offY").value);
+
 var current_player = document.getElementById("current_player").value;
 
 var ws_port = document.getElementById("ws_port").value;
@@ -41,7 +44,6 @@ const GRID_SIZE = CELL_SIZE*NUM_ROWS_COLS;
 
 const SAFETY_FILL = 'rgba(68,187,85,1)';
 const SAFETY_FILL_LITE = 'rgba(68,187,85,.3)';
-const CENTER_FILL = 'rgba(255,153,204,1)';
 
 const SAFE_INDEXES = [{
     row: 1,
@@ -458,8 +460,8 @@ function reposition_safe_squares() {
 
   for (let i = 0; i < SAFE_INDEXES.length; i++) {
     ss = safe_squares[i];
-    ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE);
-    ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE );
+    ss.setAttributeNS(null, 'x', (SAFE_INDEXES[i].row - 1) * CELL_SIZE + 1);
+    ss.setAttributeNS(null, 'y', (SAFE_INDEXES[i].col - 1) * CELL_SIZE + 1);
   }
 }
 
@@ -481,14 +483,14 @@ function reposition_lines() {
     line_vert[i].setAttributeNS(null, 'y1', 0);
     line_vert[i].setAttributeNS(null, 'x2', i * CELL_SIZE);
     line_vert[i].setAttributeNS(null, 'y2', CELL_SIZE * NUM_ROWS_COLS);
-    line_vert[i].setAttributeNS(null, 'stroke_width', 1);
+    line_vert[i].setAttributeNS(null, 'stroke_width', 2);
   }
   for (let i = 0; i <= NUM_ROWS_COLS; i++) {
     line_horiz[i].setAttributeNS(null, 'x1', 0);
     line_horiz[i].setAttributeNS(null, 'y1', i * CELL_SIZE);
     line_horiz[i].setAttributeNS(null, 'x2', CELL_SIZE * NUM_ROWS_COLS);
     line_horiz[i].setAttributeNS(null, 'y2', i * CELL_SIZE);
-    line_horiz[i].setAttributeNS(null, 'stroke_width', 1);
+    line_horiz[i].setAttributeNS(null, 'stroke_width', 2);
   }
 
 }
@@ -777,8 +779,8 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     let r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     r.setAttributeNS(null, 'x', 0);
     r.setAttributeNS(null, 'y', 0);
-    r.setAttributeNS(null, 'width', CELL_SIZE);
-    r.setAttributeNS(null, 'height', CELL_SIZE);
+    r.setAttributeNS(null, 'width', CELL_SIZE - 1);
+    r.setAttributeNS(null, 'height', CELL_SIZE - 1);
     r.setAttributeNS(null, 'fill', tile.fill);
     // r.setAttributeNS(null, 'stroke_width', 1);
     r.setAttributeNS(null, 'stroke', '#000');
@@ -799,8 +801,8 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     t.textContent = tile.char;
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    p.setAttributeNS(null, 'x', CELL_SIZE - 3);
-    p.setAttributeNS(null, 'y', CELL_SIZE - 8);
+    p.setAttributeNS(null, 'x', CELL_SIZE - tile_points_offX);
+    p.setAttributeNS(null, 'y', CELL_SIZE - tile_points_offY);
     // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
     p.setAttributeNS(null, 'width', CELL_SIZE*.2);
     p.setAttributeNS(null, 'height', CELL_SIZE*.2);
@@ -894,7 +896,8 @@ function handle_err_response(resp) {
   let err_msg = resp[0].err_msg;
   alert(err_msg);
 
-  clicked_recall();
+  // out per video 20220814
+  // clicked_recall();
 }
 
 function update_played_s_count(played_s_count) {
@@ -994,14 +997,16 @@ function handle_the_response(resp) {
     return has_error;
   }
 
-  // now stuff the word tiles into an easily accessable list - for drag control
-  Tile.word_tiles = [];
-  tile_svgs = document.querySelectorAll('.word_tile_svg');
-  tile_svgs.forEach((item, idx) => {
-    Tile.word_tiles.push(item);
-  });
+  if (!has_error) {
+    // now stuff the word tiles into an easily accessable list - for drag control
+    Tile.word_tiles = [];
+    tile_svgs = document.querySelectorAll('.word_tile_svg');
+    tile_svgs.forEach((item, idx) => {
+      Tile.word_tiles.push(item);
+    });
 
-  PlayStarts = [];
+    PlayStarts = [];
+  }
   return has_error;
 }
 
@@ -1968,6 +1973,7 @@ function handle_dictionary_lookup(defs) {
         }
       }
     }
+  msg += "\nDefinitions courtesy of Free Dictionary API";
   alert(msg);
 }
 
@@ -2187,8 +2193,9 @@ ws.onmessage = function(msg) {
     console.log("in onmessage: no play type");
   }
 
-  // leave a clean environment
-  PlayStarts = [];
+  // leave a clean environment (unless there is an error - if so leave tiles on board)
+  if (!err)
+    PlayStarts = [];
 
   // in this case a single player is playing both player1 and player2
   if (is_practice != "0" && !err &&

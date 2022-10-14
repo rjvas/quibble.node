@@ -140,29 +140,27 @@ class User {
     let logged_in = User.current_users.find(u => {
       return u.user_name == name;
     });
-    if (logged_in) {
+
+    if (logged_in && (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone")) {
+      let jsons = [];
+      logged_in.last_login_date = Date();
+      jsons.push({"user" : logged_in.id.toHexString()});
+      jsons.push({"games" : logged_in.saved_games});
+      response.writeHead(201 , { 'Content-Type' : 'text/json' });
+      response.end(JSON.stringify(jsons));
+      return;
+    }
+
+    else if (logged_in) {
       if (bcrypt.compareSync(passw, logged_in.password)) {
         logger.warn("User.login warning - " + name + "has multiple logins");
-        response.writeHead(302 , {
-            'Location' : '/home_page?user=' + logged_in.id.toHexString()
-        });
+        response.writeHead(302 , { 'Location' : '/home_page?user=' + logged_in.id.toHexString() });
       }
       else {
         logger.error("User.login error - " + name + " is already logged in");
-        response.writeHead(302 , {
-          'Location' : '/?error_login'
-        });
+        response.writeHead(302 , { 'Location' : '/?error_login' });
       }
-      // logged in from an Adroid app
-      if (logged_in && (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone")) {
-        let jsons = [];
-        logged_in.last_login_date = Date();
-        jsons.push({"user" : logged_in.id.toHexString()});
-        jsons.push({"games" : logged_in.saved_games});
-        response.end(JSON.stringify(jsons));
-      }
-      else
-        response.end();
+      response.end();
       return;
     }
 
@@ -209,16 +207,18 @@ class User {
           new_user.saved_games = result.filter(ag => {
             return !(ag.status & game_over);
           });
-          response.writeHead(302 , {
-             'Location' : '/home_page?user=' + new_user.id.toHexString()
-          });
           if (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone") {
             let jsons = [];
             jsons.push({"user" : new_user.id.toHexString()});
             jsons.push({"games" : new_user.saved_games});
+            response.writeHead(201 , { 'Content-Type' : 'text/json' });
             response.end(JSON.stringify(jsons));
-          } else
+          } else {
+            response.writeHead(302 , {
+              'Location' : '/home_page?user=' + new_user.id.toHexString()
+            });
             response.end();
+          }
         }
       })
 

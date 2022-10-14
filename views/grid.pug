@@ -35,6 +35,10 @@ html
     input(id="player_hand_xy_offset" type="hidden" value=player_hand_xy_offset)
     - var tiles_left_offset = cell_size + cell_size/4;
     input(id="tiles_left_offset" type="hidden" value=tiles_left_offset)
+    - var tile_points_offX = 4;
+    input(id="tile_points_offX" type="hidden" value=tile_points_offX)
+    - var tile_points_offY = 9;
+    input(id="tile_points_offY" type="hidden" value=tile_points_offY)
 
     if game.current_player == game.player_2
       input(id="current_player" type="hidden" value="/player2")
@@ -121,27 +125,33 @@ html
         // all the grid lines
         - var i = 0;
         while i < Game.NUM_ROWS_COLS + 1
-          line(class='line_horizontal' x1="0" y1=i*cell_size x2=grid_wh y2=i*cell_size stroke="black")
-          line(class='line_vertical' x1=i*cell_size y1="0" x2=i*cell_size y2=grid_wh stroke="black")
+          line(class='line_horizontal' x1="0" y1=i*cell_size x2=grid_wh y2=i*cell_size stroke="black" stroke_width=2)
+          line(class='line_vertical' x1=i*cell_size y1="0" x2=i*cell_size y2=grid_wh stroke="black" stroke_width=2)
           - i++;
 
         // safe squares 
         each s, idx in Game.SAFE_INDEXES
-          svg(x=(s.row-1)*cell_size y=(s.col-1)*cell_size width=cell_size height=cell_size viewBox="-40 -30 280 280"
-            class="safety_square" fill="#555555" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
+          svg(x=((s.row-1)*cell_size)+1 y=((s.col-1)*cell_size)+1 width=cell_size-2 height=cell_size-2 viewBox="-40 -30 280 280"
+            class="safety_square" fill="#555555") // preserveAspectRatio="xMidYMid meet" fill-rule="evenodd")
             rect(x="-40" y="-30" width="275" height="275" fill="#555555")
             path(class="lock" fill="black"
                 d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
           
         // center/start 
         - var center = {row: Math.round(15/2), col: Math.round(15/2)};
-        rect(x=(center.row-1)*cell_size y=(center.col-1)*cell_size width=cell_size height=cell_size fill="#555"
-          stroke=Game.CENTER_FILL class="center_square")
+        rect(x=((center.row-1)*cell_size)+1 y=((center.col-1)*cell_size)+1 width=cell_size-2 height=cell_size-2 
+          stroke=player1_risky class="center_square")
+        text(id="center_start_txt" x=(center.row-1)*cell_size+cell_size/2 y=(center.row-1)*cell_size+cell_size/3 width=cell_size height=cell_size/6 
+          text-anchor="middle" alignment-baseline="central" class="center_text")
+          |START
+        text(id="center_here_txt" x=(center.row-1)*cell_size+cell_size/2 y=(center.row-1)*cell_size+2*cell_size/3 width=cell_size height=cell_size/6 
+          text-anchor="middle" alignment-baseline="central" class="center_text")
+          |HERE
         
         // Words 
         each w, idx in game.words
           each t, tidx in w.tiles 
-            svg(id="tile_"+t.id x=(t.column-1)*cell_size y=(t.row-1)*cell_size width=cell_size height=cell_size 
+            svg(id="tile_"+t.id x=((t.column-1)*cell_size)+1 y=((t.row-1)*cell_size)+1 width=cell_size-2 height=cell_size-2 
               class="word_tile_svg")
               if t.player == game.player_1
                 if t.is_safe
@@ -161,7 +171,7 @@ html
               text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                 text-anchor="middle" alignment-baseline="central" class="tile_text")
                 |#{t.char}
-              text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+              text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                 text-anchor="end" alignment-baseline="central" class='tile_points')
                 |#{t.points}        
             rect(class="tilehook" fill="#fff" fill-opacity=0 
@@ -171,7 +181,7 @@ html
 
         svg(id="tiles_left" x="275" y="230" width="640" height="480")
           g()
-            text(fill="white" font-family="Tahoma" font-size="24" id="tiles_left_vert" stroke="#000000" 
+            text(fill="white" font-family="museo-sans, sans-serif" font-size="24" id="tiles_left_vert" stroke="#000000" 
               stroke-width="0" text-anchor="middle" transform="rotate(-90.5876, 277.2, 136.8)" x="277.2" xml:space="preserve" y="145.2")
               |TILES LEFT
         text(id="tiles_left_count" x=550 y=290 width=cell_size height=8*cell_size stroke="white" text-anchor="middle")
@@ -183,11 +193,11 @@ html
             - var i = 1;
             while i <= game.total_s_count
               if i <= game.played_s_count
-                text(fill="white" font-family="Tahoma" font-size="24" class="s_count" id="s_count"+i stroke="white" 
+                text(fill="white" font-family="museo-sans, sans-serif" font-size="24" class="s_count" id="s_count"+i stroke="white" 
                   stroke-width="2" text-anchor="middle" x="0" y=(i-1)*cell_size)
                   |S
               else 
-                text(fill="grey" font-family="Tahoma" font-size="24" class="s_count" id="s_count"+i stroke="grey" 
+                text(fill="grey" font-family="museo-sans, sans-serif" font-size="24" class="s_count" id="s_count"+i stroke="grey" 
                   stroke-width="2" text-anchor="middle" x="0" y=(i-1)*cell_size)
                   |S
               - i++
@@ -208,7 +218,7 @@ html
                 text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                   text-anchor="middle" alignment-baseline="central" class="tile_text")
                   |#{t.char}
-                text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}
         else
@@ -226,7 +236,7 @@ html
                 text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                   text-anchor="middle" alignment-baseline="central" class="tile_text")
                   |#{t.char}
-                text(x=cell_size-3 y=cell_size-8 width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}
 
