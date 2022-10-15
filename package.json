@@ -10,7 +10,6 @@
     "envfile": "^6.18.0",
     "http-errors": "~1.6.3",
     "jsoneditor": "^9.8.0",
-    "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.5",
     "mongoose": "^5.11.15",
     "pug": "^3.0.2",

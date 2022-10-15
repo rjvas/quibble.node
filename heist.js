@@ -19,7 +19,7 @@ db.connect()
         // process.exit(1);
     });
 
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const http = require('http');
 const pug = require('pug');
 var fs = require('fs');
