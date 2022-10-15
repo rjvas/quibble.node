@@ -62,6 +62,9 @@ class Game {
     // and handle_pass
     this.consecutive_pass_count = 2;
 
+    // for building the grid page - see grid.pug
+    Game.is_blank = Tile.is_blank;
+
     // tile info for the game
     this.tile_pool = [];
     this.tile_defs = null; // initialized in Tile.init_Tile()
@@ -102,6 +105,7 @@ class Game {
       this.current_play = this.player_1_play;
       this.current_player = this.player_1;
       this.current_play.player = this.player_1;
+
     }
 
 }

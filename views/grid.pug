@@ -168,6 +168,17 @@ html
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player2_risky
                     stroke_width=1 stroke='#000' class="tile_rect")
                 
+              line(class='hilite_top_left' x1=1 y1=1 x2=cell_size-1 y2=1 stroke="white" stroke_width=5)
+              line(class='hilite_top_left' x1=1 y1=1 x2=1 y2=cell_size-1 stroke="white" stroke_width=5)
+              line(class='hilite_bottom_right' x1=1 y1=cell_size-1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+              line(class='hilite_bottom_right' x1=cell_size-1 y1=1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+
+              if t.status & Game.is_blank 
+                polygon(points="3,3 15,3 3,15" fill="black")
+              else
+                // this extra do-nothing poly is to keep indexing in board.js consistant
+                polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
+
               text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                 text-anchor="middle" alignment-baseline="central" class="tile_text")
                 |#{t.char}
@@ -215,9 +226,24 @@ html
                 else
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player1_risky
                     stroke_width=1 stroke='#000' class="tile_rect")
-                text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                  text-anchor="middle" alignment-baseline="central" class="tile_text")
-                  |#{t.char}
+
+                line(class='hilite_top_left' x1=1 y1=1 x2=cell_size-1 y2=1 stroke="white" stroke_width=5)
+                line(class='hilite_top_left' x1=1 y1=1 x2=1 y2=cell_size-1 stroke="white" stroke_width=5)
+                line(class='hilite_bottom_right' x1=1 y1=cell_size-1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+                line(class='hilite_bottom_right' x1=cell_size-1 y1=1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+
+                if t.status & Game.is_blank 
+                  polygon(points="3,3 15,3 3,15" fill="black")
+                  text(class="wild_tile" x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                    text-anchor="middle" alignment-baseline="central" class="tile_text")
+                    |WILD
+                else
+                  // this extra do-nothing poly is to keep indexing in board.js consistant
+                  polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
+                  text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                    text-anchor="middle" alignment-baseline="central" class="tile_text")
+                    |#{t.char}
+
                 text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}
@@ -233,9 +259,24 @@ html
                 else
                   rect(x="0" y="0" width=cell_size height=cell_size fill=player2_risky
                     stroke_width=1 stroke='#000' class="tile_rect")
-                text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
-                  text-anchor="middle" alignment-baseline="central" class="tile_text")
-                  |#{t.char}
+
+                line(class='hilite_top_left' x1=1 y1=1 x2=cell_size-1 y2=1 stroke="white" stroke_width=5)
+                line(class='hilite_top_left' x1=1 y1=1 x2=1 y2=cell_size-1 stroke="white" stroke_width=5)
+                line(class='hilite_bottom_right' x1=1 y1=cell_size-1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+                line(class='hilite_bottom_right' x1=cell_size-1 y1=1 x2=cell_size-1 y2=cell_size-1 stroke="#777777" stroke_width=5)
+
+                if t.status & Game.is_blank 
+                  polygon(points="3,3 15,3 3,15" fill="black")
+                  text(class="wild_tile" x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                    text-anchor="middle" alignment-baseline="central")
+                    |WILD
+                else
+                  // this extra do-nothing poly is to keep indexing in board.js consistant
+                  polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
+                  text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
+                    text-anchor="middle" alignment-baseline="central" class="tile_text")
+                    |#{t.char}
+
                 text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}

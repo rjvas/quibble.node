@@ -51,8 +51,9 @@ form {
 }
 .center_text {
   font-size: 50%;
+  fill: #555555;
   stroke: #555555;
-  font-family:  museo-sans, sans-serif;
+  font-family:  proxima-nova, sans-serif;
 }
 
 .play_cls {
@@ -74,7 +75,6 @@ form {
 }
 
 #player1_stats {
-/* fill-rule: nonzero; */
 fill: white;
 stroke: white;
 font-family:  museo-sans, sans-serif;
@@ -89,6 +89,10 @@ display: flex;
 flex-direction: column;
 }
 
+.wild_tile {
+  font-family: proxima-nova, sans-serif;
+  font-size: 50%;
+}
 .tile_text {
 font-family:  museo-sans, sans-serif;
 }

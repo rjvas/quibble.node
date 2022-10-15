@@ -109,8 +109,9 @@ const SAFE_INDEXES = [{
 
 const NUM_PLAYER_TILES = 7;
 const RECT_POSITION = 0;
-const TEXT_POSITION = 1;
-const BLANK_TILE = " ";
+const TEXT_POSITION = 6;
+const POINTS_POSITION = 7;
+const BLANK_TILE = "WILD";
 const char_regex = /^([a-r]|[t-z]){1}$|^([A-R]|[T-Z]){1}$/;
 // const char_regex = /^[a-z]{1}$|^[A-Z]{1}$/;
 const back_ground = "#f5efe6ff";
@@ -120,15 +121,15 @@ class Tile {
   constructor(svg, drag, idx, status, points) {
 
     this.id = svg.getAttributeNS(null, "id");
-    this.char = svg.childNodes[1].textContent;
-    this.points = points ? points : parseInt(svg.childNodes[2].textContent);
+    this.char = svg.childNodes[TEXT_POSITION].textContent;
+    this.points = points ? points : parseInt(svg.childNodes[POINTS_POSITION].textContent);
     this.row = Math.round(svg.getAttributeNS(null, "y") / CELL_SIZE) + 1;
     this.column = Math.round(svg.getAttributeNS(null, "x") / CELL_SIZE) + 1;
     this.player_hand_idx = idx;
     this.svg = svg;
     this.drag = drag;
 
-    this.status = status > -1 ? status : Tile.in_hand;
+    this.status = status;
     if (this.char == BLANK_TILE) this.status |= Tile.is_blank;
   }
 
@@ -217,10 +218,12 @@ class Tile {
   static swapped_tiles = [];
 
   // these are the legitimate tile states
+  // they MUST match tile.js Tile.<stuff>
   static none = 0;
   static in_hand = 1; 
   static on_board = 2;
   static is_blank = 8;
+  static utilized = 32;
 
   static is_on_board(row, col) {
     if (row > 0 && row < 16 &&
@@ -785,6 +788,45 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     // r.setAttributeNS(null, 'stroke_width', 1);
     r.setAttributeNS(null, 'stroke', '#000');
     r.setAttributeNS(null, 'class', 'tile_rect');
+    svg.append(r);
+
+    // hilites
+    let l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttributeNS(null, 'x1', 1);
+    l.setAttributeNS(null, 'y1', 1);
+    l.setAttributeNS(null, 'x2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'y2', 1);
+    l.setAttributeNS(null, 'stroke_width', 5);
+    l.setAttributeNS(null, 'stroke', 'white');
+    l.setAttributeNS(null, 'class', 'hilite_top_left');
+    svg.append(l);
+    l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttributeNS(null, 'x1', 1);
+    l.setAttributeNS(null, 'y1', 1);
+    l.setAttributeNS(null, 'x2', 1);
+    l.setAttributeNS(null, 'y2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'stroke_width', 5);
+    l.setAttributeNS(null, 'stroke', 'white');
+    l.setAttributeNS(null, 'class', 'hilite_top_left');
+    svg.append(l);
+    l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttributeNS(null, 'x1', CELL_SIZE-1);
+    l.setAttributeNS(null, 'y1', 1);
+    l.setAttributeNS(null, 'x2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'y2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'stroke_width', 5);
+    l.setAttributeNS(null, 'stroke', '#777777');
+    l.setAttributeNS(null, 'class', 'hilite_bottom_right');
+    svg.append(l);
+    l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttributeNS(null, 'x1', 1);
+    l.setAttributeNS(null, 'y1', CELL_SIZE-1);
+    l.setAttributeNS(null, 'x2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'y2', CELL_SIZE-1);
+    l.setAttributeNS(null, 'stroke_width', 5);
+    l.setAttributeNS(null, 'stroke', '#777777');
+    l.setAttributeNS(null, 'class', 'hilite_bottom_right');
+    svg.append(l);
 
     let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttributeNS(null, 'x', CELL_SIZE / 2);
@@ -799,6 +841,7 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     t.setAttributeNS(null, 'class', 'tile_text');
     // t.addEventListener("click", tile_clicked);
     t.textContent = tile.char;
+    svg.append(t);
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     p.setAttributeNS(null, 'x', CELL_SIZE - tile_points_offX);
@@ -813,6 +856,7 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     p.setAttributeNS(null, 'alignment-baseline', "central");
     p.setAttributeNS(null, 'class', 'tile_points');
     p.textContent = tile.points;
+    svg.append(p);
 
     // let th = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     // th.setAttributeNS(null, 'x', 0);
@@ -824,9 +868,6 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     // th.setAttributeNS(null, 'stroke', '#000');
     // th.setAttributeNS(null, 'class', 'tilehook');
 
-    svg.append(r);
-    svg.append(t);
-    svg.append(p);
   }
 
 // these are NEW tiles created async during play
@@ -859,8 +900,11 @@ function setup_jtile_for_play(tile_json, no_drag) {
         height: "100%"
       } 
 
+      let status = Tile.in_hand;
+      if (tile_json.status & Tile.is_blank) status |= Tile.is_blank;
+
       drag_rec.snap = {CELL_SIZE};
-      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, Tile.in_hand, tile_json.points);
+      PlayerHand.tiles[idx] = new Tile(svg, drag_rec, idx, status, tile_json.points);
     }
     else Tile.word_tiles.push(svg);
   }
@@ -872,7 +916,7 @@ function setup_jtile_for_play(tile_json, no_drag) {
 function set_jtile_props(jtile) {
   let svg = document.getElementById("tile_" + jtile.id);
   if (svg) {
-    let r = svg.childNodes[0];
+    let r = svg.childNodes[RECT_POSITION];
     r.setAttributeNS(null, 'fill', jtile.fill);
     svg.classList.remove('player_tile_svg');
   } else {
@@ -970,7 +1014,7 @@ function handle_the_response(resp) {
       if (tile) {
         tile.drag.remove();
         tile.svg.classList.remove('player_tile_svg');
-        tile.svg.childNodes[0].setAttributeNS(null, "fill", word_tiles[i].fill);
+        tile.svg.childNodes[RECT_POSITION].setAttributeNS(null, "fill", word_tiles[i].fill);
         // finally, stuff it in the Tile.word_tiles for collision control
         tile.svg.addEventListener("click", tile_clicked);
         Tile.word_tiles.push(tile.svg);
@@ -1081,9 +1125,9 @@ function erase_player_hand(jsons) {
 
   for (let i = 0; i < jsons.length; i++) {
     let tile = PlayerHand.tiles[jsons[i].player_hand_idx];
-    tile.svg.childNodes[0].setAttributeNS(null, "fill", "white");
-    tile.svg.childNodes[1].setAttributeNS(null, "stroke", "white");
-    tile.svg.childNodes[2].setAttributeNS(null, "stroke", "white");
+    tile.svg.childNodes[RECT_POSITION].setAttributeNS(null, "fill", "white");
+    tile.svg.childNodes[TEXT_POSITION].setAttributeNS(null, "stroke", "white");
+    tile.svg.childNodes[POINTS_POSITION].setAttributeNS(null, "stroke", "white");
     PlayerHand.tiles[jsons[i].player_hand_idx] = null;
   }
 }
@@ -1105,8 +1149,11 @@ function clicked_recall() {
   if (PlayStarts.length > 0) {
     PlayStarts.forEach(item => {
       if (item.status & Tile.is_blank) {
-        item.svg.childNodes[TEXT_POSITION].textContent = " ";
-        item.char = " "
+        item.svg.childNodes[TEXT_POSITION].textContent = "WILD";
+        item.svg.childNodes[TEXT_POSITION].setAttributeNS(null, "font-size", "100%");
+        item.char = "WILD"
+        item.svg.childNodes[TEXT_POSITION].classList.add('wild_tile');
+        item.svg.childNodes[TEXT_POSITION].classList.remove('tile_text');
       }
       if (!PlayerHand.add(item))
         console.log(`clicked_recall: cannot add ${item.char}/${item.id} to PlayerHand`);
@@ -1800,8 +1847,11 @@ function tile_moved(new_position) {
             letter = window.prompt("A SINGLE CHARACTER a-z or A-Z - EXCEPT S- is acceptable! " + 
               "OR - " + "\nA SINGLE CHARACHTER a/A-r/R or t/T - z/Z. NO s/S");
           }
-          tile.char = letter.trim().toLowerCase();
+          tile.char = letter.trim().toUpperCase();
           svg.childNodes[TEXT_POSITION].textContent = tile.char;
+          svg.childNodes[TEXT_POSITION].setAttributeNS(null, "font-size", "100%");
+          svg.childNodes[TEXT_POSITION].classList.remove('wild_tile');
+          svg.childNodes[TEXT_POSITION].classList.add('tile_text');
         }
         // console.log("blank tile moved: " + letter);
       }
@@ -1930,7 +1980,7 @@ function hilite_tile(svg) {
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "y", 2);
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "width", CELL_SIZE - 4);
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "height", CELL_SIZE - 4);
-    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "red");
+    svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke", "white");
     svg.childNodes[RECT_POSITION].setAttributeNS(null, "stroke-width", "3");
   }
 }
