@@ -2,7 +2,6 @@
 The class that represents a user of the system - currently player and administrator
 */
 
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
