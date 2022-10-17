@@ -957,11 +957,11 @@ function update_scoreboard(item, data) {
     item = document.getElementById("player1_name");
     if (item) item.textContent = data.scoreboard_player_1_name;
   }
-  else if (data.scoreboard_player_1_score) {
+  else if (data.scoreboard_player_1_score !== undefined) {
     item = document.getElementById("player1_score");
     if (item) item.textContent = data.scoreboard_player_1_score;
   } 
-  else if (data.scoreboard_player_1_safe_score) {
+  else if (data.scoreboard_player_1_safe_score !== undefined) {
     item = document.getElementById("player1_lock_pts");
     if (item) item.textContent = data.scoreboard_player_1_safe_score;
   } 
@@ -969,11 +969,11 @@ function update_scoreboard(item, data) {
     item = document.getElementById("player2_name");
     if (item) item.textContent = data.scoreboard_player_2_name;
   } 
-  else if (data.scoreboard_player_2_score) {
+  else if (data.scoreboard_player_2_score !== undefined) {
     item = document.getElementById("player2_score");
     if (item) item.textContent = data.scoreboard_player_2_score;
   } 
-  else if (data.scoreboard_player_2_safe_score) {
+  else if (data.scoreboard_player_2_safe_score !== undefined) {
     item = document.getElementById("player2_lock_pts");
     if (item) item.textContent = data.scoreboard_player_2_safe_score;
   } 
