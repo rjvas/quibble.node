@@ -828,6 +828,14 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     l.setAttributeNS(null, 'class', 'hilite_bottom_right');
     svg.append(l);
 
+    let pg = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    pg.setAttributeNS(null, "points", "3,3 15,3 3,15");
+    pg.setAttributeNS(null, 'fill',  "black");
+    // this do-nothing poly is to keep indexing in board.js consistant
+    if (!(tile.status & Tile.is_blank))
+      pg.setAttributeNS(null, 'fill-opacity',  "0");
+    svg.append(pg);
+
     let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttributeNS(null, 'x', CELL_SIZE / 2);
     t.setAttributeNS(null, 'y', CELL_SIZE / 2);
@@ -839,6 +847,8 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     t.setAttributeNS(null, 'text-anchor', "middle");
     t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
+    if (tile.char == BLANK_TILE)
+      t.classList.add('wild_tile');
     // t.addEventListener("click", tile_clicked);
     t.textContent = tile.char;
     svg.append(t);

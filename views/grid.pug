@@ -176,7 +176,6 @@ html
               if t.status & Game.is_blank 
                 polygon(points="3,3 15,3 3,15" fill="black")
               else
-                // this extra do-nothing poly is to keep indexing in board.js consistant
                 polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
 
               text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
@@ -238,7 +237,6 @@ html
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
                     |WILD
                 else
-                  // this extra do-nothing poly is to keep indexing in board.js consistant
                   polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
                   text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
@@ -271,7 +269,6 @@ html
                     text-anchor="middle" alignment-baseline="central")
                     |WILD
                 else
-                  // this extra do-nothing poly is to keep indexing in board.js consistant
                   polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
                   text(x=cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
