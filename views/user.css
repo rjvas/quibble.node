@@ -1,22 +1,21 @@
 body {
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
-  align-items: center;
   width: 100%;
   font-family: museo-sans, sans-serif;
   font-style: normal;
   background-color: #555555;
 }
 
-div {
-  padding-top: 10px;
+/* div { 
+  margin-top: 10px;
 }
+*/
 
 .button {
   height: 30px;
   border-radius: 10px;
-  width: 200px;
+  width: 130px;
 }
 
 .label {
@@ -33,52 +32,60 @@ div {
 }
 
 #all {
-  margin-left: 10%;
-  width : 90%;
-  height : 90%;
   align-self: center;
+  display: flex;
+  flex-direction: column;
+  width : 70%;
+  height : 90%;
   max-width: 600px;
+  /* background-color: black; */
 }
 
-#welcome {
+.welcome {
   font-size: 20px;
   font-weight: 800;
   color: white;
   display: flex;
+  margin-bottom: 10px;
 }
 
 .logout_button {
   border-radius: 10px;
-  width: 30%;
+  width: 150px;
 }
 
 #games {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width : 90%;
+  width : 100%;
 }
 
 /* red buttons */
 #games_btn, #play_pickup_btn, #practice_btn {
+  width: 130px;
+  margin-top: 10px;
   color: white;
-  background-color: #f179af;
+  background-color: #eb008b;
 }
 
 /* blue buttons */
 .logout_btn, #delete_game_btn, #add_pickup_btn  {
+  width: 130px;
+  margin-top: 10px;
   color: white;
-  background-color:  #44c7f4;
+  background-color:  #0072bc;
 }
 
 #add_pickup_btn {
-  width: 40%;
+  width: 130px;
 }
 #pickup_lst, #games_lst {
   padding: 5px;
-  margin: 5px;
-  border-radius: 10px;
-  width: 90%;
+  /* margin: 5px; */
+  /* border-radius: 10px; */
+  width: 100%;
 } 
 
 /* #practice_btn {

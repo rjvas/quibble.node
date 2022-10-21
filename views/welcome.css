@@ -3,16 +3,11 @@
 body {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-self: center;
   width: 100%;
   font-family: museo-sans, sans-serif;
   font-style: normal;
-  background-color: #333333;
-}
-
-
-div {
-  /* padding: 5; */
+  background-color: #555555;
 }
 
 .error_label {
@@ -22,67 +17,74 @@ div {
   margin-left: 10%;
 }
 
+#both {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  background-color: black;
+  width: 70%;
+  height: 90%;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  max-width: 600px;
+}
+
 #top_label {
+  align-self: center;
   padding-top: 15px;
   font-weight: 800;
   font-size: 48px;
   color: white;
+}
+
+#first {
+  align-self: center;
+  width: 70%;
   margin-left: 10%;
+  padding-top: 20px;
 }
 
 .section_label {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 22px;
   color: white;
 }
 
-#both {
-  align-self: center;
-  background-color: #333333;
-  width: 90%;
-  height: 90%;
-  max-width: 600px;
-}
-
-#first {
-  padding-top: 20px;
-  /* justify-content: center; */
-  /* align-items: center; */
-  width: 100%;
-  margin-left: 10%;
-}
-
 #second {
-  padding-top: 30px;
-  /* justify-content: center; */
-  /* align-items: center; */
-  width: 100%;
+  width: 70%;
   margin-left: 10%;
+  margin-bottom: 20px;
+  align-self: center;
+  padding-top: 30px;
 }
 
 form {
-  height: 100%;
-  width: 100%;
+  height: 80%;
+  width: 80%;
 }
 
 .in_fields {
   font-size: 14px;
   padding-top: 5px;
   padding-left: 15px;
-  margin: 5px;
-  border-radius: 10px;
-  width: 80%;
+  margin-top: 10px;
+  width: 100%;
+  height: 20px;
+  background-color: #333333;
+}
+
+.buttons {
   height: 30px;
+  margin-top: 10px;
+  width: 150px;
+  color: white;
+  border-radius: 10px;
 }
 
 #login_submit {
-  width: 200px;
-  color: white;
-  background-color: #f179af;
+  background-color: #eb008b;
 }
 
 #new_submit {
-  width: 200px;
-  color: white;
-  background-color: #44c7f4;
+  background-color: #0072bc;
 }

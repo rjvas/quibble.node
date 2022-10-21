@@ -11,14 +11,14 @@ html(lang="en")
     input(id="user" type="hidden" value=user.id.toHexString())
 
     #all
-      #welcome.label
+      .welcome.label
         |Welcome to Word Heist, #{user.display_name}
-      #logout 
-        span#logout
-          if (user.role & User.admin)
-            input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
-          input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
-        
+        .logout 
+          span#logout
+            if (user.role & User.admin)
+              input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
+            input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
+          
       #games
         div.label Your Games
           if games.length > 0
@@ -36,7 +36,7 @@ html(lang="en")
           p(class="sub1") Click here to add your name to the available player pool
           input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
 
-          p.sub1 Or select a player from the existing player pool
+          p.sub1 Or select a player from the available player pool
 
           select(id="pickup_lst")
             option(value=-1) Select A Player
