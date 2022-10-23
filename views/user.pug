@@ -10,17 +10,17 @@ html(lang="en")
     input(id="user_display_name" type="hidden" value=user.display_name)
     input(id="user" type="hidden" value=user.id.toHexString())
 
-    .all
-      .control_pnl
-        span.logout
+    #all
+      #control_pnl
+        span#logout
           if (user.role & User.admin)
             input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
           input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
-        .welcome.label
+        #welcome
           |Welcome, #{user.display_name}
             
         #games
-          div.label In-Process Games
+          div.sub_label In-Process Games
             if games.length > 0
               select(id="games_lst")
                 option(value=-1) Select A Game
@@ -29,21 +29,25 @@ html(lang="en")
                     option(value=idx) #{val.name}
 
             input(id="games_btn" type="button" class="button" value="GO PLAY!" )
-            input(id="delete_game_btn" type="button" value="DELETE" )
+            input(id="delete_game_btn" type="button" value="DELETE GAME" )
             
-          div.label Start A New Game
-            p.sub1 Select a player from the available player pool
+          div.sub_label Start A New Game
+            br
+            span.descrip Select a player from the available player pool
             select(id="pickup_lst")
               option(value=-1) Select A Player
               each val, idx in gamers
                 option(value=idx) #{val}
             input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
-            
-            p(class="sub1") Or add your name to the available player pool
+            br
+            span.descrip Or add your name to the available player pool
+            br
             input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
 
-          div.label Practice Game 
-            p.sub1 Play yourself! A guaranteed win and good practice.
+          div.sub_label Practice Game 
+            br
+            span.descrip Play yourself! A guaranteed win and good practice. 
+            br
             input(id="practice_btn" type="button" class="button" value="PRACTICE")
 
     script(src="/js/user_home.js")
