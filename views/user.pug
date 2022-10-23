@@ -10,43 +10,40 @@ html(lang="en")
     input(id="user_display_name" type="hidden" value=user.display_name)
     input(id="user" type="hidden" value=user.id.toHexString())
 
-    #all
-      .welcome.label
-        |Welcome to Word Heist, #{user.display_name}
-        .logout 
-          span#logout
-            if (user.role & User.admin)
-              input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
-            input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
-          
-      #games
-        div.label Your Games
-          if games.length > 0
-            select(id="games_lst")
-              option(value=-1) Select A Game
-              each val, idx in games
-                if val.active 
-                  option(value=idx) #{val.name}
-          else 
-            |No Games
-          input(id="games_btn" type="button" class="button" value="GO PLAY!" )
-          input(id="delete_game_btn" type="button" class="button" value="DELETE" )
-          
-        div.label Start A New Game
-          p(class="sub1") Click here to add your name to the available player pool
-          input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
+    .all
+      .control_pnl
+        span.logout
+          if (user.role & User.admin)
+            input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
+          input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
+        .welcome.label
+          |Welcome, #{user.display_name}
+            
+        #games
+          div.label In-Process Games
+            if games.length > 0
+              select(id="games_lst")
+                option(value=-1) Select A Game
+                each val, idx in games
+                  if val.active 
+                    option(value=idx) #{val.name}
 
-          p.sub1 Or select a player from the available player pool
+            input(id="games_btn" type="button" class="button" value="GO PLAY!" )
+            input(id="delete_game_btn" type="button" value="DELETE" )
+            
+          div.label Start A New Game
+            p.sub1 Select a player from the available player pool
+            select(id="pickup_lst")
+              option(value=-1) Select A Player
+              each val, idx in gamers
+                option(value=idx) #{val}
+            input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
+            
+            p(class="sub1") Or add your name to the available player pool
+            input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
 
-          select(id="pickup_lst")
-            option(value=-1) Select A Player
-            each val, idx in gamers
-              option(value=idx) #{val}
-          
-          input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
-
-        div.label Or 
-          p.sub1 Play yourself! A guaranteed win and good practice.
-          input(id="practice_btn" type="button" class="button" value="PLAY YOU!")
+          div.label Practice Game 
+            p.sub1 Play yourself! A guaranteed win and good practice.
+            input(id="practice_btn" type="button" class="button" value="PRACTICE")
 
     script(src="/js/user_home.js")

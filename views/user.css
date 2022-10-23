@@ -3,19 +3,17 @@ body {
   flex-direction: column;
   width: 100%;
   font-family: museo-sans, sans-serif;
-  font-style: normal;
+  font-style:normal ;
   background-color: #555555;
 }
 
-/* div { 
-  margin-top: 10px;
-}
-*/
-
 .button {
   height: 30px;
-  border-radius: 10px;
-  width: 130px;
+  border-radius: 7px;
+  width: 100px;
+  cursor: pointer;
+  border: none;
+  outline: none;
 }
 
 .label {
@@ -31,14 +29,20 @@ body {
   font-size: 14px;
 }
 
-#all {
+.all {
+  margin: 5%;
+  background-color: black;
   align-self: center;
   display: flex;
   flex-direction: column;
-  width : 70%;
+  width : 80%;
   height : 90%;
   max-width: 600px;
   /* background-color: black; */
+}
+
+.control_pnl {
+  margin: 7%;
 }
 
 .welcome {
@@ -46,16 +50,26 @@ body {
   font-weight: 800;
   color: white;
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+}
+
+#logout {
+  display: inline;
+  align-items: flex-end;
 }
 
 .logout_button {
+  font-size: 10pt;
+  float: right;
   border-radius: 10px;
-  width: 150px;
+  height: 30px;
+  width: 80px;
+  cursor: pointer;
 }
 
 #games {
-  margin-top: 10px;
+  font-size: 10pt;
+  margin-top: 5px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -63,17 +77,29 @@ body {
 }
 
 /* red buttons */
-#games_btn, #play_pickup_btn, #practice_btn {
-  width: 130px;
-  margin-top: 10px;
+#games_btn {
+  font-size: 10pt;
+  width: 80px;
+  margin-top: 5px;
   color: white;
   background-color: #eb008b;
 }
 
-/* blue buttons */
-.logout_btn, #delete_game_btn, #add_pickup_btn  {
-  width: 130px;
+#delete_game_btn {
+  color: white;
+  outline: none;
+  border: none;
   margin-top: 10px;
+  float: right;
+  background-color: #555555;
+  cursor: pointer;
+}
+
+/* blue buttons */
+#play_pickup_btn, #add_pickup_btn  {
+  font-size: 10pt;
+  width: 100px;
+  margin-top: 5px;
   color: white;
   background-color:  #0072bc;
 }
@@ -82,12 +108,17 @@ body {
   width: 130px;
 }
 #pickup_lst, #games_lst {
-  padding: 5px;
+  padding: 7px;
+  color: white;
+  background-color: #333333;
   /* margin: 5px; */
   /* border-radius: 10px; */
   width: 100%;
+  cursor: pointer;
 } 
 
-/* #practice_btn {
-  margin-top: 30px;
-} */
+#practice_btn {
+  font-size: 10pt;
+  color: white;
+  background-color:  #449944;
+}

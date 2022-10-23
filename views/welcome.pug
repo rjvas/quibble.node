@@ -29,24 +29,24 @@ html(lang="en")
         div.section_label Login
         form(action="login")
           div.username
-            input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="username")
+            input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="User Name")
           div.password
-            input(type="password" class="in_fields" name="password" placeholder="password")
+            input(type="password" class="in_fields" name="password" placeholder="Password")
           div.submit
             button(type="submit" id="login_submit" class="buttons" ) LOGIN
                 
       #second
         form(action="register")
-          div.section_label New Player?
+          div.section_label New User?
           div.reg_username
-            input(type="text" class="in_fields" name="username" placeholder="user name (your private login name)")
+            input(type="text" class="in_fields" name="username" placeholder="User Name (Your Private Login Name)")
           div.reg_displayname
-            input(type="text" class="in_fields" name="displayname" placeholder="display name (other players see this)")
-          div.reg_password
-            input(type="password" class="in_fields" name="password" placeholder="password")
-          div.reg_password2
-            input(type="password" class="in_fields" name="password2" placeholder="retype password")
+            input(type="text" class="in_fields" name="displayname" placeholder="Display Name (Other Players See This)")
           div.reg_email
-            input(type="text" class="in_fields" name="email" placeholder="email (foo@bar.com)")
+            input(type="text" class="in_fields" name="email" placeholder="Email Address")
+          div.reg_password
+            input(type="password" class="in_fields" name="password" placeholder="Password")
+          div.reg_password2
+            input(type="password" class="in_fields" name="password2" placeholder="Re-type Password")
           div.reg_submit
-            button(type="submit" id="new_submit" class="buttons" ) CREATE ACCOUNT
+            button(type="submit" id="new_submit" class="buttons" ) SIGN UP!
