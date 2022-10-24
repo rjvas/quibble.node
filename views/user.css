@@ -4,11 +4,11 @@ body {
   width: 100%;
   font-family: museo-sans, sans-serif;
   font-style:normal ;
-  background-color: #555555;
+  background-color: black;
 }
 
 #all {
-  margin: 5%;
+  /* margin: 5%; */
   background-color: black;
   align-self: center;
   display: flex;
@@ -59,6 +59,8 @@ body {
   width: 110px;
   height: 30px;
   border-radius: 7px;
+  outline: none;
+  border: none;
   /* padding-top: 20px; */
   font-size: 18pt;
   font-weight: 600;
@@ -83,7 +85,7 @@ body {
 /* red buttons */
 #games_btn {
   font-size: 8pt;
-  /* margin-top: 5px; */
+  margin-top: 5px;
   color: white;
   background-color: #eb008b;
 }
@@ -111,6 +113,8 @@ body {
   padding: 7px;
   color: lightgrey;
   background-color: #333333;
+  outline: none;
+  border: none;
   margin-top: 5px;
   margin-bottom: 5px;
   width: 100%;
