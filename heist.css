@@ -19,6 +19,13 @@ scoreboard_tiles_left_value - the value of "Tiles Left"
 
 */
 
+body {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .swap_pop {
   display: none; 
   position: fixed;
@@ -34,10 +41,6 @@ scoreboard_tiles_left_value - the value of "Tiles Left"
   flex-direction: column;
   font-size: 100%;
 } */
-
-form {
-  text-align: center;
-}
 
 #grid_background {
   fill: #333333;
@@ -138,19 +141,3 @@ overflow-y: auto;
 text-align: left;
 padding: 2px;
 }
-
-/* **************** OBSOLETE ******************* */
-/*
-
-.scoreboard_tiles_left_value {
-font: 16px italic;
-stroke: red;
-}
-
-.scoreboard_title {
-font-family: Tahoma, sans-serif;
-stroke : #ff0000ff;
-font-style: italic;
-}
-
-*/
