@@ -1206,6 +1206,10 @@ function clicked_home_btn(event) {
   xhr.send(null);
 }
 
+function clicked_question(event) {
+  alert(`Nothing to see here. Move along.`)
+}
+
 function clicked_bookmark_log(event) {
   if (BookMKWin) return;
 
@@ -1921,6 +1925,11 @@ function set_button_callbacks() {
   let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('question_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_question);
   }
 
   btn = document.getElementById('player2_photo');

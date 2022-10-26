@@ -109,10 +109,10 @@ html
               stroke=player2_safe fill=player2_safe text-align="start" alignment-baseline="central")
               |#{game.player_2.safe_points}
 
-            text(id="player2_score" class="player_stats_cls" x="70" y="18" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+            text(id="player2_score" class="player_stats_cls" x="85" y="18" width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-align="end" alignment-baseline="central" font-size="18" )
               |#{game.player_2.total_points}
-            text(id="player2_name" class="player_stats_cls" x=90 y=45 font-size="18" 
+            text(id="player2_name" class="player_stats_cls" x=95 y=45 font-size="18" 
               width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-anchor="end" alignment-baseline="central")
               |#{game.player_2.name}
@@ -202,8 +202,8 @@ html
           g()
             text(fill="white" font-family="museo-sans, sans-serif" font-size="24" id="tiles_left_vert" stroke="#000000" 
               stroke-width="0" text-anchor="left" x=5 y=277 xml:space="preserve")
-              |TILES LEFT
-          text(id="tiles_left_count" x=150 y=277 width=8*cell_size height=cell_size stroke="white" text-anchor="middle")
+              |TILES LEFT:
+          text(id="tiles_left_count" x=150 y=276 width=8*cell_size height=cell_size font-size="14pt" stroke="white" text-anchor="middle")
             |#{game.tile_pool.length}
 
         svg(id="s_count" x=380 y=510 width=game.total_s_count*cell_size height=4*cell_size viewBox="-10 -50 140 140")
