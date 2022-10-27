@@ -29,7 +29,7 @@ html
     //- vertical layout is handled at the board.js getWindowSize callbak.
     - var scorebd_xy_offset = cell_size*2;
     input(id="scorebd_xy_offset" type="hidden" value=scorebd_xy_offset)
-    - var player_panel_wh = cell_size*7;
+    - var player_panel_wh = cell_size*6;
     input(id="player_panel_wh" type="hidden" value=player_panel_wh)
     - var player_hand_xy_offset = cell_size/2;
     input(id="player_hand_xy_offset" type="hidden" value=player_hand_xy_offset)
@@ -109,8 +109,8 @@ html
               stroke=player2_safe fill=player2_safe text-align="start" alignment-baseline="central")
               |#{game.player_2.safe_points}
 
-            text(id="player2_score" class="player_stats_cls" x="85" y="18" width=cell_size height=cell_size stroke_width=2 stroke="white" 
-              text-align="end" alignment-baseline="central" font-size="18" )
+            text(id="player2_score" class="player_stats_cls" x="95" y="25" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+              text-anchor="end" font-size="18" )
               |#{game.player_2.total_points}
             text(id="player2_name" class="player_stats_cls" x=95 y=45 font-size="18" 
               width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
@@ -203,7 +203,7 @@ html
             text(fill="white" font-family="museo-sans, sans-serif" font-size="24" id="tiles_left_vert" stroke="#000000" 
               stroke-width="0" text-anchor="left" x=5 y=277 xml:space="preserve")
               |TILES LEFT:
-          text(id="tiles_left_count" x=150 y=276 width=8*cell_size height=cell_size font-size="14pt" stroke="white" text-anchor="middle")
+          text(id="tiles_left_count" x=160 y=276 width=8*cell_size height=cell_size font-size="14pt" stroke="white" text-anchor="middle")
             |#{game.tile_pool.length}
 
         svg(id="s_count" x=380 y=510 width=game.total_s_count*cell_size height=4*cell_size viewBox="-10 -50 140 140")
@@ -287,7 +287,7 @@ html
                   |#{t.points}
 
         //- - var controls_offset = grid_wh + tiles_left_offset + 2*cell_width + 20;
-        - var controls_offset = 700;
+        - var controls_offset = 670
         svg(class="controls" id="chat_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 35 195 125" 
           height="60" x=20 y=controls_offset )
           path(class="chat_cls"
@@ -316,15 +316,15 @@ html
           path(class="recall_cls" d="M67,25.33v60h19.5a1.5,1.5,0,0,0,0-3H70v-54h57v54h-16.5a1.5,1.5,0,0,0,0,3H130v-60Z")
         rect(id="recall_on_click" class="controls" x=120 y=controls_offset width=60 height=60 fill="#fff" fill-opacity=0)
 
-        svg(class="controls" id="play_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="80" viewBox="0 0 440 140" 
-          height="40" x=220 y=680)
+        svg(class="controls" id="play_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width=110 viewBox="0 25 440 140" 
+          height="40" x=205 y=controls_offset+10)
+          rect(class="play_cls2" id="play_ctrl_rect" x="18.07" y="17.58" width="418" height="152" rx="76" fill="white")
           path(class="play_cls" fill="none"
             d="M124.66,124.44V64.55h28c13,0,20.11,8.8,20.11,19.3S165.61,103,152.68,103H137.41v21.46ZM151,75.5H137.41V92H151c5,0,8.8-3.24,8.8-8.27S156,75.5,151,75.5Z")
           path(class="play_cls"  fill="none" d="M180.69,124.44V64.55h12.75v48.67h25.32v11.22Z")
           path(class="play_cls" fill="none"
             d="M269.59,124.44l-3.78-10.32H239.06l-3.78,10.32h-14l23.17-59.89h16l23.08,59.89ZM252.43,75.59l-10,27.48h19.84Z")
           path(class="play_cls" fill="none" d="M299.75,124.44V99.93L276.68,64.55h14.54l14.91,24.06,14.73-24.06H335.4L312.51,99.93v24.51Z")
-          rect(class="play_cls2" id="play_ctrl_rect" x="18.07" y="17.58" width="418" height="152" rx="76" fill="none")
         rect(id="play_on_click" class="controls" x=220 y=680 width=80 height=40 fill="#fff" fill-opacity=0)
 
         svg(class="controls" id="swap_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="0 50 185 125" 
