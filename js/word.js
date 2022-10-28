@@ -41,6 +41,7 @@ class Word {
     this.start_column = start_col;
     this.orientation = orient;
     this.is_safe = is_safe;
+    this.linked_in = false;
   }
 
   static new_word_json(js, player1, player2, plays) {
@@ -74,6 +75,31 @@ class Word {
     HORIZ : 1,
     VERT : 2
   }
+ 
+  // these are used to index into Errors
+  static ErrorReserved = 9;
+  static ErrorNoTiles = 10;
+  static ErrorNotSameColumnRow = 11;
+  static ErrorUnusedTile = 12;
+  static ErrorMustStartAtCenter = 13;
+  static ErrorNotConnected = 14;
+  static Errors = [
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "ERROR : There are no played tiles",
+      `ERROR : Not all tiles are on the same row or column OR are unused`,
+      `ERROR : Not all tiles are on the same row or column OR are unused`,
+      "ERROR : The first played word must cover the center square, 'START HERE'",
+      "ERROR : Played words must connect to a previously played word"
+  ];
 
   static NUM_ROWS_COLS = 15;
   static SAFE_INDEXES = [
@@ -147,9 +173,25 @@ class Word {
     }
   }
 
+  not_in(tile) {
+    let ret_val;
+    let t = this.tiles.find(t => {
+      return t.id == tile.id;
+    });
+    t ? ret_val = false : ret_val = true;
+    return ret_val;
+  }
+
   set_adjacencies(game) {
     this.tiles.forEach((item, i) => {
       Tile.set_adjacencies(game, item);
+    });
+    this.tiles.forEach(item => {
+      if ((item.left && this.not_in(item.left)) ||
+          (item.right && this.not_in(item.right)) ||
+          (item.up && this.not_in(item.up)) ||
+          (item.down && this.not_in(item.down)))
+        this.linked_in = true;
     });
   }
 
@@ -400,59 +442,71 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
     var ret_val = -1;
 
     if (!this.tiles || !this.tiles[0])
-      ret_val = 99;
-    else {
-      if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-        this.tiles.sort(function (a, b) {
-          return a.column - b.column;
+      ret_val = Word.ErrorNoTiles;
+
+    // if this is the first word insure that one of the tiles is
+    // at the square r/c 8/8 - the Start Here square
+    if (game.words.length == 0) {
+      let t = this.tiles.find((item, i) => {
+        return item.row == 8 && item.column == 8;
+      });
+      if (!t) ret_val = Word.ErrorMustStartAtCenter;
+      else this.linked_in = true;
+    }
+
+    if (!this.linked_in)
+      ret_val = Word.ErrorNotConnected;
+
+    if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+      this.tiles.sort(function (a, b) {
+        return a.column - b.column;
+      });
+    } else if (this.orientation == Word.ORIENTATIONS.VERT) {
+      this.tiles.sort(function (a, b) {
+        return a.row - b.row;
+      });
+    }
+
+    // insure the 'play' is set ... (needs more investigation)
+    if (!this.play) this.play = game.current_play;
+
+    this.start_row = this.tiles[0].row;
+    this.start_column = this.tiles[0].column;
+
+    this.handle_safe();
+
+    // follow all adjacencies to build words
+    // and set safety
+    this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
+
+    // now, insure all tiles are in the same column or same row
+    if (this.tiles.length > 1) {
+      if (this.orientation == Word.ORIENTATIONS.NONE)
+        ret_val = Word.ErrorNotSameColumnRow;
+      else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+        let row = this.tiles[0].row;
+        let t = this.tiles.find((item, i) => {
+          if (!(item.status & Tile.utilized))
+            ret_val = Word.ErrorUnusedTile;
+          return item.row != row;
         });
-      } else if (this.orientation == Word.ORIENTATIONS.VERT) {
-        this.tiles.sort(function (a, b) {
-          return a.row - b.row;
-        });
+        if (t) // NOT on same row
+          ret_val = Word.ErrorNotSameColumnRow;
       }
-
-      // insure the 'play' is set ... (needs more investigation)
-      if (!this.play) this.play = game.current_play;
-
-      this.start_row = this.tiles[0].row;
-      this.start_column = this.tiles[0].column;
-
-      this.handle_safe();
-
-      // follow all adjacencies to build words
-      // and set safety
-      this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
-
-      // now, insure all tiles are in the same column or same row
-      if (this.tiles.length > 1) {
-        if (this.orientation == Word.ORIENTATIONS.NONE)
-          ret_val = 99;
-        else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-          let row = this.tiles[0].row;
-          let t = this.tiles.find((item, i) => {
-            if (!(item.status & Tile.utilized))
-              ret_val = 99;
-            return item.row != row;
-          });
-          if (t) // NOT on same row
-            ret_val = 99;
-        }
-        else if (this.orientation == Word.ORIENTATIONS.VERT) {
-          let col = this.tiles[0].column;
-          let t = this.tiles.find((item, i) => {
-            if (!(item.status & Tile.utilized))
-              ret_val = 99;
-            return item.column != col;
-          });
-          if (t) // NOT on same column
-            ret_val = 99;
-        }
+      else if (this.orientation == Word.ORIENTATIONS.VERT) {
+        let col = this.tiles[0].column;
+        let t = this.tiles.find((item, i) => {
+          if (!(item.status & Tile.utilized))
+            ret_val = Word.ErrorUnusedTile;
+          return item.column != col;
+        });
+        if (t) // NOT on same column
+          ret_val = Word.ErrorNotSameColumnRow;
       }
     }
 
     // returns idx of non-valid word
-    if (ret_val != 99 && (ret_val = this.all_words_valid()) == -1) {
+    if (!(ret_val > Word.ErrorReserved) && (ret_val = this.all_words_valid()) == -1) {
       // set the status of all valid-word tiles to 'on_board'
       this.tiles.forEach(w => {
         if (w.status & Tile.in_hand) w.status ^= Tile.in_hand;

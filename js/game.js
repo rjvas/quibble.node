@@ -105,10 +105,37 @@ class Game {
       this.current_play = this.player_1_play;
       this.current_player = this.player_1;
       this.current_play.player = this.player_1;
-
     }
+  }
 
-}
+  static current_id = 0;
+  static current_game = null;
+  static Tile = Tile;
+
+  static NUM_ROWS_COLS = 15;
+  static SAFE_INDEXES = [
+    {row: 1, col: 1, rect: null},
+    {row: 1, col: Game.NUM_ROWS_COLS, rect: null},
+    {row: 2, col: 2, rect: null},
+    {row: 2, col: Game.NUM_ROWS_COLS - 1, rect: null },
+    // out as per email 20220522
+    // {row: 3, col: 3, rect: null},
+    // {row: 3, col: Game.NUM_ROWS_COLS - 2, rect: null},
+
+    {row: Game.NUM_ROWS_COLS, col: 1, rect: null},
+    {row: Game.NUM_ROWS_COLS, col: Game.NUM_ROWS_COLS, rect: null},
+    {row: Game.NUM_ROWS_COLS - 1, col: 2, rect: null},
+    {row: Game.NUM_ROWS_COLS - 1, col: Game.NUM_ROWS_COLS - 1, rect: null},
+    // out as per email 20220522
+    // {row: Game.NUM_ROWS_COLS - 2, col: 3, rect: null},
+    // {row: Game.NUM_ROWS_COLS - 2, col: Game.NUM_ROWS_COLS - 2, rect: null},
+
+    {row: 1, col: Math.round(Game.NUM_ROWS_COLS/2), rect: null},
+    {row: Math.round(Game.NUM_ROWS_COLS/2), col: 1, rect: null},
+    {row: Math.round(Game.NUM_ROWS_COLS/2), col: Game.NUM_ROWS_COLS, rect: null},
+    {row: Game.NUM_ROWS_COLS, col: Math.round(Game.NUM_ROWS_COLS/2), rect: null}
+  ];
+
 
   static new_game_json(js) {
     // do this last
@@ -299,10 +326,8 @@ class Game {
   }
 
   get_the_errors(err_idx, tiles) {
-
-    if (err_idx == 99) {
-      tiles.unshift(
-        {"err_msg" : `ERROR: Not all tiles are on the same row or column OR are unused`});
+    if (err_idx > Word.ErrorReserved) {
+      tiles.unshift( {"err_msg" : Word.Errors[err_idx]});
       logger.debug("game.get_the_errors: err_msg : " + tiles[0].err_msg);
     }
     else if (err_idx != -1) {
@@ -351,10 +376,11 @@ class Game {
 
     played_tiles.forEach((item, i) => {
       this.played_tiles.push(item);
-      Tile.set_adjacencies(this, item);
       this.update_play(item);
       this.new_word.addLetter(item, this.current_player, this.current_play);
     });
+
+    this.new_word.set_adjacencies(this);
 
     console.log(`game.handle_regular_play 1 played_tiles, this.new_word`);
     logger.debug(`game.handle_regular_play 1 played_tiles, this.new_word :`);
@@ -695,33 +721,6 @@ class Game {
     return ret_val;
   }
 
-  static current_id = 0;
-  static current_game = null;
-  static Tile = Tile;
-
-  static NUM_ROWS_COLS = 15;
-  static SAFE_INDEXES = [
-    {row: 1, col: 1, rect: null},
-    {row: 1, col: Game.NUM_ROWS_COLS, rect: null},
-    {row: 2, col: 2, rect: null},
-    {row: 2, col: Game.NUM_ROWS_COLS - 1, rect: null },
-    // out as per email 20220522
-    // {row: 3, col: 3, rect: null},
-    // {row: 3, col: Game.NUM_ROWS_COLS - 2, rect: null},
-
-    {row: Game.NUM_ROWS_COLS, col: 1, rect: null},
-    {row: Game.NUM_ROWS_COLS, col: Game.NUM_ROWS_COLS, rect: null},
-    {row: Game.NUM_ROWS_COLS - 1, col: 2, rect: null},
-    {row: Game.NUM_ROWS_COLS - 1, col: Game.NUM_ROWS_COLS - 1, rect: null},
-    // out as per email 20220522
-    // {row: Game.NUM_ROWS_COLS - 2, col: 3, rect: null},
-    // {row: Game.NUM_ROWS_COLS - 2, col: Game.NUM_ROWS_COLS - 2, rect: null},
-
-    {row: 1, col: Math.round(Game.NUM_ROWS_COLS/2), rect: null},
-    {row: Math.round(Game.NUM_ROWS_COLS/2), col: 1, rect: null},
-    {row: Math.round(Game.NUM_ROWS_COLS/2), col: Game.NUM_ROWS_COLS, rect: null},
-    {row: Game.NUM_ROWS_COLS, col: Math.round(Game.NUM_ROWS_COLS/2), rect: null}
-  ];
 }
 
 // exports.CurrentGame = new Game();
