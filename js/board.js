@@ -1937,7 +1937,7 @@ function set_button_callbacks() {
     btn.addEventListener("click", clicked_toggle_zoom);
   }
 
-  btn = document.getElementById('player1_photo');
+  btn = document.getElementById('last_played_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_hilite_last_word);
   }
@@ -1967,7 +1967,7 @@ function set_button_callbacks() {
     btn.addEventListener("click", clicked_swap_begin);
   }
 
-  btn = document.getElementById('chat_on_click');
+  btn = document.getElementById('player1_photo');
   if (btn) {
     btn.addEventListener("click", clicked_chat_btn);
   }

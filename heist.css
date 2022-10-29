@@ -59,6 +59,17 @@ body {
   font-family:  proxima-nova, sans-serif;
 }
 
+/* controls at bottom of board */
+.ctrl_cls-1 {
+    fill: #fff;
+}
+.ctrl_cls-2 {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-width: 5.21px;
+}
+
 .play_cls {
   fill: black;
   stroke: black;

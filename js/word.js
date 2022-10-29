@@ -453,8 +453,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       if (!t) ret_val = Word.ErrorMustStartAtCenter;
       else this.linked_in = true;
     }
-
-    if (!this.linked_in)
+    else if (!this.linked_in)
       ret_val = Word.ErrorNotConnected;
 
     if (this.orientation == Word.ORIENTATIONS.HORIZ) {
