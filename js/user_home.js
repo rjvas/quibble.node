@@ -37,9 +37,11 @@ function clicked_delete_game_btn(event) {
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            document.location.href = "/home_page?user=" + user;
-        }
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        // delete it from the list
+        deleted.remove(deleted.selectedIndex);
+        document.location.href = "/home_page?user=" + user;
+      }
     }
 
     // console.log("clicked_games_btn port: " + ws_port);

@@ -437,10 +437,6 @@ class ActiveGame {
     let dbq = { "_id": ag_json.game_id };
     let result = db.get_db().collection("games").deleteOne(dbq)
       .then((result) => {
-        // remove from saved_games list
-        user.saved_games = user.saved_games.filter(
-          g => g.name != ag_json.name
-        );
         if (result && result.deletedCount === 1) {
           dbq = { "_id": ag_json._id };
           return result = db.get_db().collection("active_games").deleteOne(dbq);
@@ -451,12 +447,42 @@ class ActiveGame {
       })
       .then((result) => {
         if (result && result.deletedCount === 1) {
-          // remove from all_active list (if in)
+
+          // get both users and remove game from user.saved_games and user.active_games
+          // 'user' who deleted game
+          user.saved_games = user.saved_games.filter(
+            g => g.name != ag_json.name
+          );
+          user.active_games = user.active_games.filter(
+            g => g.name != ag_json.name
+          );
+          // get the active game
+          let this_ag = ActiveGame.all_active.find(item => {
+            return item.game_id.equals(ag_json.game_id);
+          });
+          // find the other user - could be null/undefined - and remove game
+          let u2 = this_ag.user1.id.equals(user.id) ? this_ag.user2 : this_ag.user1;
+          if (u2) {
+            u2.saved_games = u2.saved_games.filter(
+              g => g.name != ag_json.name
+            );
+            u2.active_games = u2.active_games.filter(
+              g => g.name != ag_json.name
+            );
+          }
+            
+          // remove ag from all_active list (if in)
           ActiveGame.all_active = ActiveGame.all_active.filter(
             ag => ag._id && !ag._id.equals(!ag_json._id)
           );
+
+          // At this point, if u2 (did NOT delete the game) is still viewing the game
+          // send a message to return to home_page. Otherwise, if u2 on home page, need
+          // force a refresh(?), or set up new ws to home_page and send async msg.
+
           logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
             " and active_game document.");
+
           response.writeHead(302 , {
              'Location' : "/home_page?user=" + user.id.toHexString()
           });
