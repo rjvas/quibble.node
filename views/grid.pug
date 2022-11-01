@@ -62,7 +62,7 @@ html
         rect(id="scoreboard_bg" x="0" y="0" width=grid_wh height=scorebd_xy_offset fill="black")
         svg(id="back_arrow" x="0" y=0 width=cell_size height=scorebd_xy_offset viewBox=`0 0 ${cell_size} ${2*cell_size}`)
             polyline(stroke="#fff" stroke-width=3 points="30,15 7,35 30,55" stroke-line-join=miter)
-        rect(id="back_on_click" class="controls" x=0  y=0 width=cell_size height=cell_size fill="#fff" fill-opacity=0)
+        rect(id="back_on_click" class="controls" x=0  y=0 width=cell_size height=scorebd_xy_offset fill="#fff" fill-opacity=0)
 
         //- player 1 scoreboard
         svg(id="player1" x=cell_size y=0 width=cell_size*6 height=scorebd_xy_offset)
@@ -341,8 +341,8 @@ html
           path(class="play_cls" fill="none" d="M299.75,124.44V99.93L276.68,64.55h14.54l14.91,24.06,14.73-24.06H335.4L312.51,99.93v24.51Z")
         rect(id="play_on_click" class="controls" x=220 y=680 width=80 height=40 fill="#fff" fill-opacity=0)
 
-        svg(class="controls" id="recall_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="50 30 210 400" 
-          height="60" x=360 y=670)
+        svg(class="controls" id="recall_ctrl" fill="#fff" preserveAspectRatio="xMidYMid meet" width="60" viewBox="50 10 210 400" 
+          height="60" x=360 y=668)
           path(class="ctrl_cls-1"
               d="M74.54,275.66,62.62,256.4H53.26v19.26H45.77v-50h21c9.52,0,16,6.14,16,15.36,0,9-6.08,13.78-12.44,14.61l12.81,20Zm-8.7-43.38H53.26v17.53H65.84c5.4,0,9.29-3.52,9.29-8.76S71.24,232.28,65.84,232.28Z")
           path(class="ctrl_cls-1" d="M92.09,275.66v-50h33.57v6.59H99.58v14.61h25.55v6.59H99.58v15.58h26.08v6.6Z")

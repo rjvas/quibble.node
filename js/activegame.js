@@ -36,7 +36,7 @@ class ActiveGame {
   }
 
   static port_min = 26101;
-  static port_max = 27101;
+  static port_max = 27100;
   static current_port = 26101;
 
   static none = -1;
@@ -436,62 +436,63 @@ class ActiveGame {
   static delete_game(ag_json, response, user) {
     let dbq = { "_id": ag_json.game_id };
     let result = db.get_db().collection("games").deleteOne(dbq)
-      .then((result) => {
-        if (result && result.deletedCount === 1) {
-          dbq = { "_id": ag_json._id };
-          return result = db.get_db().collection("active_games").deleteOne(dbq);
-        } else {
-          logger.error("activegame.delete_game: No documents matched the query: ag._id: " +
-            ag_jsons._id + " Deleted 0 documents.");
-        }
-      })
-      .then((result) => {
-        if (result && result.deletedCount === 1) {
-
-          // get both users and remove game from user.saved_games and user.active_games
-          // 'user' who deleted game
-          user.saved_games = user.saved_games.filter(
+    .then((result) => {
+      if (result && result.deletedCount === 1) {
+        dbq = { "_id": ag_json._id };
+        return result = db.get_db().collection("active_games").deleteOne(dbq);
+      } else {
+        logger.error("activegame.delete_game: No documents matched the query: ag._id: " +
+          ag_json._id + " Deleted 0 documents.");
+      }
+    })
+    .then((result) => {
+      if (result && result.deletedCount === 1) {
+        // get the active game
+        let ag = ActiveGame.all_active.find(item => {
+          return item.game_id.equals(ag_json.game_id);
+        });
+        // get both users and remove game from user.saved_games and user.active_games
+        // 'user' who deleted game
+        user.saved_games = user.saved_games.filter(
+          g => g.name != ag_json.name
+        );
+        user.active_games = user.active_games.filter(
+          g => g.name != ag_json.name
+        );
+        // find the other user - could be null/undefined - and remove game
+        let u2 = ag.user1.id.equals(user.id) ? ag.user2 : ag.user1;
+        if (u2) {
+          u2.saved_games = u2.saved_games.filter(
             g => g.name != ag_json.name
           );
-          user.active_games = user.active_games.filter(
+          u2.active_games = u2.active_games.filter(
             g => g.name != ag_json.name
           );
-          // get the active game
-          let this_ag = ActiveGame.all_active.find(item => {
-            return item.game_id.equals(ag_json.game_id);
-          });
-          // find the other user - could be null/undefined - and remove game
-          let u2 = this_ag.user1.id.equals(user.id) ? this_ag.user2 : this_ag.user1;
-          if (u2) {
-            u2.saved_games = u2.saved_games.filter(
-              g => g.name != ag_json.name
-            );
-            u2.active_games = u2.active_games.filter(
-              g => g.name != ag_json.name
-            );
-          }
-            
-          // remove ag from all_active list (if in)
-          ActiveGame.all_active = ActiveGame.all_active.filter(
-            ag => ag._id && !ag._id.equals(!ag_json._id)
-          );
-
-          // At this point, if u2 (did NOT delete the game) is still viewing the game
-          // send a message to return to home_page. Otherwise, if u2 on home page, need
-          // force a refresh(?), or set up new ws to home_page and send async msg.
-
-          logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
-            " and active_game document.");
-
-          response.writeHead(302 , {
-             'Location' : "/home_page?user=" + user.id.toHexString()
-          });
-          response.end();
         }
-      })
-      .catch((e) => {
-        logger.error("activegame.delete_game: ", e);
-      });
+        // remove ag from all_active list (if in)
+        ActiveGame.all_active = ActiveGame.all_active.filter(
+          item => item._id && !item._id.equals(!ag_json._id)
+        );
+
+        // At this point, if u2 (did NOT delete the game) is still viewing the game
+        // send a message to return to home_page. Otherwise, if u2 on home page, need
+        // force a refresh(?), or set up new ws to home_page and send async msg.
+        if (u2)
+          u2.send_msg("gamelist_remove", ag_json.name);
+        ag.send_msg("This game has been deleted by your opponent! Please return to your home page.", ag_json.name);
+
+        logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
+          " and active_game document.");
+
+        response.writeHead(302 , {
+            'Location' : "/home_page?user=" + user.id.toHexString()
+        });
+        response.end();
+      }
+    })
+    .catch((e) => {
+      logger.error("activegame.delete_game: ", e);
+    });
   }
 
   // builds and active game from json delivered from the db

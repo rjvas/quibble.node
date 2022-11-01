@@ -30,7 +30,14 @@ class User {
     this.request_address = sonj.request_address;
     this.admin = null;
     this.jwt = null;
+    this.port = User.current_port < User.port_max ? User.current_port++ : User.port_min;
+    this.connects = [];
+    this.ws_server = this.setup_socket();
   }
+
+  static port_min = 25101;
+  static port_max = 26100;
+  static current_port = 25101;
 
   static current_users = [];
   static pickup_gamers = [];
@@ -122,6 +129,36 @@ class User {
     return pug_user({
       'games' : games,
       'gamers' : gamers
+    });
+  }
+
+  active_games_add(agame) {
+    this.active_games.push(agame);
+    this.send_msg("gamelist_add", agame.name);
+  }
+
+  active_games_remove(agame) {
+    this.active_games = this.active_games.filter(ag => ag && ag.name == agame.name);
+    this.send_msg("gamelist_remove", agame.name);
+  }
+  
+  static add_pickup_gamer(name) {
+    // TODO What to do about overlap of display names?
+    let gamer = User.pickup_gamers.find(g => {
+      return g == name;
+    });
+    if (!gamer) {
+      User.pickup_gamers.push(name);
+      User.current_users.forEach(cu => {
+        cu.send_msg("pickuplist_add", name);
+      });
+    }
+  }
+
+  static remove_pickup_gamer(name) {
+    User.pickup_gamers = User.pickup_gamers.filter(g => g != name);
+    User.current_users.forEach(cu => {
+      cu.send_msg("pickuplist_remove", name);
     });
   }
 
@@ -287,6 +324,55 @@ class User {
       })
       .catch((e) => console.error(e));
   }
+
+  send_msg(type, info) {
+    let data = [];
+    data.push({"type" : type});
+    data.push({"data" : info});
+
+    this.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));
+
+    logger.debug("user.send_msg: type: message data: " + JSON.stringify(data));
+  }
+
+  setup_socket() {
+    // Now set up the WebSocket seerver
+    const WebSocket = require('ws');
+    let ws_server = new WebSocket.Server({
+      port: this.port
+    });
+
+    // socket call backs - .onconnection fires ONLY on the inital connection or if
+    // the player refreshes the page. If a refresh occurs the original socket
+    // is deleted and a new socket created and 'pushed'
+    ws_server.on('connection', function(socket) {
+
+      socket.on('message', function(msg) {
+        let user = User.current_users.find(u => {
+          return u && u.ws_server && u.ws_server.clients && 
+            u.ws_server.clients.has(socket);
+        });
+        if (user) {
+          let resp_data = null;
+          let player = a_game.game.current_player;
+          var play_data = JSON.parse(msg);
+          let player_name = "";
+
+          let type = play_data[0] && play_data[0].type ? play_data[0].type :
+            "unknown"; 
+        }
+
+      });
+
+      // When a socket closes, or disconnects, remove it from the array.
+      socket.on('close', function() {
+        console.log("activegame.socket.on.close");
+        logger.debug("activegame.socket.on.close");
+      });
+    });
+
+    return ws_server;
+  }
 }
 
 class UserRole {
@@ -304,6 +390,7 @@ class UserRole {
   static none = -1;
   static player = 1;
   static admin = 2;
+
 }
 
 exports.User = User;

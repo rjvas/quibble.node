@@ -4,6 +4,8 @@
 * copyright 2021
 */
 
+var ws_port = document.getElementById("ws_port").value;
+
 function new_practice_game() {
   var user = document.getElementById("user").value;
 
@@ -51,10 +53,10 @@ function clicked_delete_game_btn(event) {
 
 function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
-  var saved = document.getElementById("games_lst");
-  let option = saved.options [saved.selectedIndex];  
+  var games = document.getElementById("games_lst");
+  let option = games.options [games.selectedIndex];  
 
-  if (option.value > -1) {
+  if (option) {
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "/load_game?game_name=" + option.text + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
@@ -100,10 +102,11 @@ function clicked_add_pickup_name_btn(event) {
 
 function clicked_play_pickup_btn(event) {
   var user = document.getElementById("user").value;
-  var p_idx = document.getElementById("pickup_lst").value;
+  var plist = document.getElementById("pickup_lst");
+  let p_name = plist[plist.selectedIndex].label;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/play_pickup_game?vs=" + p_idx + "&user=" + user, true);
+  xhr.open("GET", "/play_pickup_game?vs=" + p_name + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
@@ -177,5 +180,59 @@ function init() {
 
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
+
+// const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
+const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
+ws.onmessage = function(msg) {
+  let resp = JSON.parse(msg.data);
+  // need this for vectoring control
+  let type = resp.shift();
+  let data = resp.shift();
+
+  if (type.type == "gamelist_add") {
+    var gl = document.getElementById("games_lst");
+    var opt = document.createElement("option");
+    opt.text = data.data; 
+    gl.options.add(opt); 
+  }
+  else if (type.type == "gamelist_remove") {
+    var gl = document.getElementById("games_lst");
+    let idx = -1;
+    for (i = 0; i < gl.options.length; i++) {
+      if (gl.options[i].label == data.data)
+        idx = i;
+    }
+    if (idx != -1)
+      gl.remove(idx);
+  }
+  else if (type.type == "pickuplist_add") {
+    var pl = document.getElementById("pickup_lst");
+    var opt = document.createElement("option");
+    opt.text = data.data; 
+    pl.options.add(opt); 
+  }
+  else if (type.type == "pickuplist_remove") {
+    var pl = document.getElementById("pickup_lst");
+    let idx = -1;
+    for (i = 0; i < pl.options.length; i++) {
+      if (pl.options[i].label == data.data)
+        idx = i;
+    }
+    if (idx != -1)
+      pl.remove(idx);
+  }
+  console.log("in socket: onmsg");
+}
+
+ws.onopen = function() {
+  console.log("in socket: open");
+  // ws.send("daddy's HOOOME!!");
+}
+ws.onerror = function(msg) {
+  console.error("in socket: error " + msg);
+}
+ws.onclose = function(msg) {
+  console.log("in socket: close " + msg);
+}
 
 init();

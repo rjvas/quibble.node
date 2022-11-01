@@ -281,21 +281,20 @@ function startup() {
 
       if (u1 = ugv.user) {
         // this is the index of the chosen player in the pickup list
-        let pickup_idx = ugv.vs;
-        let pickup_name = User.pickup_gamers[pickup_idx];
+        let pickup_name = ugv.vs;
         u2 = User.current_users.find(u => {
           return u.display_name == pickup_name;
         });
         // if we got u2 remove the pickup gamer from the list
         if (u2)
-          User.pickup_gamers = User.pickup_gamers.filter(g => g != pickup_name);
+          User.remove_pickup_gamer(pickup_name);
       }
 
       if (u1 && u2) {
         CurrentAGame = new ActiveGame(u1, u2, ActiveGame.in_play);
         ActiveGame.all_active.push(CurrentAGame);
-        u1.active_games.push(CurrentAGame);
-        u2.active_games.push(CurrentAGame);
+        u1.active_games_add(CurrentAGame);
+        u2.active_games_add(CurrentAGame);
         response.end(`/player1?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
 
         logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
@@ -308,7 +307,7 @@ function startup() {
     else if (pathname.indexOf("add_pickup_name") != -1) {
       let user = get_user_agame(query).user;
       if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
-        User.pickup_gamers.push(user.display_name);
+        User.add_pickup_gamer(user.display_name);
         response.end(pug_user({
           'User' : User,
           'user': user,
