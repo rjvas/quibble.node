@@ -35,9 +35,9 @@ class User {
     this.ws_server = this.setup_socket();
   }
 
-  static port_min = 25101;
-  static port_max = 26100;
-  static current_port = 25101;
+  static port_min = 24101;
+  static port_max = 25000;
+  static current_port = 24101;
 
   static current_users = [];
   static pickup_gamers = [];
