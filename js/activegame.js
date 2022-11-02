@@ -510,7 +510,11 @@ class ActiveGame {
     //   return;
     // }
 
-    let new_ag;
+    let new_ag = null;
+
+    if (!ag_json)
+      return new_ag;
+
     let dbq = { "_id": ag_json.game_id };
     let game = db.get_db().collection('games').findOne(dbq)
       .then((game) => {

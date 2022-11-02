@@ -54,6 +54,10 @@ function clicked_delete_game_btn(event) {
 function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
   var games = document.getElementById("games_lst");
+  if (games.selectedIndex == 0) {
+    alert("You must select a game or start a new game!");
+    return;
+  }
   let option = games.options [games.selectedIndex];  
 
   if (option) {
