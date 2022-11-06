@@ -206,14 +206,18 @@ ws.onmessage = function(msg) {
       if (gl.options[i].label == data.data)
         idx = i;
     }
-    if (idx != -1)
+    if (idx != -1) {
       gl.remove(idx);
+    }
   }
   else if (type.type == "pickuplist_add") {
     var pl = document.getElementById("pickup_lst");
     var opt = document.createElement("option");
     opt.text = data.data; 
     pl.options.add(opt); 
+    let count = pl.options.length - 1;
+    let waiting = document.getElementById("num_waiting");
+    waiting.innerText = `(${count} Available)`;
   }
   else if (type.type == "pickuplist_remove") {
     var pl = document.getElementById("pickup_lst");
@@ -222,8 +226,12 @@ ws.onmessage = function(msg) {
       if (pl.options[i].label == data.data)
         idx = i;
     }
-    if (idx != -1)
+    if (idx != -1) {
       pl.remove(idx);
+      let count = pl.options.length - 1;
+      let waiting = document.getElementById("num_waiting");
+      waiting.innerText = `(${count} Available)`;
+    }
   }
   console.log("in socket: onmsg");
 }

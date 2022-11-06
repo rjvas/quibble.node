@@ -456,7 +456,7 @@ data_ws.onopen = function() {
   // data_ws.send("daddy's HOOOME!!");
 };
 data_ws.onerror = function(msg) {
-  console.log("in get socket: error " + msg);
+  console.error("in get socket: error " + msg);
 };
 data_ws.onclose = function(msg) {
   console.log("in get socket: close " + msg);

@@ -32,9 +32,11 @@ html(lang="en")
             input(id="games_btn" type="button" class="button" value="GO PLAY!" )
             input(id="delete_game_btn" type="button" value="DELETE GAME" )
             
+          - var num = `(${gamers.length} Available)`;
           div.sub_label Start A New Game
             br
-            span.descrip Select a player from the available player pool
+            span.descrip Select a player from the available player pool 
+              i#num_waiting #{num} 
             select(id="pickup_lst")
               option(value=-1) Select A Player
               each val, idx in gamers
