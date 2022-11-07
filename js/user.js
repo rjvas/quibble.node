@@ -155,10 +155,10 @@ class User {
     }
   }
 
-  static remove_pickup_gamer(name) {
+  static remove_pickup_gamer(name, challenger) {
     User.pickup_gamers = User.pickup_gamers.filter(g => g != name);
     User.current_users.forEach(cu => {
-      cu.send_msg("pickuplist_remove", name);
+      cu.send_msg("pickuplist_remove", {"name" : name, "challenger" : challenger});
     });
   }
 

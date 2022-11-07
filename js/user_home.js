@@ -33,7 +33,7 @@ function clicked_delete_game_btn(event) {
   let option = deleted.options [deleted.selectedIndex];  
   var user = document.getElementById("user").value;
 
-  if (option.value > -1) {
+  if (deleted.selectedIndex > 0) {
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "/delete_game?game_name=" + option.text + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
@@ -108,6 +108,10 @@ function clicked_play_pickup_btn(event) {
   var user = document.getElementById("user").value;
   var plist = document.getElementById("pickup_lst");
   let p_name = plist[plist.selectedIndex].label;
+  
+  // can't play yourself with a pickup game
+  if (p_name == document.getElementById("user_display_name").value)
+    return;
 
   let xhr = new XMLHttpRequest();
   xhr.open("GET", "/play_pickup_game?vs=" + p_name + "&user=" + user, true);
@@ -191,9 +195,15 @@ ws.onmessage = function(msg) {
   let resp = JSON.parse(msg.data);
   // need this for vectoring control
   let type = resp.shift();
+  // data is an object that may contain a simple string,
+  // dereferncing as data.data or another object -
+  // dereferncing as data.data.<prop name>
   let data = resp.shift();
 
-  if (type.type == "gamelist_add") {
+  if (type.type == "message") {
+    alert(data.data);
+  }
+  else if (type.type == "gamelist_add") {
     var gl = document.getElementById("games_lst");
     var opt = document.createElement("option");
     opt.text = data.data; 
@@ -221,9 +231,10 @@ ws.onmessage = function(msg) {
   }
   else if (type.type == "pickuplist_remove") {
     var pl = document.getElementById("pickup_lst");
+    var udn = document.getElementById("user_display_name").value;
     let idx = -1;
     for (i = 0; i < pl.options.length; i++) {
-      if (pl.options[i].label == data.data)
+      if (pl.options[i].label == data.data.name)
         idx = i;
     }
     if (idx != -1) {
@@ -232,6 +243,8 @@ ws.onmessage = function(msg) {
       let waiting = document.getElementById("num_waiting");
       waiting.innerText = `(${count} Available)`;
     }
+    if (udn == data.data.name)
+      alert(`${data.data.challenger} has accepted your challenge!`);
   }
   console.log("in socket: onmsg");
 }

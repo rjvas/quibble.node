@@ -125,6 +125,23 @@ class ActiveGame {
       "data: " + JSON.stringify(data));
   }
 
+  static send_msg_to_user(user, msg) {
+    let data = [];
+    let player = null;
+    data.push({"type" : "message"});
+
+    ActiveGame.all_active.forEach(ag => {
+      if (ag.user1 == user || ag.user2 == user) {
+        // if ag IS a game that user is playing make sure the 'player'
+        // property is the other player (that's the logic board.onmessage for type message)
+        ag.user1.id.equals(user.id) ? player = "/player2" : player = "player1"; 
+        data.push({"player" : player});
+        data.push({"info" : msg});
+        ag.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));
+      }
+    })
+  }
+
   log_pre(player, data) {
     console.log("activegame.onmessage pre-finish_the_play player: ", player.name);
     logger.debug("activegame.onmessage pre-finish_the_play player: ", player.name);

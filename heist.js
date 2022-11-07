@@ -204,6 +204,7 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         user.active_games.push(CurrentAGame);
         pathname = "/player1";
+        CurrentAGame.save(false, null);
         response.writeHead(302 , {
            'Location' : pathname + "?game=" + CurrentAGame.name +
             "&user=" + user.id.toHexString()
@@ -287,7 +288,7 @@ function startup() {
         });
         // if we got u2 remove the pickup gamer from the list
         if (u2)
-          User.remove_pickup_gamer(pickup_name);
+          User.remove_pickup_gamer(pickup_name, u1.display_name);
       }
 
       if (u1 && u2) {
@@ -295,6 +296,8 @@ function startup() {
         ActiveGame.all_active.push(CurrentAGame);
         u1.active_games_add(CurrentAGame);
         u2.active_games_add(CurrentAGame);
+        ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
+        CurrentAGame.save(false, null);
         response.end(`/player1?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
 
         logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
