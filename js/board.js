@@ -385,7 +385,11 @@ class PlayerHand {
   }
 
   static remove(tile) {
-    if (tile.status & Tile.in_hand) tile.status = tile.status ^ Tile.in_hand;
+    // Once the tile comes out of the tile pool it should never revert to
+    // a '0' status. So, allow clearing of on_board and utilized but never
+    // in_hand (except on exchange and that is handled server side)
+    // if (tile.status & Tile.in_hand) tile.status = tile.status ^ Tile.in_hand;
+
     // a little brute force here - if the tile has been moved through the
     // playerhand on the way to the board then it may reside in more than one
     // playerhand slot - so, null *all* of the slots that reference it.

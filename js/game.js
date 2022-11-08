@@ -293,7 +293,9 @@ class Game {
     let play = this.current_play;
     play.tiles.forEach((item, i) => {
       if (item.status & Tile.utilized) item.status ^= Tile.utilized;
-      if (item.status & Tile.on_board) item.status ^= Tile.on_board;
+      // change in behavior on rollback leaves tiles on the board. so
+      // don't clear this status
+      // if (item.status & Tile.on_board) item.status ^= Tile.on_board;
       if (this.new_word && this.new_word.tiles.includes(item) &&
           item.status & Tile.is_blank) {
         item.char = BLANK_TILE;
@@ -455,6 +457,7 @@ class Game {
       played_tiles[i].player = null;
       played_tiles[i].row = -1;
       played_tiles[i].column = -1;
+      played_tiles[i].status = Tile.in_pool;
 
       // make sure any tiles released to the pool have
       // safety set according to the tile definiations

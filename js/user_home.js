@@ -26,14 +26,15 @@ function new_practice_game() {
 
 function clicked_delete_game_btn(event) {
 
-  if (!window.confirm("Are you sure you want to delete this game? It cannot be undone!"))
-    return;
-
   var deleted = document.getElementById("games_lst");
   let option = deleted.options [deleted.selectedIndex];  
   var user = document.getElementById("user").value;
 
   if (deleted.selectedIndex > 0) {
+
+    if (!window.confirm("Are you sure you want to delete this game? It cannot be undone!"))
+      return;
+
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "/delete_game?game_name=" + option.text + "&user=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
@@ -55,7 +56,7 @@ function clicked_games_btn(event) {
   var user = document.getElementById("user").value;
   var games = document.getElementById("games_lst");
   if (games.selectedIndex == 0) {
-    alert("You must select a game or start a new game!");
+    //alert("You must select a game or start a new game!");
     return;
   }
   let option = games.options [games.selectedIndex];  
