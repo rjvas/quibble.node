@@ -176,7 +176,8 @@ class Tile {
 
     if (Tile.is_on_board(row, col)) {
       this.status |= Tile.on_board;
-      if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
+      // never clear the in_hand status
+      // if (this.status & Tile.in_hand) this.status ^= Tile.in_hand;
       PlayerHand.remove(this);
     } else if (PlayerHand.is_in_hand(x, y)) {
       if (this.status & Tile.on_board) this.status ^= Tile.on_board;

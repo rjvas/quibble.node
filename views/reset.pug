@@ -1,0 +1,53 @@
+doctype html
+html(lang="en")
+  head
+    title Reset Password
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width), initial-scale=1.0')
+    link(rel='stylesheet', href='views/reset.css')
+    link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
+  body
+    #error
+      if error == "error_no_username_email"
+        div.error_label Error: please enter username and your email
+      else if error == "mail_success"
+        div.error_label Success: reset link has been emailed!
+      else if error == "mail_failed"
+        div.error_label Error: mailing of reset link has failed - please contact sysadmin
+      else if error == "error_no_user"
+        div.error_label Error: cannot find user with submitted username and email
+      else if error == "error_no_pass"
+        div.error_label Error: a new password must be entered twice
+      else if error == "error_pass_no_match"
+        div.error_label Error: passwords do not match
+      else if error == "error_success"
+        div.error_label Success: password has been updated!
+
+    #both
+      if (phase1)
+        #first
+          span.descrip Please enter your user name and email address. An email will we sent to the
+          span.descrip  address provided with a link that will take you to a password reset form.
+          br
+          div.section_label Reset Password
+          form(action="reset_phase1")
+            div.username
+              input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="User Name")
+            div.reg_email
+              input(type="text" class="in_fields" name="email" placeholder="Email Address")
+            div.submit
+              button(type="submit" id="phase1_submit" class="buttons" ) SUBMIT
+
+      //- Note that phase2 is absent. Phase 2 is initiated when the user clicks the link phase1 emailed
+      //- to the user. reset_phase3 is the setting of the new password
+      else if (phase2)          
+        #second
+          form(action="reset_phase3")
+            input(type="hidden" name="hp" value=hp)
+            div.section_label Please enter a new password and retype
+            div.reg_password
+              input(type="password" class="in_fields" name="password" placeholder="Password")
+            div.reg_password2
+              input(type="password" class="in_fields" name="password2" placeholder="Re-type Password")
+            div.reg_submit
+              button(type="submit" id="phase2_submit" class="buttons" ) SUBMIT

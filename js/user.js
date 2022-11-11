@@ -7,6 +7,7 @@ const salt_rounds = 10;
 const db = require('./db');
 var logger = require('./log').logger;
 var Admin = require('./admin_srv').Admin
+const {exec} = require('child_process');
 
 class User {
   constructor(sonj) {
@@ -164,6 +165,108 @@ class User {
 
   static get_pickup_gamers() {
      return User.pickup_gamers;
+  }
+
+  static mail_reset(to, id) {
+    let subj = "Reset <game name> password";
+    let body = "Click the link or copy/paste it into your browser address bar\n\n";
+    body += "http://www.dbc-games.com:3042/reset_phase2?hp=" + encodeURIComponent(id);
+
+    let cmd = `mail -s "${subj}" ${to} <<< '${body}'`; 
+
+    try {
+      exec(cmd, (err, stdout, stderr) => {
+        if (err) {
+          console.error(err)
+          return false;
+        } else {
+          // the *entire* stdout and stderr (buffered)
+          if (stdout) {
+            // data[0].info = cmd + " successful " + stdout;
+            // socket.send(JSON.stringify(data));
+        }
+        console.log(`${cmd} stdout: ${stdout}`);
+        console.log(`${cmd} stderr: ${stderr}`);
+        return true;
+        }
+      });
+    } catch(error) {
+        // data[0].info = "Error executing: " + cmd;
+        // socket.send(JSON.stringify(data));
+        console.error(error)
+        return false;
+    }
+  }
+
+  static reset_phase1(query, response) {
+    var params = new URLSearchParams(query);
+    let name = params.get("username");
+    let email = params.get("email");
+
+    let id;
+    let dbq = { $and: [
+          { "user_name": name},
+          { "email" : email} ]}; 
+    let usr = db.get_db().collection('users').findOne(dbq)
+      .then((usr) => {
+        if (usr) {
+            if (User.mail_reset(email, usr.password)) 
+              response.writeHead(302 , {'Location' : '/reset_phase1?err=mail_success'});
+            else 
+              response.writeHead(302 , {'Location' : '/reset_phase1?err=mail_failed'});
+          } 
+        else {
+            response.writeHead(302 , {'Location' : '/reset_phase1?err=error_no_user'});
+        }
+        response.end();
+      })
+      .catch((e) => console.error(e));
+  }
+
+  static reset_phase2(hp, tmpl, response) {
+    let dbq = ({ "password": hp});
+    let usr = db.get_db().collection('users').findOne(dbq)
+      .then((usr) => {
+        if (usr) {
+          response.end(tmpl);
+        } 
+        else {
+            response.writeHead(302 , {
+                'Location' : '/reset_phase2?err=error_no_user'});
+            response.end();
+        }
+      })
+      .catch((e) => console.error(e));
+  }
+
+  static reset_phase3(query, hp, response) {
+    // get the original hashed password from the referer for lookup
+    var q_params = new URLSearchParams(query);
+    let pass1 = q_params.get("password");
+    let pass2 = q_params.get("password2");
+
+    let dbq = ({ "password": hp});
+    let usr = db.get_db().collection('users').findOne(dbq)
+      .then((usr) => {
+        if (usr) {
+          let user_name = usr.user_name;
+            let salt = bcrypt.genSaltSync(salt_rounds);
+            let pw_hashed = bcrypt.hashSync(pass1, salt);
+            const q = { user_name: usr.user_name };
+            const update =
+              { $set:  { "user_name": user_name, "password" : pw_hashed}};
+            const options = { upsert: true };
+            db.get_db().collection('users').updateOne(q, update, options)
+              .then(res => {
+                response.writeHead(302 , { 'Location' : '/reset_phase3?err=error_success' });
+                response.end();
+              })
+              .catch((e) => {
+                console.error(e);
+              });
+          }
+      })
+      .catch((e) => console.error(e));
   }
 
   static login (query, request_addr, user_agent, response, game_over) {

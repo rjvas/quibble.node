@@ -40,21 +40,12 @@ body {
 #first {
   align-self: center;
   width: 100%;
-  margin-left: 10%;
+  margin-left: 11%;
   margin-top: 20px;
 }
 
-#forgot_pw {
-  font-size: 8pt;
-  color: white;
-  outline: none;
-  border: none;
-  margin-top: 10px;
-  float: right;
-  background-color: black;
-}
-
 .section_label {
+  margin-top: 20px;
   font-weight: 800;
   font-size: 14px;
   color: white;
@@ -92,10 +83,16 @@ form {
   border-radius: 10px;
 }
 
-#login_submit {
+.descrip {
+  font-weight: 600;
+  color: gray;
+  font-size: 8pt;
+}
+
+#phase1_submit {
   background-color: #eb008b;
 }
 
-#new_submit {
+#phase2_submit {
   background-color: #0072bc;
 }

@@ -30,6 +30,7 @@ var path = require('path');
 // pug is a template engine that can pre-compile template defskkkkk
 var pug_grid = pug.compileFile('views/grid.pug');
 var pug_welcome = pug.compileFile('views/welcome.pug');
+var pug_reset = pug.compileFile('views/reset.pug');
 var pug_user = pug.compileFile('views/user.pug');
 var pug_admin = pug.compileFile('views/admin.pug');
 
@@ -326,6 +327,74 @@ function startup() {
     }
 
     // async
+    else if (pathname == "/reset_phase1") {
+      var params = new URLSearchParams(query);
+      let name = params.get("username");
+      let email = params.get("email");
+      let err = params.get("err");
+      let tmpl = null;
+
+      if (err) {
+        tmpl = pug_reset({"phase1" : true, "phase2" : false, "error" : err});
+        response.end(tmpl);
+      }
+      else if (!name || !email) {
+        err = "error_no_username_email";
+        tmpl = pug_reset({"phase1" : true, "phase2" : false, "error" : err});
+        response.end(tmpl);
+      }
+      else {
+        User.reset_phase1(query, response);
+      }
+    }
+
+    // async
+    else if (pathname == "/reset_phase2") {
+      var params = new URLSearchParams(query);
+      let hp = decodeURIComponent(params.get("hp"));
+      let err = decodeURIComponent(params.get("err"));
+
+      let tmpl = pug_reset({"phase1" : false, "phase2" : true, "error" : err});
+      User.reset_phase2(hp, tmpl, response);
+    }
+
+    else if (pathname == "/reset_phase3") {
+      var params = new URLSearchParams(query);
+      let hp = params.get("hp");
+      let err = decodeURIComponent(params.get("err"));
+      let pass1 = params.get("password");
+      let pass2 = params.get("password2");
+      let tmpl = null;
+      
+      if (!hp || hp == '') { 
+        var ref = request.headers["referer"];
+        var ref_params = ref.split("=");
+        hp = decodeURIComponent(ref_params[1]);
+      }
+
+      if (err && err != 'null') {
+        tmpl = pug_reset({"phase1" : false, "phase2" : true, "hp" : hp, "error" : err});
+        response.end(tmpl);
+      }
+      else if (!pass1 || !pass2) {
+        tmpl = pug_reset({"phase1" : false, "phase2" : true, "hp" : hp, "error" : "error_no_pass"});
+        response.end(tmpl);
+      }
+      // passwords don't match - error and try again
+      else if (pass1 != pass2) {
+        tmpl = pug_reset({"phase1" : false, "phase2" : true, "hp" : hp, "error" : "error_pass_no_match"});
+        response.end(tmpl);
+      }
+      else
+        User.reset_phase3(query, hp, response);
+    }
+
+    // async
+    else if (pathname == "/forgot") {
+      response.end(pug_reset({"phase1" : true, "phase2" : false}));
+    }
+
+    // async
     else if (pathname == "/register") {
       User.register(query, response);
     }
@@ -336,6 +405,7 @@ function startup() {
       logger.debug("heist.login query: " + query);
     }
 
+    // RJV NOTE much of this should be relocated to User.logout
     else if (pathname == "/logout") {
       let user = get_user_agame(query).user;
       // give the user a chance to clean up
@@ -343,7 +413,8 @@ function startup() {
         let remove_ags = [];
 
         // filter all runtime lists for user
-        User.pickup_gamers = User.pickup_gamers.filter(g => g != user.display_name);
+        // per Asana "Names dropping from player queue"
+        // User.pickup_gamers = User.pickup_gamers.filter(g => g != user.display_name);
         User.current_users = User.current_users.filter(u => !u.id.equals(user.id));
 
         // check all active games - if both users are logged out, remove from all_active
