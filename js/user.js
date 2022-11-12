@@ -172,30 +172,30 @@ class User {
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
     body += "http://www.dbc-games.com:3042/reset_phase2?hp=" + encodeURIComponent(id);
 
-    let cmd = `mail -s "${subj}" ${to} <<< '${body}'`; 
+    let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
+    let ret_val = false;
     try {
-      exec(cmd, (err, stdout, stderr) => {
+      ret_val = exec(cmd, (err, stdout, stderr) => {
         if (err) {
-          console.error(err)
+          console.log("reset password email failed");
+          console.log(err);
           return false;
         } else {
-          // the *entire* stdout and stderr (buffered)
-          if (stdout) {
-            // data[0].info = cmd + " successful " + stdout;
-            // socket.send(JSON.stringify(data));
-        }
-        console.log(`${cmd} stdout: ${stdout}`);
-        console.log(`${cmd} stderr: ${stderr}`);
-        return true;
+          console.log("reset password email success");
+          console.log(`${cmd} stdout: ${stdout}`);
+          console.log(`${cmd} stderr: ${stderr}`);
+          return true;
         }
       });
     } catch(error) {
         // data[0].info = "Error executing: " + cmd;
         // socket.send(JSON.stringify(data));
-        console.error(error)
+        console.log("mail_reset: exception error");
+        console.log(error);
         return false;
     }
+	  return ret_val;
   }
 
   static reset_phase1(query, response) {
