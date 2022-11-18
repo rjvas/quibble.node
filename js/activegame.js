@@ -134,7 +134,10 @@ class ActiveGame {
       if (ag.user1 == user || ag.user2 == user) {
         // if ag IS a game that user is playing make sure the 'player'
         // property is the other player (that's the logic board.onmessage for type message)
-        ag.user1.id.equals(user.id) ? player = "/player2" : player = "player1"; 
+        if (ag.user1)
+          ag.user1.id.equals(user.id) ? player = "/player2" : player = "player1"; 
+        else if (ag.user2)
+          ag.user2.id.equals(user.id) ? player = "/player1" : player = "player2"; 
         data.push({"player" : player});
         data.push({"info" : msg});
         ag.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));

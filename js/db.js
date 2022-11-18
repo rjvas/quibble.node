@@ -6,7 +6,7 @@ let database = null;
 const dburl = 'mongodb://localhost:27017/heist';
 
 module.exports.connect = () => new Promise((resolve, reject) => {
-    MongoClient.connect(dburl, function(err, db) {
+    MongoClient.connect(dburl, { useUnifiedTopology: true }, function(err, db) {
         if (err) { reject(err); return; };
         resolve(db);
         connection = db;
