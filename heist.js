@@ -259,7 +259,7 @@ function startup() {
           ActiveGame.new_active_game_json(user.get_game(ugv.game_name), user, response);
 
           logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
-            game=${user.get_game(ugv.game_name)} port: ${user.get_game(ugv.game_name).port}`); 
+            game=${user.get_game(ugv.game_name)}'); // not yet initialized(async) port: ${user.get_game(ugv.game_name).port}`); 
         }
       }
     }
