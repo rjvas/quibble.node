@@ -10,7 +10,7 @@ class ActiveGame {
 
     this.user1 = user1;
     this.user2 = user2;
-    // tmp_user_id is used to hold the id of the player NOT
+    // tmp_user_id is used to hold the id if a player is NOT
     // logged in.
     this.tmp_user_id = null;
 
@@ -28,7 +28,7 @@ class ActiveGame {
       this.game_id_str = game._id.toHexString();
     }
 
-    this.chat_text = "<b>Salutations Worderists!</b>";
+    this.chat_text = "Salutations Worderists!";
     this.name = this.game.name_time;
 
     this.connects = [];
@@ -539,23 +539,29 @@ class ActiveGame {
     let game = db.get_db().collection('games').findOne(dbq)
       .then((game) => {
         if (game) {
+          // are the users logged in (1 must be to get here)?
           let u1 = User.current_users.find(u => {
             return u.id.equals(ag_json.user1_id);
           });
           let u2 = User.current_users.find(u => {
             return u.id.equals(ag_json.user2_id);
           });
+
+          // create the ActiveGame
           new_ag = new ActiveGame(u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
 
           if (u1) 
             u1.active_games.push(new_ag);
-          else
+          else // u1 not logged in = save id in tmp_user_id
             new_ag.tmp_user_id = ag_json.user1_id;
-          if (u2 && u1 != u2)
-            u2.active_games.push(new_ag);
-          else if (!u2)
+
+          // if u2 not logged in - save id ...
+          if (!u2)
             new_ag.tmp_user_id = ag_json.user2_id;
+          else if (u1 != u2) 
+            // if u1 == u2 it's a practice game; don't want to add to u.active_games twice
+            u2.active_games.push(new_ag);
 
           logger.debug("activegame.new_active_game_json game_id_str: " + new_ag.game_id_str);
           let player = null;
@@ -565,7 +571,7 @@ class ActiveGame {
               player = "/player1" : player = "/player2";
           }
           else {
-            player = user == u1 ? '/player1' : '/player2';
+            player = (user == u1 ? '/player1' : '/player2');
           }
 
           response.writeHead(302 , {

@@ -444,7 +444,7 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
     if (!this.tiles || !this.tiles[0])
       ret_val = Word.ErrorNoTiles;
 
-    // if this is the first word insure that one of the tiles is
+    // if this is the first word ensure that one of the tiles is
     // at the square r/c 8/8 - the Start Here square
     if (game.words.length == 0) {
       let t = this.tiles.find((item, i) => {
@@ -453,54 +453,60 @@ follow_adjacencies(game, orientation, tile, dont_follow) {
       if (!t) ret_val = Word.ErrorMustStartAtCenter;
       else this.linked_in = true;
     }
-    else if (!this.linked_in)
+
+    // this.linked_in is set in set_adjacencies - ensures there is an intersection
+    // with an existing word
+    if (!this.linked_in)
       ret_val = Word.ErrorNotConnected;
 
-    if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-      this.tiles.sort(function (a, b) {
-        return a.column - b.column;
-      });
-    } else if (this.orientation == Word.ORIENTATIONS.VERT) {
-      this.tiles.sort(function (a, b) {
-        return a.row - b.row;
-      });
-    }
-
-    // insure the 'play' is set ... (needs more investigation)
-    if (!this.play) this.play = game.current_play;
-
-    this.start_row = this.tiles[0].row;
-    this.start_column = this.tiles[0].column;
-
-    this.handle_safe();
-
-    // follow all adjacencies to build words
-    // and set safety
-    this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
-
-    // now, insure all tiles are in the same column or same row
-    if (this.tiles.length > 1) {
-      if (this.orientation == Word.ORIENTATIONS.NONE)
-        ret_val = Word.ErrorNotSameColumnRow;
-      else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
-        let row = this.tiles[0].row;
-        let t = this.tiles.find((item, i) => {
-          if (!(item.status & Tile.utilized))
-            ret_val = Word.ErrorUnusedTile;
-          return item.row != row;
+    // proceed if no error is set above
+    if (ret_val == -1) {
+      if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+        this.tiles.sort(function (a, b) {
+          return a.column - b.column;
         });
-        if (t) // NOT on same row
-          ret_val = Word.ErrorNotSameColumnRow;
+      } else if (this.orientation == Word.ORIENTATIONS.VERT) {
+        this.tiles.sort(function (a, b) {
+          return a.row - b.row;
+        });
       }
-      else if (this.orientation == Word.ORIENTATIONS.VERT) {
-        let col = this.tiles[0].column;
-        let t = this.tiles.find((item, i) => {
-          if (!(item.status & Tile.utilized))
-            ret_val = Word.ErrorUnusedTile;
-          return item.column != col;
-        });
-        if (t) // NOT on same column
+
+      // ensure the 'play' is set ... (needs more investigation)
+      if (!this.play) this.play = game.current_play;
+
+      this.start_row = this.tiles[0].row;
+      this.start_column = this.tiles[0].column;
+
+      this.handle_safe();
+
+      // follow all adjacencies to build words
+      // and set safety
+      this.follow_adjacencies(game, this.orientation, this.tiles[0], false);
+
+      // now, ensure all tiles are in the same column or same row
+      if (this.tiles.length > 1) {
+        if (this.orientation == Word.ORIENTATIONS.NONE)
           ret_val = Word.ErrorNotSameColumnRow;
+        else if (this.orientation == Word.ORIENTATIONS.HORIZ) {
+          let row = this.tiles[0].row;
+          let t = this.tiles.find((item, i) => {
+            if (!(item.status & Tile.utilized))
+              ret_val = Word.ErrorUnusedTile;
+            return item.row != row;
+          });
+          if (t) // NOT on same row
+            ret_val = Word.ErrorNotSameColumnRow;
+        }
+        else if (this.orientation == Word.ORIENTATIONS.VERT) {
+          let col = this.tiles[0].column;
+          let t = this.tiles.find((item, i) => {
+            if (!(item.status & Tile.utilized))
+              ret_val = Word.ErrorUnusedTile;
+            return item.column != col;
+          });
+          if (t) // NOT on same column
+            ret_val = Word.ErrorNotSameColumnRow;
+        }
       }
     }
 

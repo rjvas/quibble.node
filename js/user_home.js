@@ -67,7 +67,9 @@ function clicked_games_btn(event) {
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
-      document.location.href = this.responseURL;
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = this.responseURL;
+      }
     }
 
     xhr.send(null);
@@ -190,8 +192,8 @@ function init() {
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
 
-const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
-//const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
+//const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
+const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 ws.onmessage = function(msg) {
   let resp = JSON.parse(msg.data);
   // need this for vectoring control
