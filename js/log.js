@@ -37,7 +37,7 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({level : "error"}),
     new winston.transports.File({
-      filename: path.join(__dirname + "/../", 'wordheist.log'),
+      filename: path.join(__dirname + "/../", 'letsquibble.log'),
       level: 'info',
       maxsize: 2000000,
       maxFiles: 10,

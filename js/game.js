@@ -1,7 +1,7 @@
 var Play = require('./play').Play;
 var Player = require('./player').Player;
 var Tile = require ('./tile').Tile;
-var TileDefs = require ('./tiledefs').TileDefs;
+var TileDefs = require ('./tileDefs').TileDefs;
 var Word = require ('./word').Word;
 var logger = require('./log').logger;
 const https = require('https');

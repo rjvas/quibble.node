@@ -37,7 +37,7 @@ class User {
   }
 
   static port_min = 24101;
-  static port_max = 25000;
+  static port_max = 25101;
   static current_port = 24101;
 
   static current_users = [];
