@@ -1,3 +1,5 @@
+/*  Copyright 2021 Richard Vassilaros 
+*/
 const db = require('./db');
 // const { User } = require('./user');
 var logger = require('./log').logger;

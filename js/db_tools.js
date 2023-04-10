@@ -1,3 +1,7 @@
+/*
+   Copyright 2021 Richard Vassilaros 
+*/
+
 const db = require('./db');
 var logger = require('./log').logger;
 

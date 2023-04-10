@@ -1,3 +1,7 @@
+/*
+   Copyright 2021 Richard Vassilaros 
+*/
+
 const { MongoClient } = require("mongodb");
 
 let connection = null;

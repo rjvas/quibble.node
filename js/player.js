@@ -1,3 +1,7 @@
+/*
+   Copyright 2021 Richard Vassilaros 
+*/
+
 var Tile = require('./tile').Tile;
 var logger = require('./log').logger;
 

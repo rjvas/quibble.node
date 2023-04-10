@@ -1,4 +1,8 @@
 /*
+   Copyright 2021 Richard Vassilaros 
+*/
+
+/*
 The class that represents a user of the system - currently player and administrator
 */
 

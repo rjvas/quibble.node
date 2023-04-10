@@ -1,4 +1,8 @@
 /*
+   Copyright 2021 Richard Vassilaros 
+*/
+
+/*
 var mongoose = require('mongoose');
 
 var Schema = mongoose.Schema;

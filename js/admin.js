@@ -1,6 +1,6 @@
 /*
-* Heist
-* Drawbridge Creative https://dbc-games.com
+* Let's Quibble!
+* Richard Vassilaros
 * copyright 2021
 */
 

@@ -1,3 +1,5 @@
+/*  Copyright 2021 Richard Vassilaros 
+*/
 var Game = require('./game').Game;
 var User = require('./user').User;
 const db = require('./db');

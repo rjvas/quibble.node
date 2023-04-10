@@ -1,22 +1,5 @@
 /*
-
-Class Names
-
-For the board:
-  grid_background - background color for grid
-  line_horizontal - all horizontal lines in the grid
-  line_vertical - all vertical lines in the grid
-  safety_rect - the safety rectangles
-  center_square - the board center
-
-For the tiles:
-  tile_rect - the fill rectangle for the tiles
-  tile_text - the tile character
-  tile_points - the point value on the tiles
-
-scoreboard_tiles_left - the text "Tiles Left"
-scoreboard_tiles_left_value - the value of "Tiles Left"
-
+   Copyright 2021 Richard Vassilaros 
 */
 
 body {

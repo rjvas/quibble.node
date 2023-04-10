@@ -1,6 +1,5 @@
 /*
-* Heist
-* Drawbridge Creative https://drawbridgecreative.com
+* Richard Vassilaros
 * copyright 2021
 */
 

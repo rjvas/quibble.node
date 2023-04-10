@@ -1,3 +1,7 @@
+/*
+   Copyright 2021 Richard Vassilaros 
+*/
+
 var Play = require('./play').Play;
 var Player = require('./player').Player;
 var Tile = require ('./tile').Tile;

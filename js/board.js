@@ -1,9 +1,6 @@
 /*
- * Heist
- * Drawbridge Creative https://letsquibble.com
- * copyright 2021
- */
-
+   Copyright 2021 Richard Vassilaros 
+*/
 
 // Detect Firefox
 var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;

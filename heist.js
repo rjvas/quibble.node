@@ -1,4 +1,6 @@
 /*
+  Copyright 2021 Richard Vassilaros
+
   This file breaks down into 2 sections: 1) the node server responding to
   http requests and the WebSocket server responding to update requests.
   The http server is on port 3042 and the WebSocket server on 3043.
@@ -45,7 +47,7 @@ var logger = require('./js/log').logger;
 var WtDebug = require('./js/log').WT_DEBUG;
 
 const main_port = 4042;
-// const hostname = 'www.letsquibble.com';
+// const hostname = 'www.letsquibble.net';
 const hostname = 'localhost';
 
 var createServer_count = 0;

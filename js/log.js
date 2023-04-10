@@ -1,3 +1,7 @@
+/*
+   Copyright 2021 Richard Vassilaros 
+*/
+
 const winston = require('winston');
 const path = require('path');
 
