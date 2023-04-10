@@ -211,8 +211,9 @@ class ActiveGame {
          play_data[2].info = stdout;
          socket.send(JSON.stringify(play_data));
        }
-       console.log(`stdout: ${stdout}`);
-       console.log(`stderr: ${stderr}`);
+      // console.log winds up in pm2-out.log - don't want it there
+      //  console.log(`stdout: ${stdout}`);
+      //  console.log(`stderr: ${stderr}`);
       }
     });
   }

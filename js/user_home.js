@@ -192,7 +192,7 @@ function init() {
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
 
-//const ws = new WebSocket('ws://dbc-games.com:' + ws_port);
+//const ws = new WebSocket('ws://letsquibble.com:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 ws.onmessage = function(msg) {
   let resp = JSON.parse(msg.data);

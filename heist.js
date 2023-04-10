@@ -44,8 +44,8 @@ var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
 var WtDebug = require('./js/log').WT_DEBUG;
 
-const main_port = 3042;
-// const hostname = 'www.dbc-games.com';
+const main_port = 4042;
+// const hostname = 'www.letsquibble.com';
 const hostname = 'localhost';
 
 var createServer_count = 0;

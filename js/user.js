@@ -170,7 +170,7 @@ class User {
   static mail_reset(to, id) {
     let subj = "Reset <game name> password";
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
-    body += "http://www.dbc-games.com:3042/reset_phase2?hp=" + encodeURIComponent(id);
+    body += "http://www.letsquibble.com:4042/reset_phase2?hp=" + encodeURIComponent(id);
 
     let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
