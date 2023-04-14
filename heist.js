@@ -3,15 +3,38 @@
 
   This file breaks down into 2 sections: 1) the node server responding to
   http requests and the WebSocket server responding to update requests.
-  The http server is on port 3042 and the WebSocket server on 3043.
+  The http server is on port 80.
 
   This file is also at the top of the control hierarchy. Game (js/game.js)
   manages the play. See in-line comments for more info.
 */
 
-//
+const https = require('https');
+// const http = require('http');
+//const fs = require("mz/fs");
+var fs = require('fs');
+
+// const main_port = 80;
+const main_port = 443;
+// const hostname = 'www.letsquibble.net';
+const hostname = 'localhost';
+
+//const certdir = (fs.readdir("/etc/letsencrypt/live"))[0];
+const options = {
+  key: fs.readFileSync("./privkey.pem"),
+  cert: fs.readFileSync("./fullchain.pem")
+};
+
+// const {key, cert} = await (async () => {
+// 	const certdir = (await fs.readdir("/etc/letsencrypt/live"))[0];
+
+// 	return {
+// 		key: await fs.readFile(`/etc/letsencrypt/live/${certdir}/privkey.pem`),
+// 		cert: await fs.readFile(`/etc/letsencrypt/live/${certdir}/fullchain.pem`)
+// 	}
+// })();
+
 const db = require('./js/db');
-let db_heist;
 db.connect()
     .then(() => logger.info('database connected'))
     .then(() => startup())
@@ -22,9 +45,7 @@ db.connect()
     });
 
 // const jwt = require('jsonwebtoken');
-const http = require('http');
 const pug = require('pug');
-var fs = require('fs');
 var url = require('url');
 var path = require('path');
 
@@ -45,12 +66,6 @@ var User = require('./js/user').User;
 var Admin = require('./js/admin_srv').Admin;
 var logger = require('./js/log').logger;
 var WtDebug = require('./js/log').WT_DEBUG;
-
-const main_port = 4042;
-// const hostname = 'www.letsquibble.net';
-const hostname = 'localhost';
-
-var createServer_count = 0;
 
 var CurrentAGame = null;
 
@@ -189,7 +204,8 @@ function startup() {
   logger.info("heist.startup: starting up Word Heist ...");
 
   // Create the http server and set up the callbacks
-  var server = http.createServer((request, response) => {
+  // var server = http.createServer((request, response) => {
+  const server = https.createServer(options, (request, response) => { 
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;

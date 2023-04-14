@@ -122,7 +122,7 @@ function setup_chat() {
   if (cur_chat_port) {
     let opts = [];
     peek_game ? opts[0] = "peek" : opts[0] = "no_peek";
-    // cur_chat_ws = new WebSocket('ws://letsquibble.net:' + cur_chat_port);
+    // cur_chat_ws = new WebSocket('wss://letsquibble.net:' + cur_chat_port);
     cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port, opts);
 
     cur_chat_ws.onmessage = function(msg) {
@@ -206,7 +206,7 @@ function clicked_broadcast_btn(event) {
       broadcast_msg.push({"player" : "sysadmin"});
       broadcast_msg.push({"info" : txt.value});
 
-      // broadcast_ws = new WebSocket('ws://letsquibble.net:' + broadcast_port);
+      // broadcast_ws = new WebSocket('wss://letsquibble.net:' + broadcast_port);
       broadcast_ws = new WebSocket('ws://192.168.0.16:' + broadcast_port);
     }
   }
@@ -385,7 +385,7 @@ var cur_chat_ws;
 var peek_game;
 
 var data_port = document.getElementById("data_port").value;
-// const data_ws = new WebSocket('ws://letsquibble.net:' + data_port);
+// const data_ws = new WebSocket('wss://letsquibble.net:' + data_port);
 const data_ws = new WebSocket('ws://192.168.0.16:' + data_port);
 
 var editor = null;

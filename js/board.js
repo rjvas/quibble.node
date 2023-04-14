@@ -1794,7 +1794,7 @@ AppOrientation = VERT;
 AppSpace = document.querySelectorAll('#every_damn_thing')[0];
 PlaySpace = document.querySelectorAll('#wt_board')[0];
 
-//const ws = new WebSocket('ws://letsquibble.net:' + ws_port);
+//const ws = new WebSocket('wss://letsquibble.net:' + ws_port);
 const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
 
 function update_current_player(player) {
