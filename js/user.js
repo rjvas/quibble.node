@@ -14,7 +14,7 @@ var Admin = require('./admin_srv').Admin
 const {exec} = require('child_process');
 
 class User {
-  constructor(sonj) {
+  constructor(sonj, server) {
     this.id = sonj._id;
     this.active = sonj.active;
     this.deactivate_reason = sonj.deactivate_reason;
@@ -37,7 +37,7 @@ class User {
     this.jwt = null;
     this.port = User.current_port < User.port_max ? User.current_port++ : User.port_min;
     this.connects = [];
-    this.ws_server = this.setup_socket();
+    this.ws_server = this.setup_socket(server);
   }
 
   static port_min = 24101;
@@ -174,7 +174,7 @@ class User {
   static mail_reset(to, id) {
     let subj = "Reset <game name> password";
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
-    body += "http://www.letsquibble.net:4042/reset_phase2?hp=" + encodeURIComponent(id);
+    body += "https://letsquibble.net/reset_phase2?hp=" + encodeURIComponent(id);
 
     let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
@@ -273,7 +273,7 @@ class User {
       .catch((e) => console.error(e));
   }
 
-  static login (query, request_addr, user_agent, response, game_over) {
+  static login (server, query, request_addr, user_agent, response, game_over) {
 
     var new_user = null;
     var params = new URLSearchParams(query);
@@ -313,7 +313,7 @@ class User {
       .then((usr) => {
         if (usr) {
           if (bcrypt.compareSync(passw, usr.password)) {
-            new_user = new User(usr);
+            new_user = new User(usr, server);
             new_user.last_login_date = Date();
             new_user.request_address = request_addr;
             User.current_users.push(new_user);
@@ -442,10 +442,11 @@ class User {
     logger.debug("user.send_msg: type: message data: " + JSON.stringify(data));
   }
 
-  setup_socket() {
+  setup_socket(server) {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
     let ws_server = new WebSocket.Server({
+      // server: server
       port: this.port
     });
 

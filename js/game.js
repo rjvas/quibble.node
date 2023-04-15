@@ -388,14 +388,14 @@ class Game {
 
     this.new_word.set_adjacencies(this);
 
-    console.log(`game.handle_regular_play 1 played_tiles, this.new_word`);
-    logger.debug(`game.handle_regular_play 1 played_tiles, this.new_word :`);
-    played_tiles.forEach(t => {
-      console.dir(t.get_JSON());
-      logger.debug(`${JSON.stringify(t.get_JSON())}`);
-    });
-    console.dir(this.new_word);
-    logger.debug(`${JSON.stringify(this.new_word.get_JSON())}`);
+    // console.log(`game.handle_regular_play 1 played_tiles, this.new_word`);
+    // logger.debug(`game.handle_regular_play 1 played_tiles, this.new_word :`);
+    // played_tiles.forEach(t => {
+      // console.dir(t.get_JSON());
+      // logger.debug(`${JSON.stringify(t.get_JSON())}`);
+    // });
+    // console.dir(this.new_word);
+    // logger.debug(`${JSON.stringify(this.new_word.get_JSON())}`);
 
     // if all 7 tiles in the player's hand are used in a word it is 'safe'
     if (this.new_word.tiles.length > 0 && played_tiles.length > 6) {
@@ -411,11 +411,11 @@ class Game {
         let new_data = this.toggle_player_new_play();
         let word_tiles = this.words[this.words.length - 1].get_tiles_JSON();
 
-        console.log(`game.handle_regular_play.finalized new_data, word_tiles: `);
-        console.dir(new_data);
-        console.dir(word_tiles);
-        logger.debug(`game.handle_regular_play.finalized new_data, word_tiles : ` +
-          `${JSON.stringify(new_data)} \n${JSON.stringify(word_tiles)}`);
+        // console.log(`game.handle_regular_play.finalized new_data, word_tiles: `);
+        // console.dir(new_data);
+        // console.dir(word_tiles);
+        // logger.debug(`game.handle_regular_play.finalized new_data, word_tiles : ` +
+          // `${JSON.stringify(new_data)} \n${JSON.stringify(word_tiles)}`);
 
         ret_val = this.get_the_errors(err_idx, [{"new_data" : new_data,
                                                      "word_tiles" : word_tiles}]);
@@ -431,11 +431,11 @@ class Game {
         ret_val = this.get_the_errors(err_idx, roll_back_tiles);
         ret_val.unshift({"info" : "none"});
 
-        console.log(`game.handle_regular_play.errored roll_back_tiles, ret_val: `);
-        console.dir(roll_back_tiles);
-        console.dir(ret_val);
-        logger.debug(`game.handle_regular_play.errored roll_back_tiles, ret_val :` +
-          ` ${JSON.stringify(roll_back_tiles)} \n${JSON.stringify(ret_val)}`);
+        // console.log(`game.handle_regular_play.errored roll_back_tiles, ret_val: `);
+        // console.dir(roll_back_tiles);
+        // console.dir(ret_val);
+        // logger.debug(`game.handle_regular_play.errored roll_back_tiles, ret_val :` +
+          // ` ${JSON.stringify(roll_back_tiles)} \n${JSON.stringify(ret_val)}`);
 
         this.new_word = new Word(0, this.current_play, this.current_player,
           "", 0, -1, -1, Word.ORIENTATIONS.NONE, false);
@@ -549,7 +549,7 @@ class Game {
           play_data.push({"definitions" : this.cleanup_definitions(body)});
           if (count == 0)
             sock.send(JSON.stringify(play_data));
-          console.log(body);
+          // console.log(body);
         });
       })
   
@@ -567,15 +567,15 @@ class Game {
     // get the type of play and take it off the play_data
     var play_type = play_data.shift();
 
-    console.log(`game.finish_the_play 1 play_data=`);
-    console.dir(play_data);
-    logger.debug(`game.finish_the_play 1 play_data = ${JSON.stringify(play_data)}`);
+    // console.log(`game.finish_the_play 1 play_data=`);
+    // console.dir(play_data);
+    // logger.debug(`game.finish_the_play 1 play_data = ${JSON.stringify(play_data)}`);
 
     var played_tiles = this.played_tiles_update(player, play_data);
 
-    console.log(`game.finish_the_play 2 played_tiles=`);
-    console.dir(played_tiles);
-    logger.debug(`game.finish_the_play 2 played_tiles = `);
+    // console.log(`game.finish_the_play 2 played_tiles=`);
+    // console.dir(played_tiles);
+    // logger.debug(`game.finish_the_play 2 played_tiles = `);
     played_tiles.forEach(t => {
       logger.debug(JSON.stringify(t.get_JSON()));
     });

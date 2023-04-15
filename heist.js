@@ -9,21 +9,20 @@
   manages the play. See in-line comments for more info.
 */
 
-const https = require('https');
-// const http = require('http');
-//const fs = require("mz/fs");
+//const https = require('https');
+const http = require('http');
 var fs = require('fs');
 
-// const main_port = 80;
-const main_port = 443;
-// const hostname = 'www.letsquibble.net';
-const hostname = 'localhost';
+const main_port = 80;
+// const main_port = 443;
+const hostname = 'letsquibble.net';
+//const hostname = 'localhost';
 
 //const certdir = (fs.readdir("/etc/letsencrypt/live"))[0];
-const options = {
-  key: fs.readFileSync("./privkey.pem"),
-  cert: fs.readFileSync("./fullchain.pem")
-};
+// const options = {
+  // key: fs.readFileSync("./privkey.pem"),
+  // cert: fs.readFileSync("./fullchain.pem")
+// };
 
 // const {key, cert} = await (async () => {
 // 	const certdir = (await fs.readdir("/etc/letsencrypt/live"))[0];
@@ -204,8 +203,8 @@ function startup() {
   logger.info("heist.startup: starting up Word Heist ...");
 
   // Create the http server and set up the callbacks
-  // var server = http.createServer((request, response) => {
-  const server = https.createServer(options, (request, response) => { 
+  var server = http.createServer((request, response) => {
+  // const server = https.createServer(options, (request, response) => { 
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
@@ -219,7 +218,7 @@ function startup() {
       CurrentAGame == null;
       let user = get_user_agame(query).user;
       if (user) {
-        CurrentAGame = new ActiveGame(user, user, ActiveGame.in_play|ActiveGame.practice);
+        CurrentAGame = new ActiveGame(server, user, user, ActiveGame.in_play|ActiveGame.practice);
         ActiveGame.all_active.push(CurrentAGame);
         user.active_games.push(CurrentAGame);
         pathname = "/player1";
@@ -274,7 +273,7 @@ function startup() {
         let user = ugv.user;
         // query should hold the index to the selected game
         if (user) {
-          ActiveGame.new_active_game_json(user.get_game(ugv.game_name), user, response);
+          ActiveGame.new_active_game_json(server, user.get_game(ugv.game_name), user, response);
 
           logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
             game=${user.get_game(ugv.game_name)}'); // not yet initialized(async) port: ${user.get_game(ugv.game_name).port}`); 
@@ -311,7 +310,7 @@ function startup() {
       }
 
       if (u1 && u2) {
-        CurrentAGame = new ActiveGame(u1, u2, ActiveGame.in_play);
+        CurrentAGame = new ActiveGame(server, u1, u2, ActiveGame.in_play);
         ActiveGame.all_active.push(CurrentAGame);
         u1.active_games_add(CurrentAGame);
         u2.active_games_add(CurrentAGame);
@@ -419,7 +418,7 @@ function startup() {
 
     // async
     else if (pathname == "/login") {
-      User.login(query, remote_addr, user_agent, response, ActiveGame.game_over);
+      User.login(server, query, remote_addr, user_agent, response, ActiveGame.game_over);
       logger.debug("heist.login query: " + query);
     }
 

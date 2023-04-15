@@ -8,7 +8,7 @@ const {exec} = require('child_process');
 
 class ActiveGame {
 
-  constructor(user1, user2, status, game) {
+  constructor(server, user1, user2, status, game) {
 
     this.user1 = user1;
     this.user2 = user2;
@@ -34,7 +34,7 @@ class ActiveGame {
     this.name = this.game.name_time;
 
     this.connects = [];
-    this.ws_server = this.setup_socket();
+    this.ws_server = this.setup_socket(server);
   }
 
   static port_min = 26101;
@@ -321,10 +321,11 @@ class ActiveGame {
     logger.warn(`Bookmark Log player/msg: ${player.name} says ${bookmark_txt}`);
   }
 
-  setup_socket() {
+  setup_socket(server) {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
     let ws_server = new WebSocket.Server({
+      // server : server,
       port: this.port
     });
 
@@ -521,7 +522,7 @@ class ActiveGame {
   // builds and active game from json delivered from the db
   // this differs from newly created active_games that have
   // no _id
-  static new_active_game_json(ag_json, user, response) {
+  static new_active_game_json(server, ag_json, user, response) {
 
     // don't allow a reload of an active game
     // let found = ActiveGame.all_active.find(
@@ -551,7 +552,7 @@ class ActiveGame {
           });
 
           // create the ActiveGame
-          new_ag = new ActiveGame(u1, u2, ag_json.status, game);
+          new_ag = new ActiveGame(server, u1, u2, ag_json.status, game);
           new_ag._id = ag_json._id;
 
           if (u1) 

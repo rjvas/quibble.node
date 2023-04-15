@@ -204,7 +204,7 @@ class Tile {
       if (collide) return true;
       else if ((AppOrientation == HORIZ && (col < 1 || row > 15 )) ||
                 (AppOrientation == VERT && (col > 15 || row < 1))) {
-        console.log(`Tile.is_collision: collided with edge row/col: ${row}/${col}`);
+        // console.log(`Tile.is_collision: collided with edge row/col: ${row}/${col}`);
         return true;
       }
     }
@@ -344,7 +344,7 @@ class PlayerHand {
       let ts = PlayerHand.tiles;
       let os = PlayerHand.get_open_slot();
 
-      console.log(`rearrange_hand tile x=${x} y=${y} os=${os} to_idx=${to_idx}`);
+      // console.log(`rearrange_hand tile x=${x} y=${y} os=${os} to_idx=${to_idx}`);
 
       // if no open slot, shift in-place
       if (os == -1) os = tile.player_hand_idx;
@@ -890,7 +890,7 @@ function swap_tile_clicked(event) {
 }
 
 function swap_select_all(event) {
-  console.log(`in swap_select_all`);
+  // console.log(`in swap_select_all`);
   let pu = document.getElementById("swap_pop");
   let svgs = pu.getElementsByTagName("svg");
   for (i=0; i<svgs.length; i++) {
@@ -1198,13 +1198,13 @@ function clicked_home_btn(event) {
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
       document.location.href = "/home_page?user=" + user;
-      console.log("home_btn.callback: port: " + ws_port);
+      // console.log("home_btn.callback: port: " + ws_port);
     }
   }
 
   if (ChatWin) { ChatWin.close(); ChatWin = null; }
 
-  console.log("clicked_home_btn port: " + ws_port);
+  // console.log("clicked_home_btn port: " + ws_port);
   xhr.send(null);
 }
 
@@ -1338,7 +1338,7 @@ function magnify_view(tile, x, y) {
     y_from -= 10;
 
   let vbstr = `${x_from} ${y_from} ${vb_wide} ${vb_heigh}`;
-  console.log(`magnify_view x/y: ${x}/${y} vbstr - ${vbstr}`);
+  // console.log(`magnify_view x/y: ${x}/${y} vbstr - ${vbstr}`);
 
   // if the vb has been modified ...
   if (vbstr != ViewStack[length - 1]) {
@@ -1406,7 +1406,7 @@ function tile_moving(new_position) {
   let svg = this.element;
 
   let playXY = screenToSVG(PlaySpace, new_position.left, new_position.top);
-  console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
+  // console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
 
   // odd - during the move these coords are reversed
   let y = playXY.x;
@@ -1414,7 +1414,7 @@ function tile_moving(new_position) {
 
   row = Math.round(x/ CELL_SIZE + 1);
   col = Math.round(y/ CELL_SIZE + 1);
-  console.log(`r/c from drag: ${row},${col}`);
+  // console.log(`r/c from drag: ${row},${col}`);
 
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
