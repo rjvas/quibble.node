@@ -1209,7 +1209,13 @@ function clicked_home_btn(event) {
 }
 
 function clicked_question(event) {
-  alert(`Nothing to see here. Move along.`)
+  let dia = document.getElementById("help_dialog");
+  dia.style.display = "block";
+}
+
+function clicked_help_ok(event) {
+  let dia = document.getElementById("help_dialog");
+  dia.style.display = "none";
 }
 
 function clicked_bookmark_log(event) {
@@ -1927,6 +1933,11 @@ function set_button_callbacks() {
   let btn = document.getElementById('back_on_click');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('help_ok_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_help_ok);
   }
 
   btn = document.getElementById('question_click');

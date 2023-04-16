@@ -23,14 +23,26 @@ html
     input(id="is_admin" type="hidden" value=is_admin)
     
     div(id="swap_pop" class="swap_pop" style="{display : none}")
+    div(id="help_dialog" class="help" style="{display : none}")
+      div.help_head1
+        p Let's Quibble combines the word-building of Scrab*le with the excitement and deep satisfaction of stealing your opponents tiles and points. Steal tiles by building new words; adding prefixes, suffixes, intersections and adjacencies. 
+        p Contact us with suggestions, bugs, quibbles or salutations at: 
+          a(href="mailto:letsquibble878@gmail.com") Let's Quibble!
+      div.help_head1 Rules 
+        ol(id="help_rule_list")
+          li All newly played tiles must occupy a single row or column and cover consecutive squares - unless an intersection (or more than one) makes up part of the word.
+          li All words must read left-to-right and/or top-to-bottom.
+          li The first word played must cover the Start (middle of the board) square.
+          li When a word is played with one or more intersections and those tiles are the opposition's tiles the colors will change to the player's color, the points of the tile/s are deducted from the opposition's score and added to the player's score. Unless the prefixed, suffixed or intersected word is SAFE.
+          li SAFE words are created in two ways: 1) by playing a word with all 7 tiles in the player's hand OR 2) By playing a word in which one or more tiles cover a SAFE square; indicated by the 'lock' icons.
+          li Players play a word by dragging tiles from their hand to the board and then clicking Play. 
+          li Players can Pass a turn, Swap tiles (1 to 7), Recall Tiles prior to clicking Play, See The Last Play and get definitions of played words by clicking on the first letter of the word.
+          li Play continues until there are no tiles in the tile pool and one player plays all of his/her/their tiles OR there are 2 consecutive Passes; one by each player.
+      div#help_ctrls
+        input(id="help_ok_btn" type="button" class="button" value="OK")
     
     - var cell_size = 35;
     
-    //- if the layout is horizontal the scoreboard is vertical and the
-    //- grid x is offset by the xy_offset. if the layout is vertical the
-    //- grid y is offset by the xy_offset
-    //- NOTE: THIS TEMPLATE SETS UP FOR A HORIZONTAL LAYOUT, ONLY! The 
-    //- vertical layout is handled at the board.js getWindowSize callbak.
     - var scorebd_xy_offset = cell_size*2;
     input(id="scorebd_xy_offset" type="hidden" value=scorebd_xy_offset)
     - var player_panel_wh = cell_size*6;

@@ -9,6 +9,10 @@ body {
   flex-direction: column;
 }
 
+p {
+  color : black
+}
+
 .swap_pop {
   display: none; 
   position: fixed;
@@ -16,6 +20,31 @@ body {
   flex-direction: row;
   left: 10%;
   top: 45%;
+}
+
+#help_dialog {
+  background-color: #dddddd;
+  color: #333333;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  top : 10%;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  padding: 5%;
+}
+
+.help_ctrls {
+  width : 100%;
+  padding-right: 40%;
+  padding-left: 40%;
+}
+
+#help_ok_btn {
+
 }
 /* 
 #swap_pop_ctrls {
