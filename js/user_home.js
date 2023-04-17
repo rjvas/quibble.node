@@ -5,6 +5,16 @@
 
 var ws_port = document.getElementById("ws_port").value;
 
+function clicked_help_btn() {
+  let dia = document.getElementById("help_dialog");
+  dia.style.display = "block";
+}
+
+function clicked_help_ok(event) {
+  let dia = document.getElementById("help_dialog");
+  dia.style.display = "none";
+}
+
 function new_practice_game() {
   var user = document.getElementById("user").value;
 
@@ -164,6 +174,16 @@ function init() {
   btn = document.getElementById('delete_game_btn');
   if (btn) {
     btn.addEventListener("click", clicked_delete_game_btn);
+  }
+
+  btn = document.getElementById('help_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_help_btn);
+  }
+
+  btn = document.getElementById('help_ok_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_help_ok);
   }
 
   btn = document.getElementById('logout_btn');

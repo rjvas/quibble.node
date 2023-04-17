@@ -41,6 +41,55 @@ body {
   /* margin-bottom: 5px; */
 }
 
+#help_dialog {
+  background-color: #333333;
+  color: white;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  right: 10%;
+  top : 10%;
+  /* width: 80%; */
+  height: 80%;
+  overflow: auto;
+  padding: 5%;
+}
+
+p {
+  font-size: medium;
+}
+
+.help_head1 {
+  font-size: larger;
+}
+
+a {
+  color :  #eb008b;
+}
+
+.help_ctrls {
+  width : 100%;
+  padding-right: 40%;
+  padding-left: 40%;
+}
+
+#help_ok_btn {
+  background-color:  #0072bc;
+}
+
+#help_btn {
+  font-size: 8pt;
+  outline: none;
+  border: none;
+  margin-top: 10px;
+  float: left;
+  color: white;
+  background-color: black; 
+  cursor: pointer;
+}
+
 .logout_button {
   font-size: 8pt;
   float: right;

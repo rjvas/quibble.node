@@ -10,7 +10,7 @@ body {
 }
 
 p {
-  color : black
+  color : white;
 }
 
 .swap_pop {
@@ -22,9 +22,13 @@ p {
   top: 45%;
 }
 
+a {
+  color :  #eb008b;
+}
+
 #help_dialog {
-  background-color: #dddddd;
-  color: #333333;
+  background-color: #333333;
+  color: white;
   display: none; 
   position: fixed;
   z-index: 99;
@@ -43,9 +47,20 @@ p {
   padding-left: 40%;
 }
 
-#help_ok_btn {
-
+.button {
+  width: 110px;
+  height: 30px;
+  border-radius: 7px;
+  outline: none;
+  border: none;
+  /* padding-top: 20px; */
+  font-size: 18pt;
+  font-weight: 600;
+  color: white;
+  background-color:  #0072bc;
+  cursor: pointer;
 }
+
 /* 
 #swap_pop_ctrls {
   fill: none;

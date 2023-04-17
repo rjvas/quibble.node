@@ -15,14 +15,28 @@ html(lang="en")
     input(id="user" type="hidden" value=user.id.toHexString())
     input(id="ws_port" type="hidden" value=user.port)
 
+    div(id="help_dialog" class="help" style="{display : none}")
+      p Contact us with suggestions, bugs, quibbles or salutations at 
+        a(id="mail_link" href="mailto:letsquibble878@gmail.com") Let's Quibble!
+      div.help_head1 In-Process Games
+        p This is where all of your started games are listed. They stay in the list until finished. 
+      div.help_head1 Start A New Game 
+        p If there is a player in the list that you want to play, select the list item and click GO PLAY! You can also ADD YOUR NAME to the list and wait for an opponent to select your name. 
+        p Once GO PLAY has been clicked a new game is started that both players can see. The player that clicks GO PLAY is player 1 and starts the game play.
+      div.help_head1 Practice Game
+        p For good practice in word-building and tactics.
+      div#help_ctrls
+        input(id="help_ok_btn" type="button" class="button" value="OK")
+
     #all
       #control_pnl
         span#logout
+          input(id="help_btn" type="button" value="HELP" )
           if (user.role & User.admin)
             input(id="admin_btn" type="button" class="logout_button" value="ADMIN")
           input(id="logout_btn" type="button" class="logout_button" value="LOG OUT")
         #welcome
-          |Welcome, #{user.display_name}
+          |Let's Quibble, #{user.display_name}
             
         #games
           div.sub_label In-Process Games
