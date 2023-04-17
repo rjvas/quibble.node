@@ -5,7 +5,8 @@
 doctype html
 html(lang="en")
   head
-    title Let's Quibble!
+    title Let's Quibble! A Scrab*le-like word game.
+    meta(name="description" content="Let's Quibble builds words like Scrab*le but lets players capture their opponent's tiles and points.")
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width), initial-scale=1.0')
     link(rel='stylesheet', href='views/welcome.css')
@@ -28,7 +29,17 @@ html(lang="en")
         div.error_label Error: User already logged in!
 
     #both
+      span#info
+        input(id="about_btn" type="button" value="About" )
+        a(id="mail_link" href="mailto:letsquibble878@gmail.com") Contact Us
+
       div#top_label Let's Quibble!
+
+      div(id="about_dialog" class="about" style="{display : none}")
+        p Contact us with suggestions, bugs, quibbles or salutations at 
+        div#about_ctrls
+          input(id="about_ok_btn" type="button" class="button" value="OK")
+
       #first
         div.section_label Login
         form(action="login")
