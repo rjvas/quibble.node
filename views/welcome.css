@@ -24,10 +24,18 @@ a {
   font-size: small;
 }
 
+#info {
+  margin-left: 5%;
+  margin-right: 10%;
+  width: 80%;
+  max-width: 600px;
+}
+
 #mail_link {
   float: right;
   cursor: pointer;
 }
+
 #about_btn {
   background-color: black;
   color: white;
@@ -36,6 +44,28 @@ a {
   border: none;
   cursor: pointer;
 }
+
+#about_ok_btn {
+  background-color: #0072bc;
+  cursor: pointer;
+}
+
+#about_dialog {
+  background-color: #333333;
+  color: white;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  right: 10%;
+  top : 10%;
+  /* width: 80%; */
+  height: 80%;
+  overflow: auto;
+  padding: 5%;
+}
+
 
 #both {
   align-self: center;

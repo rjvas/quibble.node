@@ -30,15 +30,17 @@ html(lang="en")
 
     #both
       span#info
-        input(id="about_btn" type="button" value="About" )
+        input(id="about_btn" type="button" value="About" onClick="show_about();")
         a(id="mail_link" href="mailto:letsquibble878@gmail.com") Contact Us
+
 
       div#top_label Let's Quibble!
 
       div(id="about_dialog" class="about" style="{display : none}")
-        p Contact us with suggestions, bugs, quibbles or salutations at 
+        p Let's Quibble combines the word-building of Scrab*le with the excitement and deep satisfaction of capturing your opponent's tiles and points. Capture tiles by building new words; adding prefixes, suffixes, intersections and adjacencies. 
+        p Accept no substitutes and beware sound-alikes!
         div#about_ctrls
-          input(id="about_ok_btn" type="button" class="button" value="OK")
+          input(id="about_ok_btn" type="button" class="buttons" onClick="hide_about()" value="OK") 
 
       #first
         div.section_label Login
@@ -68,3 +70,13 @@ html(lang="en")
             input(type="password" class="in_fields" name="password2" placeholder="Re-type Password")
           div.reg_submit
             button(type="submit" id="new_submit" class="buttons" ) SIGN UP!
+
+  script. 
+    function show_about() {
+      let dia=document.getElementById("about_dialog");
+      dia.style.display = "block";
+    }
+    function hide_about() {
+      let dia=document.getElementById("about_dialog");
+      dia.style.display = "none";
+    }
