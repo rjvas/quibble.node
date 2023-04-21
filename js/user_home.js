@@ -4,6 +4,56 @@
 */
 
 var ws_port = document.getElementById("ws_port").value;
+const email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+
+function clicked_cancel_invite_btn() {
+  let dia = document.getElementById("invite_dialog");
+  dia.style.display = "none";
+}
+
+function clicked_invite_btn() {
+  let dia = document.getElementById("invite_dialog");
+  dia.style.display = "block";
+}
+
+function clicked_invite_friend_btn() {
+  var user = document.getElementById("user").value;
+  let u_name = document.getElementById("user_name").value;
+  let f_name = document.getElementById("friend_name").value;
+  let f_email = document.getElementById("friend_email").value;
+
+  if (!u_name || !f_name || !f_email)
+    alert("Please insure all fields have valid information and try again");
+  else if (!email_regex.test(f_email)) {
+    let email_err = document.getElementById("invite_err");
+    alert("Incorrectly formatted email - please try again");
+  }
+  else {
+    let dia = document.getElementById("invite_dialog");
+    dia.style.display = "none";
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", `/invite_friend?user=${user}&user_name=${u_name}&friend_name=${f_name}&friend_email=${f_email}` , true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        document.location.href = xhr.responseURL;
+        }
+    }
+    xhr.send(null);
+  }
+}
+
+function clicked_cancel_pickup_btn() {
+  let dia = document.getElementById("pickup_dialog");
+  dia.style.display = "none";
+}
+
+function clicked_pickup_btn() {
+  let dia = document.getElementById("pickup_dialog");
+  dia.style.display = "block";
+}
 
 function clicked_help_btn() {
   let dia = document.getElementById("help_dialog");
@@ -103,6 +153,8 @@ function clicked_logout_btn(event) {
 
 function clicked_add_pickup_name_btn(event) {
   var user = document.getElementById("user").value;
+  let dia = document.getElementById("pickup_dialog");
+  dia.style.display = "none";
 
   let xhr = new XMLHttpRequest();
   xhr.open("GET", "/add_pickup_name?user=" + user, true);
@@ -117,6 +169,9 @@ function clicked_add_pickup_name_btn(event) {
 }
 
 function clicked_play_pickup_btn(event) {
+  let dia = document.getElementById("pickup_dialog");
+  dia.style.display = "none";
+
   var user = document.getElementById("user").value;
   var plist = document.getElementById("pickup_lst");
   let p_name = plist[plist.selectedIndex].label;
@@ -174,6 +229,31 @@ function init() {
   btn = document.getElementById('delete_game_btn');
   if (btn) {
     btn.addEventListener("click", clicked_delete_game_btn);
+  }
+
+  btn = document.getElementById('cancel_invite_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_cancel_invite_btn);
+  }
+
+  btn = document.getElementById('invite_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_invite_btn);
+  }
+  
+  btn = document.getElementById('invite_friend_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_invite_friend_btn);
+  }
+
+  btn = document.getElementById('cancel_pickup_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_cancel_pickup_btn);
+  }
+
+  btn = document.getElementById('pickup_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_pickup_btn);
   }
 
   btn = document.getElementById('help_btn');

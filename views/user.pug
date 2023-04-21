@@ -18,7 +18,7 @@ html(lang="en")
     div(id="help_dialog" class="help" style="{display : none}")
       p Contact us with suggestions, bugs, quibbles or salutations at 
         a(id="mail_link" href="mailto:letsquibble878@gmail.com") Let's Quibble!
-      div.help_head1 In-Process Games
+      div.help_head1 Started Games
         p This is where all of your started games are listed. They stay in the list until finished. 
       div.help_head1 Start A New Game 
         p If there is a player in the list that you want to play, select the list item and click GO PLAY! You can also ADD YOUR NAME to the list and wait for an opponent to select your name. 
@@ -27,6 +27,33 @@ html(lang="en")
         p For good practice in word-building and tactics.
       div#help_ctrls
         input(id="help_ok_btn" type="button" class="button" value="OK")
+
+    div(id="invite_dialog" class="invite" style="{display : none}")
+      p Invite a friend who is new to the game. Just enter your name (so we can say who the invitation is from) and your friend's name and email address and we'll send an invitation, setup a new game when they register and login and notify you that the game is waiting.
+      div
+        input(id="user_name" type="text" class="in_fields" placeholder="Your Name (who the invitation is from)")
+      div
+        input(id="friend_name" type="text" class="in_fields" placeholder="Friend's Name")
+      div
+        input(id="friend_email" type="text" class="in_fields" placeholder="Friend's Email Address")
+      span
+        br
+        input(id="invite_friend_btn" type="button" class="button" value="INVITE A FRIEND" )
+        input(id="cancel_invite_btn" type="button" class="button" value="CANCEL" )
+
+    div(id="pickup_dialog" class="pickup" style="{display : none}")
+      span.descrip2 Select a player from the available player pool 
+        i#num_waiting #{num} 
+      select(id="pickup_lst")
+        option(value=-1) Select A Player
+        each val, idx in gamers
+          option(value=idx) #{val}
+      input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
+      br
+      span.descrip2 Or add your name to the available player pool
+        br
+        input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
+        input(id="cancel_pickup_btn" type="button" class="button" value="CANCEL" )
 
     #all
       #control_pnl
@@ -39,7 +66,7 @@ html(lang="en")
           |Let's Quibble, #{user.display_name}
             
         #games
-          div.sub_label In-Process Games
+          div.sub_label Started Games
             if games.length > 0
               select(id="games_lst")
                 option(value=-1) Select A Game
@@ -52,24 +79,23 @@ html(lang="en")
             
           - var num = `(${gamers.length} Available)`;
           div.sub_label Start A New Game
-            br
-            span.descrip Select a player from the available player pool 
-              i#num_waiting #{num} 
-            select(id="pickup_lst")
-              option(value=-1) Select A Player
-              each val, idx in gamers
-                option(value=idx) #{val}
-            input(id="play_pickup_btn" type="button" class="button" value="GO PLAY!")
-            br
-            span.descrip Or add your name to the available player pool
-            br
-            input(id="add_pickup_btn" type="button" class="button" value="ADD YOUR NAME" )
+            div.sub_label Invite A Friend
+              br
+              span.descrip Invite a friend who hasn't played Let's Quibble
+              br
+              input(id="invite_btn" type="button" class="button" value="INVITE FRIEND")
 
-          div.sub_label Practice Game 
-            br
-            span.descrip Play yourself! A guaranteed win and good practice. 
-            br
-            input(id="practice_btn" type="button" class="button" value="PRACTICE")
+            div.sub_label Pickup Game 
+              br
+              span.descrip Play another waiting player or add your name to the list
+              br
+              input(id="pickup_btn" type="button" class="button" value="PICKUP GAME")
+
+            div.sub_label Practice Game 
+              br
+              span.descrip Play yourself! A guaranteed win and good practice. 
+              br
+              input(id="practice_btn" type="button" class="button" value="PRACTICE")
 
     //- script(src="/js/user_home.min.js")
     script(src="/js/user_home.js")

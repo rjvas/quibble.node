@@ -105,7 +105,7 @@ class Admin {
             
             Admin.current_users.forEach(u => { to.push(u.email); });
 
-            let cmd = `mail -s "${subj}" ${to.join(",")} <<< '${body}'`; 
+            let cmd = `mail -s "${subj}" ${to.join(",")} -b letsquibble878@gmail.com <<< '${body}'`; 
 
             try {
               exec(cmd, (err, stdout, stderr) => {

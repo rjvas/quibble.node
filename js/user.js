@@ -13,6 +13,9 @@ var logger = require('./log').logger;
 var Admin = require('./admin_srv').Admin
 const {exec} = require('child_process');
 
+// debug or release, etc
+const quib_cfg = require('./quib_config.json');
+
 class User {
   constructor(sonj, server) {
     this.id = sonj._id;
@@ -32,6 +35,7 @@ class User {
     this.saved_games = [];
     this.active_games = [];
     this.friends = sonj.friends;
+    this.invitations = [];
     this.request_address = sonj.request_address;
     this.admin = null;
     this.jwt = null;
@@ -131,7 +135,6 @@ class User {
   get_user_page() {
     let games = this.getGameList();
     let gamers = User.get_pickup_gamers();
-    let invite = true;
     return pug_user({
       'games' : games,
       'gamers' : gamers
@@ -148,6 +151,47 @@ class User {
     this.send_msg("gamelist_remove", agame.name);
   }
   
+  invite_friend(query) {
+    var params = new URLSearchParams(query);
+    let u_name = params.get("user_name");
+    let f_name = params.get("friend_name");
+    let f_email = params.get("friend_email");
+    let id = this.id.toHexString();
+
+    if (quib_cfg.debug)
+      console.log(`User.invite_friend: user_name=${u_name} friend_name=${f_name} friend_email=${f_email}`);
+    else {
+      let subj = `${u_name} has invited you to play Let's Quibble!`;
+      let body = `Let\'s Quibble is a free-to-play word game like Scrab*le only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
+      body += `http://www.letsquibble.net/invitation?fname=${f_name}&uid=` + encodeURIComponent(id);
+
+      let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
+
+      let ret_val = false;
+      try {
+        ret_val = exec(cmd, (err, stdout, stderr) => {
+          if (err) {
+            console.log("invitation email failed");
+            console.log(err);
+            return false;
+          } else {
+            this.invitations.push(new Invitation(id, f_name, f_email));
+            console.log("invitation email success");
+            console.log(`${cmd} stdout: ${stdout}`);
+            console.log(`${cmd} stderr: ${stderr}`);
+            return true;
+          }
+        });
+      } catch(error) {
+          console.log("invitation email: exception error");
+          console.log(error);
+          return false;
+      }
+      return ret_val;
+
+    }
+  }
+
   static add_pickup_gamer(name) {
     // TODO What to do about overlap of display names?
     let gamer = User.pickup_gamers.find(g => {
@@ -175,7 +219,10 @@ class User {
   static mail_reset(to, id) {
     let subj = "Reset <game name> password";
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
-    body += "https://letsquibble.net/reset_phase2?hp=" + encodeURIComponent(id);
+    if (!quib_cfg.debug)
+      body += "http://www.letsquibble.net/reset_phase2?hp=" + encodeURIComponent(id);
+    else
+      body += "localhost/reset_phase2?hp=" + encodeURIComponent(id);
 
     let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
@@ -419,7 +466,7 @@ class User {
     let usr = db.get_db().collection('users').findOne(dbq)
       .then((usr) => {
         if (usr) {
-          logger.error("registration error - " + user_name + " already registered - please login");
+          logger.error("registration error - " + user_name + " already registered - either choose a unique user name or login");
           response.writeHead(302 , {
               'Location' : '/?error_reg_prior'
           });
@@ -514,6 +561,18 @@ class UserRole {
   static player = 1;
   static admin = 2;
 
+}
+
+class Invitation {
+  constructor(user_id, invite_name, invite_email) {
+    this.u_id = user_id;
+    this.i_name = invite_name;
+    this.i_email = invite_email;
+    this.i_date = Date();
+    this.status = Invitation.pending;
+  }
+  static none = -1;
+  static pending = 1;
 }
 
 exports.User = User;

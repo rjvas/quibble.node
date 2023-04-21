@@ -13,6 +13,9 @@
 const http = require('http');
 var fs = require('fs');
 
+// debug or release, etc
+const quib_cfg = require('./js/quib_config.json');
+
 const main_port = 80;
 // const main_port = 443;
 const hostname = 'letsquibble.net';
@@ -93,7 +96,8 @@ function get_user_agame(query) {
     vs = params.get("vs");
   }
 
-  logger.debug("heist.get_user_agame : " + " query: " + query);
+  if (quib_cfg.debug)
+    logger.debug("heist.get_user_agame : " + " query: " + query);
 
   let user = null;
   user_id ? user = User.current_users.find(u => {
@@ -117,11 +121,13 @@ function get_user_agame(query) {
         return g.user1 == user || g.user2 == user;
       });
 
-    if (agame)
-      logger.debug("heist.get_user_agame: user= " + user.display_name +
-        " agame= " + agame.name);
-    else
-      logger.debug("heist.get_user_agame: user= " + user.display_name);
+    if (quib_cfg.debug) {
+      if (agame)
+        logger.debug("heist.get_user_agame: user= " + user.display_name +
+          " agame= " + agame.name);
+      else
+        logger.debug("heist.get_user_agame: user= " + user.display_name);
+    }
 
   }
   return {"user" : user, "agame" : agame, "game_name" : game_name, "vs" : vs};
@@ -183,6 +189,7 @@ function play_active_game(query, response) {
       });
       response.end();
 
+    if (quib_cfg.debug) 
       logger.debug(`heist.play_active_game user=${ug.user.display_name}/${ug.user.id.toHexString()} 
         game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
     }
@@ -200,7 +207,8 @@ function startup() {
   var pug_welcome = pug.compileFile('views/welcome.pug')
   */
 
-  logger.info("heist.startup: starting up Word Heist ...");
+  if (quib_cfg.debug) 
+    logger.info("heist.startup: starting up Word Heist ...");
 
   // Create the http server and set up the callbacks
   var server = http.createServer((request, response) => {
@@ -230,7 +238,7 @@ function startup() {
         response.end();
       }
 
-        if (CurrentAGame)
+        if (CurrentAGame && quib_cfg.debug)
           logger.debug(`heist.new_practice_game user=${user.display_name}/${user.id.toHexString()} 
             game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
     }
@@ -244,8 +252,9 @@ function startup() {
         pathname.indexOf("player1") != -1 ? pathname = "/player1" :
           pathname = "/player2";
         CurrentAGame.save();
-        logger.debug(`heist.save_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+        if (quib_cfg.debug) 
+          logger.debug(`heist.save_game user=${user.display_name}/${user.id.toHexString()} 
+            game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
     }
 
@@ -258,8 +267,9 @@ function startup() {
         pathname.indexOf("player1") != -1 ? pathname = "/player1" :
           pathname = "/player2";
         CurrentAGame.save(true, pathname);
-        logger.debug(`heist.save_close_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+        if (quib_cfg.debug) 
+          logger.debug(`heist.save_close_game user=${user.display_name}/${user.id.toHexString()} 
+            game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
     }
 
@@ -275,8 +285,9 @@ function startup() {
         if (user) {
           ActiveGame.new_active_game_json(server, user.get_game(ugv.game_name), user, response);
 
-          logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
-            game=${user.get_game(ugv.game_name)}'); // not yet initialized(async) port: ${user.get_game(ugv.game_name).port}`); 
+          if (quib_cfg.debug) 
+            logger.debug(`heist.load_game user=${user.display_name}/${user.id.toHexString()} 
+              game=${user.get_game(ugv.game_name)}'); // not yet initialized(async) port: ${user.get_game(ugv.game_name).port}`); 
         }
       }
     }
@@ -288,9 +299,24 @@ function startup() {
       if  (user && user.get_game(ugv.game_name)) {
         ActiveGame.delete_game(user.get_game(ugv.game_name), response, user);
 
-        logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
-          game=${ugv.game_name}`); 
+        if (quib_cfg.debug) 
+          logger.debug(`heist.delete_game user=${user.display_name}/${user.id.toHexString()} 
+            game=${ugv.game_name}`); 
       }
+    }
+
+    else if (pathname.indexOf("invite_friend") != -1) {
+      let user = get_user_agame(query).user;
+      user.invite_friend(query);
+    }
+
+    else if (pathname.indexOf("invitation") != -1) {
+      var params = new URLSearchParams(query);
+      let uid = decodeURIComponent(params.get("uid"));
+      if (quib_cfg.debug) 
+        logger.debug(`heist.invitation`); 
+        // user=${user.display_name}/${user.id.toHexString()} 
+        // game=${ugv.game_name}`); 
     }
 
     else if (pathname.indexOf("play_pickup_game") != -1) {
@@ -318,11 +344,11 @@ function startup() {
         CurrentAGame.save(false, null);
         response.end(`/player1?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
 
-        logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+        if (quib_cfg.debug) 
+          logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
-      else {
+      else if (quib_cfg.debug) 
         logger.error("heist.new_pickup_game u1: ", u1, " u2: ", u2);
-      }
     }
 
     else if (pathname.indexOf("add_pickup_name") != -1) {
@@ -335,7 +361,8 @@ function startup() {
           'games': user.get_saved_game_list(),
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
+        if (quib_cfg.debug) 
+          logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
       }
     }
 
@@ -419,7 +446,8 @@ function startup() {
     // async
     else if (pathname == "/login") {
       User.login(server, query, remote_addr, user_agent, response, ActiveGame.game_over);
-      logger.debug("heist.login query: " + query);
+      if (quib_cfg.debug)
+        logger.debug("heist.login query: " + query);
     }
 
     // RJV NOTE much of this should be relocated to User.logout
@@ -472,7 +500,8 @@ function startup() {
           }
         });
 
-        logger.debug(`heist.logout user=${user.display_name}/${user.id.toHexString()}`); 
+        if (quib_cfg.debug)
+          logger.debug(`heist.logout user=${user.display_name}/${user.id.toHexString()}`); 
  
         user.logout(response);
 
@@ -489,7 +518,8 @@ function startup() {
           'games': glist,
           'gamers' : User.get_pickup_gamers()}));
 
-        logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
+        if (quib_cfg.debug)
+          logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
       }
     }
 
@@ -498,7 +528,8 @@ function startup() {
       if (ug.user) {
         response.end(JSON.stringify(ug.user.get_JSON()));
 
-        logger.debug(`heist.wh_admin_user user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
+        if (quib_cfg.debug)
+          logger.debug(`heist.wh_admin_user user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
       }
     }
 
@@ -514,7 +545,8 @@ function startup() {
           'all_active_games' : ActiveGame.all_active
         }));
 
-        logger.debug(`heist.wh_admin user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
+        if (quib_cfg.debug)
+          logger.debug(`heist.wh_admin user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
       }
     }
 
@@ -540,7 +572,9 @@ function startup() {
             player = "/player1" : player = "/player2";
         }
 
-        logger.info("pathname: " + pathname + " filename: " + filename);
+        if (quib_cfg.debug)
+          logger.info("pathname: " + pathname + " filename: " + filename);
+
         response.end(pug_grid({
           'a_game_chat_text' : CurrentAGame.chat_text,
           'is_admin' : user.role & User.admin ? "true" : "false",
@@ -553,8 +587,9 @@ function startup() {
           'Word' : Word,
           'player' : player}));
 
-        logger.debug(`heist.regular_play user=${user.display_name}/${user.id.toHexString()} 
-          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+        if (quib_cfg.debug)
+          logger.debug(`heist.regular_play user=${user.display_name}/${user.id.toHexString()} 
+            game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
       }
     }
 
@@ -573,7 +608,8 @@ function startup() {
         });
         fileStream.pipe(response);
       } catch (e) {
-        logger.error('heist.error: File does not exist: ' + filename);
+        if (quib_cfg.debug)
+          logger.error('heist.error: File does not exist: ' + filename);
         response.writeHead(404, {
           'Content-Type': 'text/plain'
         });
@@ -581,7 +617,8 @@ function startup() {
         response.end();
         return;
       }
-      logger.debug("heist.support_files pathname: " + pathname + " filename: " + filename)
+      if (quib_cfg.debug)
+        logger.debug("heist.support_files pathname: " + pathname + " filename: " + filename)
       return;
     }
   });

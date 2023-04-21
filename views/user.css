@@ -28,10 +28,6 @@ body {
   margin: 7%;
 }
 
-/* #logout { */
-  /* padding-top: 15%; */
-/* } */
-
 #welcome {
   padding-top: 20px;
   font-size: 20px;
@@ -90,13 +86,43 @@ a {
   cursor: pointer;
 }
 
-.logout_button {
+#logout_btn {
   font-size: 8pt;
   float: right;
-  border-radius: 10px;
-  height: 30px;
-  width: 110px;
+  outline: none;
+  border: none;
+  margin-top: 10px;
   cursor: pointer;
+  color: white;
+  background-color: black; 
+}
+
+#invite_dialog {
+  background-color: #333333;
+  color: white;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  right: 10%;
+  top : 10%;
+  overflow: auto;
+  padding: 5%;
+}
+
+#pickup_dialog {
+  background-color: #333333;
+  color: white;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  right: 10%;
+  top : 10%;
+  overflow: auto;
+  padding: 5%;
 }
 
 #games {
@@ -122,7 +148,7 @@ a {
 }
 
 .sub_label {
-  margin-top: 40px;
+  margin-top: 20px;
   color: white;
   font-size: 12pt;
   font-weight: 800;
@@ -132,11 +158,17 @@ a {
 .descrip {
   font-weight: 600;
   color: gray;
-  font-size: 8pt;
+  font-size: 10pt;
+}
+
+.descrip2 {
+  font-weight: 600;
+  color: lightgray;
+  font-size: 10pt;
 }
 
 /* red buttons */
-#games_btn {
+#play_pickup_btn, #games_btn {
   font-size: 8pt;
   margin-top: 5px;
   color: white;
@@ -154,12 +186,32 @@ a {
   cursor: pointer;
 }
 
+.in_fields {
+  font-size: 10pt;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 10px;
+  margin-top: 10px;
+  width: 100%;
+  height: 20px;
+  background-color: #333333;
+  color : white;
+}
+
 /* blue buttons */
-#play_pickup_btn, #add_pickup_btn  {
+#invite_btn, #invite_friend_btn, #add_pickup_btn, #pickup_btn {
   font-size: 8pt;
   margin-top: 5px;
   color: white;
   background-color:  #0072bc;
+}
+
+#cancel_invite_btn, #cancel_pickup_btn  {
+  float: right;
+  font-size: 8pt;
+  margin-top: 5px;
+  color: white;
+  background-color: #333333;
 }
 
 #pickup_lst, #games_lst {
