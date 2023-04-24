@@ -415,8 +415,8 @@ function startup() {
       // After accepting an invitation and registering need to setup new game for 
       // inviter and invitee
       if (invite_id) {
-        invite = Sys.get_invitation(parseInt(invite_id));
-        ActiveGame.new_active_game_invite(invite);
+        if (invite = Sys.get_invitation(parseInt(invite_id)))
+          ActiveGame.new_active_game_invite(invite);
       }
       response.end(pug_welcome({"error" : error}));
     }

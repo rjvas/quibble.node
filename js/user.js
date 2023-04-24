@@ -162,15 +162,15 @@ class User {
     let uid = this.id;
     let iid = Sys.new_invitation(uid, f_name, f_email);
 
-    if (quib_cfg.debug) {
+    if (quib_cfg.debug && quib_cfg.local) {
       console.log(`User.invite_friend: user_name=${u_name} friend_name=${f_name} friend_email=${f_email}`);
     }
     else {
       let subj = `${u_name} has invited you to play Let's Quibble!`;
       let body = `Let\'s Quibble is a free-to-play word game like Scrab*le only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
-      body += `http://www.letsquibble.net/invitation?iid=${iid}`;
+      body += `http://www.letsquibble.net/invitation_accept?iid=${iid}`;
 
-      let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
+      let cmd = `mail -s \"${subj}\" \"${f_email}\" <<< \"${body}\"`; 
 
       let ret_val = false;
       try {
