@@ -9,9 +9,12 @@ The class that represents a user of the system - currently player and administra
 const bcrypt = require('bcrypt');
 const salt_rounds = 10;
 const db = require('./db');
+const { ObjectID } = require( 'mongodb' )
 var logger = require('./log').logger;
 var Admin = require('./admin_srv').Admin
 const {exec} = require('child_process');
+var System  = require('./system').System;
+var Sys = null;
 
 // debug or release, etc
 const quib_cfg = require('./quib_config.json');
@@ -35,7 +38,6 @@ class User {
     this.saved_games = [];
     this.active_games = [];
     this.friends = sonj.friends;
-    this.invitations = [];
     this.request_address = sonj.request_address;
     this.admin = null;
     this.jwt = null;
@@ -152,18 +154,21 @@ class User {
   }
   
   invite_friend(query) {
+    if (!Sys) Sys = System.get_system();
     var params = new URLSearchParams(query);
     let u_name = params.get("user_name");
     let f_name = params.get("friend_name");
     let f_email = params.get("friend_email");
-    let id = this.id.toHexString();
+    let uid = this.id;
+    let iid = Sys.new_invitation(uid, f_name, f_email);
 
-    if (quib_cfg.debug)
+    if (quib_cfg.debug) {
       console.log(`User.invite_friend: user_name=${u_name} friend_name=${f_name} friend_email=${f_email}`);
+    }
     else {
       let subj = `${u_name} has invited you to play Let's Quibble!`;
       let body = `Let\'s Quibble is a free-to-play word game like Scrab*le only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
-      body += `http://www.letsquibble.net/invitation?fname=${f_name}&uid=` + encodeURIComponent(id);
+      body += `http://www.letsquibble.net/invitation?iid=${iid}`;
 
       let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
@@ -173,9 +178,9 @@ class User {
           if (err) {
             console.log("invitation email failed");
             console.log(err);
+            Sys.remove_invitation(iid);
             return false;
           } else {
-            this.invitations.push(new Invitation(id, f_name, f_email));
             console.log("invitation email success");
             console.log(`${cmd} stdout: ${stdout}`);
             console.log(`${cmd} stderr: ${stderr}`);
@@ -321,6 +326,18 @@ class User {
       .catch((e) => console.error(e));
   }
 
+  static load_user(user_id) {
+    let dbq = { "_id" : user_id };
+    let usr = db.get_db().collection('users').findOne(dbq)
+      .then((usr) => {
+        if (usr) {
+          console.log("blah");
+        }
+      })
+      .catch((e) => console.error(e));
+    return usr;
+  }
+
   static login (server, query, request_addr, user_agent, response, game_over) {
 
     var new_user = null;
@@ -349,7 +366,7 @@ class User {
       }
       else {
         logger.error("User.login error - " + name + " is already logged in");
-        response.writeHead(302 , { 'Location' : '/?error_login' });
+        response.writeHead(302 , { 'Location' : '/?err=error_login' });
       }
       response.end();
       return;
@@ -374,7 +391,7 @@ class User {
           } else {
             logger.error("login error - " + name + "wrong password");
             response.writeHead(302 , {
-               'Location' : '/?error_password'
+               'Location' : '/?err=error_password'
             });
             response.end();
           }
@@ -382,7 +399,7 @@ class User {
         else {
           logger.error("login error - no user with: " + name + "/" + passw);
           response.writeHead(302 , {
-             'Location' : '/?error_password'
+             'Location' : '/?err=error_password'
           });
           response.end();
         }
@@ -417,12 +434,14 @@ class User {
   }
 
   static register(query, response) {
+    if (!Sys) Sys = System.get_system();
     var params = new URLSearchParams(query);
     let user_name = params.get("username");
     let display_name = params.get("displayname")
     let passw = params.get("password");
     let passw2 = params.get("password2");
-    let email = params.get("email")
+    let email = params.get("email");
+    let invite_id = params.get("invitation_id");
     let register_err = false;
 
     // passwords don't match - error and try again
@@ -430,7 +449,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "passwords do NOT match - please try again");
       response.writeHead(302 , {
-          'Location' : '/?error_reg_pass'
+          'Location' : '/?err=error_reg_pass'
       });
       response.end();
     }
@@ -438,7 +457,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter email");
       response.writeHead(302 , {
-          'Location' : '/?error_reg_email'
+          'Location' : '/?err=error_reg_email'
       });
       response.end();
     }
@@ -446,7 +465,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter properly formatted email");
       response.writeHead(302 , {
-          'Location' : '/?error_reg_email'
+          'Location' : '/?err=error_reg_email'
       });
       response.end();
     }
@@ -454,7 +473,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter display name");
       response.writeHead(302 , {
-          'Location' : '/?error_reg_display_name'
+          'Location' : '/?err=error_reg_display_name'
       });
       response.end();
     }
@@ -468,7 +487,7 @@ class User {
         if (usr) {
           logger.error("registration error - " + user_name + " already registered - either choose a unique user name or login");
           response.writeHead(302 , {
-              'Location' : '/?error_reg_prior'
+              'Location' : '/?err=error_reg_prior'
           });
           response.end();
         }
@@ -481,8 +500,16 @@ class User {
           const options = { upsert: true };
           db.get_db().collection('users').updateOne(q, update, options)
             .then(res => {
+              // is this an invitation response? if so, setup to build new game ...
+              let new_user_id = null;
+              if (invite_id) {
+                new_user_id = res.result.upserted[0]._id;
+                let invite = Sys.get_invitation(parseInt(invite_id));
+                if (invite) invite.invitee_id = new_user_id;
+                Sys.save();
+              }
               response.writeHead(302 , {
-                'Location' : '/?error_reg_success'
+                'Location' : `/?err=error_reg_success&iid=${invite_id}&new_uid=${new_user_id.toHexString()}`
               });
               response.end();
             })
@@ -536,8 +563,8 @@ class User {
 
       // When a socket closes, or disconnects, remove it from the array.
       socket.on('close', function() {
-        console.log("activegame.socket.on.close");
-        logger.debug("activegame.socket.on.close");
+        console.log("user.socket.on.close");
+        logger.debug("user.socket.on.close");
       });
     });
 
@@ -563,16 +590,5 @@ class UserRole {
 
 }
 
-class Invitation {
-  constructor(user_id, invite_name, invite_email) {
-    this.u_id = user_id;
-    this.i_name = invite_name;
-    this.i_email = invite_email;
-    this.i_date = Date();
-    this.status = Invitation.pending;
-  }
-  static none = -1;
-  static pending = 1;
-}
 
 exports.User = User;

@@ -86,7 +86,7 @@ a {
   cursor: pointer;
 }
 
-#logout_btn {
+.logout_button {
   font-size: 8pt;
   float: right;
   outline: none;
@@ -98,6 +98,30 @@ a {
 }
 
 #invite_dialog {
+  background-color: #333333;
+  color: white;
+  display: none; 
+  position: fixed;
+  z-index: 99;
+  flex-direction: column;
+  left: 10%;
+  right: 10%;
+  top : 10%;
+  overflow: auto;
+  padding: 5%;
+}
+
+td {
+  text-align: center;
+}
+
+#invite_data_tbl {
+  width : 100%;
+  margin-right : auto;
+  margin-left : auto;
+}
+
+#edit_invites_dialog {
   background-color: #333333;
   color: white;
   display: none; 
@@ -155,6 +179,14 @@ a {
   width: 100%;
 }
 
+.sub_label_small {
+  margin-top: 20px;
+  color: white;
+  font-size: 10pt;
+  font-weight: 600;
+  width: 100%;
+}
+
 .descrip {
   font-weight: 600;
   color: gray;
@@ -186,6 +218,32 @@ a {
   cursor: pointer;
 }
 
+#edit_invites_btn {
+  font-size: 8pt;
+  color: white;
+  outline: none;
+  border: none;
+  margin-top: 10px;
+  float: right;
+  background-color: black;
+  cursor: pointer;
+} 
+
+td {
+  margin : 15px;
+}
+
+.invite_del_chk {
+  font-size: 8pt;
+  color: white;
+  outline: none;
+  border: none;
+  /* margin-top: 10px; */
+  float: right;
+  background-color: #333333;
+  cursor: pointer;
+}
+
 .in_fields {
   font-size: 10pt;
   padding-top: 3px;
@@ -199,14 +257,14 @@ a {
 }
 
 /* blue buttons */
-#invite_btn, #invite_friend_btn, #add_pickup_btn, #pickup_btn {
+#edit_invites_done_btn, #invite_btn, #invite_friend_btn, #add_pickup_btn, #pickup_btn {
   font-size: 8pt;
   margin-top: 5px;
   color: white;
   background-color:  #0072bc;
 }
 
-#cancel_invite_btn, #cancel_pickup_btn  {
+#cancel_edit_invites_btn, #cancel_invite_btn, #cancel_pickup_btn  {
   float: right;
   font-size: 8pt;
   margin-top: 5px;

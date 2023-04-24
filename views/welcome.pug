@@ -12,6 +12,7 @@ html(lang="en")
     link(rel='stylesheet', href='views/welcome.css')
     link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
   body
+
     #error
       if error == "error_reg_pass"
         div.error_label Error: passwords don't match!
@@ -57,6 +58,7 @@ html(lang="en")
                 
       #second
         form(action="register")
+          input(id="invitation_id" name="invitation_id" type="hidden" value=invitation_id)
           div.section_label New User?
           div.reg_username
             input(type="text" class="in_fields" name="username" placeholder="User Name (Your Private Login Name)")

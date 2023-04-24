@@ -41,6 +41,26 @@ html(lang="en")
         input(id="invite_friend_btn" type="button" class="button" value="INVITE A FRIEND" )
         input(id="cancel_invite_btn" type="button" class="button" value="CANCEL" )
 
+    div(id="edit_invites_dialog" class="invite" style="{display : none}")
+      p Your Pending Invitations
+      table#invite_data_tbl
+        th To:
+        th Date:
+        th Delete:
+        - var i = 0;
+        while i < invites.length
+          tr
+            td #{invites[i].invitee_name}
+            td #{invites[i].invite_date}
+            td 
+              input(id=invites[i].id type="checkbox" class="invite_del_chk" )
+          - i++;
+
+      span
+        br
+        input(id="edit_invites_done_btn" type="button" class="button" value="DONE" )
+        input(id="cancel_edit_invites_btn" type="button" class="button" value="CANCEL" )
+
     div(id="pickup_dialog" class="pickup" style="{display : none}")
       span.descrip2 Select a player from the available player pool 
         i#num_waiting #{num} 
@@ -79,19 +99,20 @@ html(lang="en")
             
           - var num = `(${gamers.length} Available)`;
           div.sub_label Start A New Game
-            div.sub_label Invite A Friend
+            div.sub_label_small Invite A Friend
               br
               span.descrip Invite a friend who hasn't played Let's Quibble
               br
               input(id="invite_btn" type="button" class="button" value="INVITE FRIEND")
+              input(id="edit_invites_btn" type="button" value="EDIT INVITES" )
 
-            div.sub_label Pickup Game 
+            div.sub_label_small Pickup Game 
               br
               span.descrip Play another waiting player or add your name to the list
               br
               input(id="pickup_btn" type="button" class="button" value="PICKUP GAME")
 
-            div.sub_label Practice Game 
+            div.sub_label_small Practice Game 
               br
               span.descrip Play yourself! A guaranteed win and good practice. 
               br

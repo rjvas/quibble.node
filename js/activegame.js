@@ -1,10 +1,13 @@
 /*  Copyright 2021 Richard Vassilaros 
 */
+var System  = require('./system').System;
 var Game = require('./game').Game;
 var User = require('./user').User;
 const db = require('./db');
 var logger = require('./log').logger;
 const {exec} = require('child_process');
+
+Sys = null;
 
 class ActiveGame {
 
@@ -517,6 +520,33 @@ class ActiveGame {
     .catch((e) => {
       logger.error("activegame.delete_game: ", e);
     });
+  }
+
+  static new_active_game_invite(invite) {
+    if (!Sys) System.get_system();
+
+    // let ids = [invite.sender_id, invite.invitee_id];
+    let dbq = { "_id" : invite.sender_id};
+    let users = [];
+    let invitee = null;
+    let sender = null;
+    sender =db.get_db().collection('users').findOne(dbq)
+      .then((sender) => {
+        if (sender) {
+          users.push(sender);
+          dbq = { "_id" : invite.invitee_id};
+          invitee = db.get_db().collection('users').findOne(dbq)
+            .then((invitee, sender) => {
+              users.push(invitee);
+              let new_u1 = new User(users.pop(), null);
+              let new_u2 = new User(users.pop(), null);
+              let agame = new ActiveGame(null, new_u1, new_u2, ActiveGame.in_play);
+              agame.save();
+              Sys.remove_invitation(invite.id);
+            })
+        }
+      })
+      .catch((e) => console.error(e));
   }
 
   // builds and active game from json delivered from the db

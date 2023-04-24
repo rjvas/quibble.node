@@ -16,6 +16,41 @@ function clicked_invite_btn() {
   dia.style.display = "block";
 }
 
+function clicked_edit_invites_done_btn() {
+  let dia = document.getElementById("edit_invites_dialog");
+  let chks = document.getElementsByClassName("invite_del_chk");
+  var user = document.getElementById("user").value;
+  let chk_ids = "";
+  
+  for (var item of chks)
+    if (item.checked) chk_ids += ":" + item.id;
+  if (chk_ids) chk_ids = chk_ids.slice(1);
+  dia.style.display = "none";
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", `/edit_invitations?user=${user}&iids=${chk_ids}` , true);
+  xhr.setRequestHeader("Content-Type", "text/html");
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      document.location.href = xhr.responseURL;
+      //document.location.href = "/home_page?user=" + user;
+      }
+  }
+
+  xhr.send(null);
+}
+
+function clicked_cancel_edit_invites_btn() {
+  let dia = document.getElementById("edit_invites_dialog");
+  dia.style.display = "none";
+}
+
+function clicked_edit_invites_btn() {
+  let dia = document.getElementById("edit_invites_dialog");
+  dia.style.display = "block";
+}
+
 function clicked_invite_friend_btn() {
   var user = document.getElementById("user").value;
   let u_name = document.getElementById("user_name").value;
@@ -38,7 +73,7 @@ function clicked_invite_friend_btn() {
 
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = xhr.responseURL;
+        document.location.href = `/home_page?user=${user}`;
         }
     }
     xhr.send(null);
@@ -229,6 +264,21 @@ function init() {
   btn = document.getElementById('delete_game_btn');
   if (btn) {
     btn.addEventListener("click", clicked_delete_game_btn);
+  }
+
+  btn = document.getElementById('edit_invites_done_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_edit_invites_done_btn);
+  }
+
+  btn = document.getElementById('cancel_edit_invites_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_cancel_edit_invites_btn);
+  }
+
+  btn = document.getElementById('edit_invites_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_edit_invites_btn);
   }
 
   btn = document.getElementById('cancel_invite_btn');

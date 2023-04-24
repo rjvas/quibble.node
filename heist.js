@@ -61,6 +61,7 @@ var pug_admin = pug.compileFile('views/admin.pug');
 
 // import the Game and Word classes. Game is needed at this level to
 // help with control and Word contributes data to the pug template.
+var System  = require('./js/system').System;
 var ActiveGame = require('./js/activegame').ActiveGame;
 var Game = require('./js/game').Game;
 var Word = require('./js/word').Word;
@@ -70,6 +71,7 @@ var logger = require('./js/log').logger;
 var WtDebug = require('./js/log').WT_DEBUG;
 
 var CurrentAGame = null;
+var Sys = null;
 
 var mimeTypes = {
   "html": "text/html",
@@ -196,7 +198,6 @@ function play_active_game(query, response) {
     else ret_val = false;
   }
 
-
   return ret_val;
 }
 
@@ -206,6 +207,8 @@ function startup() {
   var pug_grid = pug.compileFile('views/grid.pug');
   var pug_welcome = pug.compileFile('views/welcome.pug')
   */
+
+  System.get_system();
 
   if (quib_cfg.debug) 
     logger.info("heist.startup: starting up Word Heist ...");
@@ -305,14 +308,46 @@ function startup() {
       }
     }
 
-    else if (pathname.indexOf("invite_friend") != -1) {
+    else if (pathname.indexOf("edit_invitations") != -1) {
+      if (!Sys) Sys = System.get_system();
       let user = get_user_agame(query).user;
-      user.invite_friend(query);
+      var params = new URLSearchParams(query);
+      let iids = params.get("iids");
+      let uid = params.get("user")
+
+      Sys.remove_invitations(uid, iids);
+      let invites = Sys.get_users_invitations(uid);
+
+      response.end(pug_user({
+        'User' : User,
+        'user': user,
+        'games': user.get_saved_game_list(),
+        'gamers' : User.get_pickup_gamers(),
+        'invites' : invites}));
     }
 
-    else if (pathname.indexOf("invitation") != -1) {
+    else if (pathname.indexOf("invite_friend") != -1) {
+      if (!Sys) Sys = System.get_system();
+      let user = get_user_agame(query).user;
+
+      user.invite_friend(query, Sys);
+
+      let invites = Sys.get_users_invitations(encodeURIComponent(user.id));
+      response.end(pug_user({
+        'User' : User,
+        'user': user,
+        'games': user.get_saved_game_list(),
+        'gamers' : User.get_pickup_gamers(),
+        'invites' : invites}));
+    }
+
+    else if (pathname.indexOf("invitation_accept") != -1) {
+      if (!Sys) Sys = System.get_system();
       var params = new URLSearchParams(query);
-      let uid = decodeURIComponent(params.get("uid"));
+      let iid = decodeURIComponent(params.get("iid"));
+
+      response.end(pug_welcome({"error" : query, "invitation_id" : iid}));
+
       if (quib_cfg.debug) 
         logger.debug(`heist.invitation`); 
         // user=${user.display_name}/${user.id.toHexString()} 
@@ -352,14 +387,17 @@ function startup() {
     }
 
     else if (pathname.indexOf("add_pickup_name") != -1) {
+      if (!Sys) Sys = System.get_system();
       let user = get_user_agame(query).user;
       if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
         User.add_pickup_gamer(user.display_name);
+        let invites = Sys.get_users_invitations(encodeURIComponent(user._id));
         response.end(pug_user({
           'User' : User,
           'user': user,
           'games': user.get_saved_game_list(),
-          'gamers' : User.get_pickup_gamers()}));
+          'gamers' : User.get_pickup_gamers(),
+          'invites' : invites}));
 
         if (quib_cfg.debug) 
           logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
@@ -367,7 +405,20 @@ function startup() {
     }
 
     else if (pathname == "/") {
-      response.end(pug_welcome({"error" : query}));
+      if (!Sys) Sys = System.get_system();
+      var params = new URLSearchParams(query);
+      let error = params.get("err");
+      let invite_id = params.get("iid");
+      let new_uid = params.get("new_uid")
+      let invite = null;
+
+      // After accepting an invitation and registering need to setup new game for 
+      // inviter and invitee
+      if (invite_id) {
+        invite = Sys.get_invitation(parseInt(invite_id));
+        ActiveGame.new_active_game_invite(invite);
+      }
+      response.end(pug_welcome({"error" : error}));
     }
 
     // async
@@ -509,14 +560,17 @@ function startup() {
     }
 
     else if (pathname.indexOf("home_page") != -1) {
+      if (!Sys) Sys = System.get_system();
       let ug = get_user_agame(query);
       if (ug.user) {
         let glist = massage_user_lists(ug);
+        let invites = Sys.get_users_invitations(encodeURIComponent(ug.user.id));
         response.end(pug_user({
           'User' : User,
           'user': ug.user,
           'games': glist,
-          'gamers' : User.get_pickup_gamers()}));
+          'gamers' : User.get_pickup_gamers(),
+          'invites' : invites}));
 
         if (quib_cfg.debug)
           logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
