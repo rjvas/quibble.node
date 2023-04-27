@@ -5,8 +5,8 @@
 doctype html
 html(lang="en")
   head
-    title Let's Quibble! A Scrab*le-like word game.
-    meta(name="description" content="Let's Quibble builds words like Scrab*le but lets players capture their opponent's tiles and points.")
+    title Let's Quibble! A Scr*bble-like word game.
+    meta(name="description" content="Let's Quibble builds words like Scr*bble but lets players capture their opponent's tiles and points.")
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width), initial-scale=1.0')
     link(rel='stylesheet', href='views/welcome.css')
@@ -14,7 +14,9 @@ html(lang="en")
   body
 
     #error
-      if error == "error_reg_pass"
+      if error == "error_bad_invitation_id"
+        div.error_label Error: unrecognized invitation!
+      else if error == "error_reg_pass"
         div.error_label Error: passwords don't match!
       else if error == "error_reg_email"
         div.error_label Error: please enter valid email!
@@ -23,7 +25,7 @@ html(lang="en")
       else if error == "error_reg_prior"
         div.error_label Error: user already registered!
       else if error == "error_reg_success"
-        div.error_label Congratulations! You may now login!
+        div.error_label Thanks for registering - you may now login
       else if error == "error_password"
         div.error_label Error: with password or user name!
       else if error == "error_login"
@@ -38,7 +40,7 @@ html(lang="en")
       div#top_label Let's Quibble!
 
       div(id="about_dialog" class="about" style="{display : none}")
-        p Free to play, Let's Quibble combines the word-building of Scrab*le with the excitement and deep satisfaction of capturing your opponent's tiles and points. Capture tiles by building new words; adding prefixes, suffixes, intersections and adjacencies. 
+        p Free to play, Let's Quibble combines the word-building of Scr*bble with the excitement and deep satisfaction of capturing your opponent's tiles and points. Capture tiles by building new words; adding prefixes, suffixes, intersections and adjacencies. 
         p No hidden costs, no ads, no tokens. Accept no substitutes and beware sound-alikes!
         div#about_ctrls
           input(id="about_ok_btn" type="button" class="buttons" onClick="hide_about()" value="OK") 
@@ -46,6 +48,7 @@ html(lang="en")
       #first
         div.section_label Login
         form(action="login")
+          input(id="invitation_id" name="invitation_id" type="hidden" value=invitation_id)
           div.username
             input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="User Name")
           div.password
@@ -58,7 +61,7 @@ html(lang="en")
                 
       #second
         form(action="register")
-          input(id="invitation_id" name="invitation_id" type="hidden" value=invitation_id)
+          input(id="reg_invitation_id" name="invitation_id" type="hidden" value=invitation_id)
           div.section_label New User?
           div.reg_username
             input(type="text" class="in_fields" name="username" placeholder="User Name (Your Private Login Name)")

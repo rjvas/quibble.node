@@ -113,10 +113,19 @@ class User {
   get_saved_game_list() {
     let ret_val = [];
 
-    this.saved_games.forEach((item, i) => {
-      ret_val.push({"name" : item.name, "active" : true});
-    });
-
+    // let dbq = { $or: [ { "user1_id": this.id }, { "user2_id": this.id } ] };
+    // db.get_db().collection('active_games').find(dbq)
+    //   .then(result => {
+    //     return result.toArray();
+    //   }).then(result => {
+    //     this.saved_games = result.filter(ag => {
+    //       return !(ag.status & game_over);
+    //     })
+        this.saved_games.forEach((item, i) => {
+          ret_val.push({"name" : item.name, "active" : true});
+        })
+    //   }).catch((e) => console.error(e));
+    // });
     return ret_val;
   }
 
@@ -160,6 +169,7 @@ class User {
     let f_name = params.get("friend_name");
     let f_email = params.get("friend_email");
     let uid = this.id;
+    // iid is int
     let iid = Sys.new_invitation(uid, f_name, f_email);
 
     if (quib_cfg.debug && quib_cfg.local) {
@@ -167,10 +177,10 @@ class User {
     }
     else {
       let subj = `${u_name} has invited you to play Let's Quibble!`;
-      let body = `Let\'s Quibble is a free-to-play word game like Scrab*le only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
+      let body = `Hello ${f_name}, Let\'s Quibble is a free-to-play word game like Scr*bble only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
       body += `http://www.letsquibble.net/invitation_accept?iid=${iid}`;
 
-      let cmd = `mail -s \"${subj}\" \"${f_email}\" <<< \"${body}\"`; 
+      let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"letsquibble\@gmail.com\" <<< \"${body}\"`; 
 
       let ret_val = false;
       try {
@@ -178,7 +188,8 @@ class User {
           if (err) {
             console.log("invitation email failed");
             console.log(err);
-            Sys.remove_invitation(iid);
+            // rjv think about this ...
+            // Sys.remove_invitation(iid);
             return false;
           } else {
             console.log("invitation email success");
@@ -190,6 +201,8 @@ class User {
       } catch(error) {
           console.log("invitation email: exception error");
           console.log(error);
+          // rjv think about this ...
+          // Sys.remove_invitation(iid);
           return false;
       }
       return ret_val;
@@ -338,12 +351,14 @@ class User {
     return usr;
   }
 
-  static login (server, query, request_addr, user_agent, response, game_over) {
-
+  static async login (server, query, request_addr, user_agent, response, act_game) {
+    if (!Sys) Sys = System.get_system();
+    let game_over = act_game.game_over;
     var new_user = null;
     var params = new URLSearchParams(query);
     let name = params.get("username");
     let passw = params.get("password");
+    let invite_id = params.get("invitation_id");
 
     let logged_in = User.current_users.find(u => {
       return u.user_name == name;
@@ -361,18 +376,22 @@ class User {
 
     else if (logged_in) {
       if (bcrypt.compareSync(passw, logged_in.password)) {
+        // After accepting an invitation need to setup new game for inviter and invitee
+        let invite = null;
+        if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
+          act_game.new_invite_agame(invite, logged_in);
+        }
         logger.warn("User.login warning - " + name + "has multiple logins");
-        response.writeHead(302 , { 'Location' : '/home_page?user=' + logged_in.id.toHexString() });
+        response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
       }
       else {
         logger.error("User.login error - " + name + " is already logged in");
-        response.writeHead(302 , { 'Location' : '/?err=error_login' });
+        response.writeHead(302 , { 'Location' : `/?err=error_login` });
       }
       response.end();
       return;
     }
 
-    let id;
     let dbq = { "user_name": name };
     let usr = db.get_db().collection('users').findOne(dbq)
       .then((usr) => {
@@ -386,12 +405,31 @@ class User {
               // give Admin a reference to all the active users
               new_user.admin = new Admin(new_user, User.current_users);
             }
-            id = usr._id;
-            // TODO setup activity timer here ...
+
+            // Invitations: the logic is - it this is an invitation fulfillment then build a
+            // new game and force its save before querying for the user's
+            // active games. Otherwise, just query the active games.
+            let invite = null;       
+            let agame = null;
+            if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
+              // After accepting an invitation need to setup new game for inviter and invitee
+              return act_game.new_invite_agame(invite, new_user)
+                .then(() => {
+                  Sys.remove_invitation(invite.id);
+                  Sys.save();
+                  dbq = { $or: [ { "user1_id": new_user.id }, { "user2_id": new_user.id } ] };
+                  return db.get_db().collection('active_games').find(dbq)
+                })
+              }
+              else {
+                dbq = { $or: [ { "user1_id": new_user.id }, { "user2_id": new_user.id } ] };
+                return db.get_db().collection('active_games').find(dbq)
+              }
+
           } else {
             logger.error("login error - " + name + "wrong password");
             response.writeHead(302 , {
-               'Location' : '/?err=error_password'
+               'Location' : `/?err=error_password&iid=${invite_id}`
             });
             response.end();
           }
@@ -399,12 +437,10 @@ class User {
         else {
           logger.error("login error - no user with: " + name + "/" + passw);
           response.writeHead(302 , {
-             'Location' : '/?err=error_password'
+             'Location' : `/?err=error_password&iid=${invite_id}`
           });
           response.end();
         }
-        dbq = { $or: [ { "user1_id": id }, { "user2_id": id } ] };
-        return db.get_db().collection('active_games').find(dbq);
 
       }).then(result => {
         return result.toArray();
@@ -498,20 +534,19 @@ class User {
           const update =
             { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
           const options = { upsert: true };
-          db.get_db().collection('users').updateOne(q, update, options)
+          return db.get_db().collection('users').updateOne(q, update, options)
             .then(res => {
               // is this an invitation response? if so, setup to build new game ...
-              let new_user_id = null;
+              let new_user_id = res.result.upserted[0]._id;
               if (invite_id) {
-                new_user_id = res.result.upserted[0]._id;
                 let invite = Sys.get_invitation(parseInt(invite_id));
                 if (invite) invite.invitee_id = new_user_id;
-                Sys.save();
               }
               response.writeHead(302 , {
                 'Location' : `/?err=error_reg_success&iid=${invite_id}&new_uid=${new_user_id.toHexString()}`
               });
               response.end();
+              return Sys.save();
             })
             .catch((e) => {
               console.error(e);

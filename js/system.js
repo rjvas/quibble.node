@@ -48,6 +48,7 @@ class System {
     return invite.id;
   }
 
+  // id is int
   remove_invitation(id) {
     this.invitations = this.invitations.filter(
       i => i.id != id
@@ -55,11 +56,12 @@ class System {
     this.save();
   }
 
-  remove_invitations(uid, ids) {
+  // ids are strings
+  remove_invitations(ids) {
     let id_arr = ids.split(":");
     id_arr.forEach(id => {
       this.invitations = this.invitations.filter(
-        i => i.id != id
+        i => i.id != parseInt(id)
       );
     });
     this.save();
@@ -74,6 +76,7 @@ class System {
     return ret_val;
   }
 
+  // iid is int
   get_invitation(iid) {
     let ret_val = null;
     this.invitations.forEach(item => {
@@ -82,10 +85,11 @@ class System {
     return ret_val;
   }
 
+  // uid is hex
   get_users_invitations(uid) {
     var ret_val = [];
     this.invitations.forEach((item, idx) => {
-      if (item.sender_id == uid) ret_val.push(item);
+      if (item.sender_id.toHexString() ==uid ) ret_val.push(item);
     });
     return ret_val;
   }
@@ -98,7 +102,7 @@ class System {
     }
   }
 
-  save() {
+  async save() {
     let sys_js =  this.get_JSON();
     let q = { name : sys_js.name};
     let update =
@@ -112,7 +116,7 @@ class System {
       })
       .catch((e) => {
         console.error(e);
-      });
+      }).then((result => {return result}));
   }
  }
 

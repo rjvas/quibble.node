@@ -66,7 +66,7 @@ class ActiveGame {
     let update = { $set:  game_js};
 
     const options = { upsert: true };
-    var result = db.get_db().collection("games").updateOne(q, update, options)
+    return db.get_db().collection("games").updateOne(q, update, options)
       .then((result) => {
         if (result) {
           a_game_js = this.get_JSON();
@@ -522,32 +522,23 @@ class ActiveGame {
     });
   }
 
-  static new_active_game_invite(invite) {
-    if (!Sys) System.get_system();
-
-    // let ids = [invite.sender_id, invite.invitee_id];
-    let dbq = { "_id" : invite.sender_id};
-    let users = [];
-    let invitee = null;
-    let sender = null;
-    sender =db.get_db().collection('users').findOne(dbq)
-      .then((sender) => {
-        if (sender) {
-          users.push(sender);
-          dbq = { "_id" : invite.invitee_id};
-          invitee = db.get_db().collection('users').findOne(dbq)
-            .then((invitee, sender) => {
-              users.push(invitee);
-              let new_u1 = new User(users.pop(), null);
-              let new_u2 = new User(users.pop(), null);
-              let agame = new ActiveGame(null, new_u1, new_u2, ActiveGame.in_play);
-              agame.save();
-              Sys.remove_invitation(invite.id);
-            })
-        }
-      })
-      .catch((e) => console.error(e));
-  }
+  static new_invite_agame(invite, invitee) {
+    if (!Sys) Sys = System.get_system();
+    let sender;
+    // if there is no invite (possible for various reasons including user intervention)
+    // don't build the new game
+    if (invite) {
+      invite.invitee_id = invitee.id;
+      let agame;
+      let dbq = { "_id" : invite.sender_id};
+      return sender = db.get_db().collection('users').findOne(dbq)
+        .then((sender) => {
+            let new_u2 = new User(sender, null);
+            agame = new ActiveGame(null, invitee, new_u2, ActiveGame.in_play);
+            return agame.save();
+          }) .catch((e) => console.error(e));
+      }
+    }
 
   // builds and active game from json delivered from the db
   // this differs from newly created active_games that have

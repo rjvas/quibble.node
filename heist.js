@@ -312,11 +312,12 @@ function startup() {
       if (!Sys) Sys = System.get_system();
       let user = get_user_agame(query).user;
       var params = new URLSearchParams(query);
+      // colon separated list of ids
       let iids = params.get("iids");
-      let uid = params.get("user")
+      let uid_hex = params.get("user")
 
-      Sys.remove_invitations(uid, iids);
-      let invites = Sys.get_users_invitations(uid);
+      Sys.remove_invitations(iids);
+      let invites = Sys.get_users_invitations(uid_hex);
 
       response.end(pug_user({
         'User' : User,
@@ -332,7 +333,7 @@ function startup() {
 
       user.invite_friend(query, Sys);
 
-      let invites = Sys.get_users_invitations(encodeURIComponent(user.id));
+      let invites = Sys.get_users_invitations(user.id.toHexString());
       response.end(pug_user({
         'User' : User,
         'user': user,
@@ -344,9 +345,13 @@ function startup() {
     else if (pathname.indexOf("invitation_accept") != -1) {
       if (!Sys) Sys = System.get_system();
       var params = new URLSearchParams(query);
-      let iid = decodeURIComponent(params.get("iid"));
+      let iid = params.get("iid");
 
-      response.end(pug_welcome({"error" : query, "invitation_id" : iid}));
+      let invite = Sys.get_invitation(parseInt(iid));
+      if (!invite)
+        response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
+      else
+        response.end(pug_welcome({"error" : query, "invitation_id" : iid}));
 
       if (quib_cfg.debug) 
         logger.debug(`heist.invitation`); 
@@ -391,7 +396,7 @@ function startup() {
       let user = get_user_agame(query).user;
       if (user && User.pickup_gamers.indexOf(user.display_name) == -1) {
         User.add_pickup_gamer(user.display_name);
-        let invites = Sys.get_users_invitations(encodeURIComponent(user._id));
+        let invites = Sys.get_users_invitations((user.id.toHexString()));
         response.end(pug_user({
           'User' : User,
           'user': user,
@@ -408,17 +413,13 @@ function startup() {
       if (!Sys) Sys = System.get_system();
       var params = new URLSearchParams(query);
       let error = params.get("err");
-      let invite_id = params.get("iid");
-      let new_uid = params.get("new_uid")
-      let invite = null;
+      let iid = params.get("iid");
 
-      // After accepting an invitation and registering need to setup new game for 
-      // inviter and invitee
-      if (invite_id) {
-        if (invite = Sys.get_invitation(parseInt(invite_id)))
-          ActiveGame.new_active_game_invite(invite);
-      }
-      response.end(pug_welcome({"error" : error}));
+      let invite = Sys.get_invitation(parseInt(iid));
+      if (!invite)
+        response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
+      else
+        response.end(pug_welcome({"error" : error, "invitation_id" : iid}));
     }
 
     // async
@@ -496,7 +497,8 @@ function startup() {
 
     // async
     else if (pathname == "/login") {
-      User.login(server, query, remote_addr, user_agent, response, ActiveGame.game_over);
+      if (!Sys) Sys = System.get_system();
+      User.login(server, query, remote_addr, user_agent, response, ActiveGame);
       if (quib_cfg.debug)
         logger.debug("heist.login query: " + query);
     }
@@ -564,7 +566,7 @@ function startup() {
       let ug = get_user_agame(query);
       if (ug.user) {
         let glist = massage_user_lists(ug);
-        let invites = Sys.get_users_invitations(encodeURIComponent(ug.user.id));
+        let invites = Sys.get_users_invitations(ug.user.id.toHexString());
         response.end(pug_user({
           'User' : User,
           'user': ug.user,

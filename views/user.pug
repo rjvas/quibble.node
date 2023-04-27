@@ -87,9 +87,9 @@ html(lang="en")
             
         #games
           div.sub_label Started Games
-            if games.length > 0
-              select(id="games_lst")
-                option(value=-1) Select A Game
+            select(id="games_lst")
+              option(value=-1) Select A Game
+              if games.length > 0
                 each val, idx in games
                   if val.active 
                     option(value=idx) #{val.name}
