@@ -359,7 +359,23 @@ class ActiveGame {
             "unknown"; 
 
           // got a chat message
-          if ( type == "chat") {
+          if ( type == "started_chat") {
+            // get the player name
+            if (play_data[1] && play_data[1].player != "sysadmin") {
+              let user = play_data[1].player;
+              if (a_game.user1 && a_game.user1.id.toHexString() == user)
+                player_name = a_game.user1.display_name;
+              else if (a_game.user2)
+                player_name = a_game.user2.display_name;
+              play_data[1].player = player_name;
+            } else {
+              player_name = play_data[1].player;
+            }
+
+            play_data[2].info = `${player_name} has started a chat session - click the red circle top/left of the board to chat.`;
+            resp_data = play_data;
+          }
+          else if( type == "chat") {
             // get the player name
             if (play_data[1] && play_data[1].player != "sysadmin") {
               let user = play_data[1].player;

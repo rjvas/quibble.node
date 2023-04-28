@@ -135,28 +135,7 @@ function get_user_agame(query) {
   return {"user" : user, "agame" : agame, "game_name" : game_name, "vs" : vs};
 }
 
-function massage_user_lists(ugv) {
-  // look at names of all_active and 'disable' those that are Also
-  // in the users saved games list
 
-  // first get the list to be submitted to pug
-  let glist = ugv.user.get_saved_game_list();
-  if (ugv.agame && !glist.find(gl => {return gl.name ==  ugv.agame.name}))
-     glist.push({"name" : ugv.agame.name, "active" : true});
-
-      // if (!user.active_games.find(ag => {return ag.name == item.name})) {
-        // user.active_games.push(ag);
-        // if an ag of this user is found in the ActiveGame.all_active list
-        // AND this user is not u1 or u2, stuff it in the empy slot
-        // if (!ag.user1)
-          // ag.user1 = user;
-        // else if (!ag.user2)
-          // ag.user2 = user;
-      // }
-    // }
-
-  return glist;
-}
 
 function play_active_game(query, response) {
   let ret_val = true;
@@ -215,7 +194,6 @@ function startup() {
 
   // Create the http server and set up the callbacks
   var server = http.createServer((request, response) => {
-  // const server = https.createServer(options, (request, response) => { 
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
@@ -322,7 +300,7 @@ function startup() {
       response.end(pug_user({
         'User' : User,
         'user': user,
-        'games': user.get_saved_game_list(),
+        'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites}));
     }
@@ -337,7 +315,7 @@ function startup() {
       response.end(pug_user({
         'User' : User,
         'user': user,
-        'games': user.get_saved_game_list(),
+        'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites}));
     }
@@ -400,7 +378,7 @@ function startup() {
         response.end(pug_user({
           'User' : User,
           'user': user,
-          'games': user.get_saved_game_list(),
+          'games': user.get_saved_game_list(ActiveGame.game_over),
           'gamers' : User.get_pickup_gamers(),
           'invites' : invites}));
 
@@ -414,10 +392,12 @@ function startup() {
       var params = new URLSearchParams(query);
       let error = params.get("err");
       let iid = params.get("iid");
-
-      let invite = Sys.get_invitation(parseInt(iid));
-      if (!invite)
-        response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
+ 
+      if (iid) {
+        let invite = Sys.get_invitation(parseInt(iid));
+        if (!invite)
+          response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
+      }
       else
         response.end(pug_welcome({"error" : error, "invitation_id" : iid}));
     }
@@ -565,7 +545,7 @@ function startup() {
       if (!Sys) Sys = System.get_system();
       let ug = get_user_agame(query);
       if (ug.user) {
-        let glist = massage_user_lists(ug);
+        let glist = ug.user.get_saved_game_list(ActiveGame.game_over);
         let invites = Sys.get_users_invitations(ug.user.id.toHexString());
         response.end(pug_user({
           'User' : User,
@@ -573,10 +553,10 @@ function startup() {
           'games': glist,
           'gamers' : User.get_pickup_gamers(),
           'invites' : invites}));
-
+        }
+          
         if (quib_cfg.debug)
           logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
-      }
     }
 
     else if (pathname.indexOf("wh_admin_user") != -1) {
@@ -596,7 +576,7 @@ function startup() {
           'admin' : ug.user.admin,
           'User' : User,
           'user': ug.user,
-          'user_saved_games': ug.user.get_saved_game_list(),
+          'user_saved_games': ug.user.get_saved_game_list(ActiveGame.game_over),
           'user_a_games' : ug.user.get_a_game_list(),
           'all_active_games' : ActiveGame.all_active
         }));
@@ -679,4 +659,5 @@ function startup() {
     }
   });
   server.listen(main_port);
-}
+ }
+

@@ -1166,6 +1166,14 @@ function clicked_chat_btn() {
   ChatDoc.body.appendChild(ctrls);
 
   Chat = ChatDoc.getElementById("chat_para");
+
+  // let the other player know a chat has been started
+  var user = document.getElementById("user").value;
+  let msg = [];
+  msg.push({"type" : "started_chat"});
+  msg.push({"player" : user});
+  msg.push({"info" : ``});
+  ws.send(JSON.stringify(msg));
 }
 
 function clicked_chat_send_btn(event) { 
@@ -1883,6 +1891,10 @@ ws.onmessage = function(msg) {
         alert(info.info);
     }
   } else if (type.type == "message") {
+    if (player.player != URL_x)
+      alert(info.info);
+  }
+  else if (type.type == "started_chat") {
     if (player.player != URL_x)
       alert(info.info);
   }

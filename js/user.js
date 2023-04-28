@@ -22,23 +22,22 @@ const quib_cfg = require('./quib_config.json');
 class User {
   constructor(sonj, server) {
     this.id = sonj._id;
-    this.active = sonj.active;
-    this.deactivate_reason = sonj.deactivate_reason;
-    this.description = sonj.description;
-    this.failed_login_count = sonj.failed_login_count;
-    this.last_lockout_date = sonj.last_lockout_date;
-    this.last_login_date = sonj.last_login_date;
-    this.user_name = sonj.user_name;
-    this.display_name = sonj.display_name;
-    this.email = sonj.email;
-    this.password = sonj.password;
+    this.active = (sonj.active ? sonj.active : true);
+    this.deactivate_reason = (sonj.deactivate_reason ? sonj.deactivate_reason : "none");
+    this.description = (sonj.description ? sonj.description : "none");
+    this.failed_login_count = (sonj.failed_login_count ? sonj.failed_login_count : 0);
+    this.last_lockout_date = (sonj.last_lockout_date ? sonj.last_lockout_date : "never");
+    this.last_login_date = (sonj.last_login_date ? sonj.last_login_date : Date());
+    this.user_name = (sonj.user_name ? sonj.user_name : "error");
+    this.display_name = (sonj.display_name ? sonj.display_name : "error");
+    this.email = (sonj.email ? sonj.email : "error")
+    this.password = (sonj.password ? sonj.password : "error");
     // this.roles = [].push(new UserRole(this.id, UserRole.player));
-    this.role = sonj.role;
-    this.status = sonj.status;
+    this.role = (sonj.role ? sonj.role : User.player);
+    this.status = (sonj.status ? sonj.status : User.in_play);
     this.saved_games = [];
     this.active_games = [];
-    this.friends = sonj.friends;
-    this.request_address = sonj.request_address;
+    this.friends = (sonj.friends ? sonj.friends : []);
     this.admin = null;
     this.jwt = null;
     this.port = User.current_port < User.port_max ? User.current_port++ : User.port_min;
@@ -79,8 +78,7 @@ class User {
       "password" : this.password,
       "role" : this.role,
       "state" : this.status,
-      "friends" : this.friends,
-      "request_address" : this.request_address
+      "friends" : this.friends
     }
   }
 
@@ -110,22 +108,13 @@ class User {
       });
   }
 
-  get_saved_game_list() {
-    let ret_val = [];
+  get_saved_game_list(game_over) {
+    let ret_val = []; 
 
-    // let dbq = { $or: [ { "user1_id": this.id }, { "user2_id": this.id } ] };
-    // db.get_db().collection('active_games').find(dbq)
-    //   .then(result => {
-    //     return result.toArray();
-    //   }).then(result => {
-    //     this.saved_games = result.filter(ag => {
-    //       return !(ag.status & game_over);
-    //     })
-        this.saved_games.forEach((item, i) => {
-          ret_val.push({"name" : item.name, "active" : true});
-        })
-    //   }).catch((e) => console.error(e));
-    // });
+    this.saved_games.forEach((item, i) => {
+      ret_val.push({"name" : item.name, "active" : true});
+    });
+
     return ret_val;
   }
 
@@ -180,7 +169,7 @@ class User {
       let body = `Hello ${f_name}, Let\'s Quibble is a free-to-play word game like Scr*bble only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
       body += `http://www.letsquibble.net/invitation_accept?iid=${iid}`;
 
-      let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"letsquibble\@gmail.com\" <<< \"${body}\"`; 
+      let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"letsquibble878\@gmail.com\" <<< \"${body}\"`; 
 
       let ret_val = false;
       try {
@@ -398,8 +387,8 @@ class User {
         if (usr) {
           if (bcrypt.compareSync(passw, usr.password)) {
             new_user = new User(usr, server);
+            new_user.save();
             new_user.last_login_date = Date();
-            new_user.request_address = request_addr;
             User.current_users.push(new_user);
             if (new_user.role & User.admin) {
               // give Admin a reference to all the active users
@@ -533,11 +522,11 @@ class User {
           const q = { user_name: user_name };
           const update =
             { $set:  { "user_name": user_name, "display_name" : display_name, "password" : pw_hashed, "email" : email }};
-          const options = { upsert: true };
+          const options = { upsert: true, returnOriginal: true };
           return db.get_db().collection('users').updateOne(q, update, options)
             .then(res => {
-              // is this an invitation response? if so, setup to build new game ...
               let new_user_id = res.result.upserted[0]._id;
+              // is this an invitation response? if so, setup to build new game ...
               if (invite_id) {
                 let invite = Sys.get_invitation(parseInt(invite_id));
                 if (invite) invite.invitee_id = new_user_id;

@@ -30,16 +30,19 @@ html(lang="en")
 
     div(id="invite_dialog" class="invite" style="{display : none}")
       p Invite a friend who is new to the game. Just enter your name (so we can say who the invitation is from) and your friend's name and email address and we'll send an invitation, setup a new game when they register and login and notify you that the game is waiting.
-      div
-        input(id="user_name" type="text" class="in_fields" placeholder="Your Name (who the invitation is from)")
-      div
-        input(id="friend_name" type="text" class="in_fields" placeholder="Friend's Name")
-      div
-        input(id="friend_email" type="text" class="in_fields" placeholder="Friend's Email Address")
-      span
-        br
-        input(id="invite_friend_btn" type="button" class="button" value="INVITE A FRIEND" )
-        input(id="cancel_invite_btn" type="button" class="button" value="CANCEL" )
+      div#invite_sections
+        div#invite_section1
+          div
+            input(id="user_name" type="text" class="in_fields" text=user.display_name placeholder="Your Name (who the invitation is from)") 
+          div
+            input(id="friend_name" type="text" class="in_fields" placeholder="Friend's Name")
+          div
+            input(id="friend_email" type="text" class="in_fields" placeholder="Friend's Email Address")
+          span
+            br
+            input(id="invite_friend_btn" type="button" class="button" value="INVITE A FRIEND" )
+          input(id="cancel_invite_btn" type="button" class="button" value="CANCEL" )
+        div#invite_section2
 
     div(id="edit_invites_dialog" class="invite" style="{display : none}")
       p Your Pending Invitations
@@ -101,7 +104,7 @@ html(lang="en")
           div.sub_label Start A New Game
             div.sub_label_small Invite A Friend
               br
-              span.descrip Invite a friend who hasn't played Let's Quibble
+              span.descrip To invite a friend we just need a name and email address
               br
               input(id="invite_btn" type="button" class="button" value="INVITE FRIEND")
               input(id="edit_invites_btn" type="button" value="EDIT INVITES" )

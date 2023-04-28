@@ -114,7 +114,7 @@ html
 
         //- player 2 scoreboard
         svg(id="player2" x=8*cell_size y=0 width=6*cell_size height=scorebd_xy_offset)
-          svg(id="player2_stats" x=45 y=0 width=cell_size*4 height=scorebd_xy_offset 
+          svg(id="player2_stats" x=25 y=0 width=cell_size*5 height=scorebd_xy_offset 
             viewBox=`0 0 ${cell_size*4} ${scorebd_xy_offset}`)
             
             svg(x=-10 y=7 width=cell_size height=cell_size/2 viewBox="0 0 180 180"
@@ -129,7 +129,7 @@ html
               text-anchor="end" font-size="18" )
               |#{game.player_2.total_points}
             text(id="player2_name" class="player_stats_cls" x=95 y=45 font-size="18" 
-              width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
+              width=scorebd_xy_offset+25 height=cell_size stroke_width=2 stroke="white" 
               text-anchor="end" alignment-baseline="central")
               |#{game.player_2.name}
 
