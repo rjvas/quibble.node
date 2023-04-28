@@ -4,6 +4,9 @@
 * copyright 2021
 */
 
+const is_debug = document.getElementById("is_debug");
+const is_local = document.getElementById("is_local");
+
 function clicked_logout_btn(event) {
 
   let xhr = new XMLHttpRequest();
@@ -122,8 +125,11 @@ function setup_chat() {
   if (cur_chat_port) {
     let opts = [];
     peek_game ? opts[0] = "peek" : opts[0] = "no_peek";
-    // cur_chat_ws = new WebSocket('ws://letsquibble.net:' + cur_chat_port);
-    cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port, opts);
+
+    if (is_local == "true")
+      cur_chat_ws = new WebSocket('ws://192.168.0.16:' + cur_chat_port, opts);
+    else
+      cur_chat_ws = new WebSocket('ws://letsquibble.net:' + cur_chat_port);
 
     cur_chat_ws.onmessage = function(msg) {
       let chat = document.getElementById("chat_text");
@@ -206,8 +212,10 @@ function clicked_broadcast_btn(event) {
       broadcast_msg.push({"player" : "sysadmin"});
       broadcast_msg.push({"info" : txt.value});
 
-      // broadcast_ws = new WebSocket('ws://letsquibble.net:' + broadcast_port);
-      broadcast_ws = new WebSocket('ws://192.168.0.16:' + broadcast_port);
+      if (is_local == "true")
+        broadcast_ws = new WebSocket('ws://192.168.0.16:' + broadcast_port);
+      else
+        broadcast_ws = new WebSocket('ws://letsquibble.net:' + broadcast_port);
     }
   }
 
@@ -385,8 +393,12 @@ var cur_chat_ws;
 var peek_game;
 
 var data_port = document.getElementById("data_port").value;
-// const data_ws = new WebSocket('ws://letsquibble.net:' + data_port);
-const data_ws = new WebSocket('ws://192.168.0.16:' + data_port);
+
+var data_ws;
+if (is_local == "true")
+  data_ws = new WebSocket('ws://192.168.0.16:' + data_port);
+else
+  data_ws = new WebSocket('ws://letsquibble.net:' + data_port);
 
 var editor = null;
 data_ws.onmessage = function(msg) {

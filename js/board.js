@@ -3,11 +3,14 @@
 */
 
 // Detect Firefox
-var firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
-var chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
+const firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
+const chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
-var is_practice = document.getElementById("is_practice").value;
-var is_admin = document.getElementById("is_admin").value;
+const is_debug = document.getElementById("is_debug");
+const is_local = document.getElementById("is_local");
+
+const is_practice = document.getElementById("is_practice").value;
+const is_admin = document.getElementById("is_admin").value;
 var grid_offset_xy =parseInt(document.getElementById("scorebd_xy_offset").value); 
 var player_panel_wh = parseInt(document.getElementById("player_panel_wh").value);
 var player_hand_xy_offset = parseInt(document.getElementById("player_hand_xy_offset").value);
@@ -1808,8 +1811,11 @@ AppOrientation = VERT;
 AppSpace = document.querySelectorAll('#every_damn_thing')[0];
 PlaySpace = document.querySelectorAll('#wt_board')[0];
 
-//const ws = new WebSocket('ws://letsquibble.net:' + ws_port);
-const ws = new WebSocket('ws://192.168.0.16:' + ws_port);
+var ws;
+if (is_local == "true")
+  ws = new WebSocket('ws://192.168.0.16:' + ws_port);
+else
+  ws = new WebSocket('ws://letsquibble.net:' + ws_port);
 
 function update_current_player(player) {
   // this makes sure 'current_player' is set correctly - needed for

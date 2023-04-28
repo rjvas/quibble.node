@@ -18,8 +18,7 @@ const quib_cfg = require('./js/quib_config.json');
 
 const main_port = 80;
 // const main_port = 443;
-const hostname = 'letsquibble.net';
-//const hostname = 'localhost';
+var hostname = (quib_cfg.local ? 'localhost' : 'letsquibble.net');
 
 //const certdir = (fs.readdir("/etc/letsencrypt/live"))[0];
 // const options = {
@@ -302,7 +301,10 @@ function startup() {
         'user': user,
         'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
-        'invites' : invites}));
+        'invites' : invites,
+        'is_local': quib_cfg.local ? "true" : "false",
+        'is_debug' : quib_cfg.debug ? "true" : "false"
+      }));
     }
 
     else if (pathname.indexOf("invite_friend") != -1) {
@@ -317,7 +319,10 @@ function startup() {
         'user': user,
         'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
-        'invites' : invites}));
+        'invites' : invites,
+        'is_local' : quib_cfg.local ? "true" : "false",
+        'is_debug' : quib_cfg.debug ? "true" : "false",
+      }));
     }
 
     else if (pathname.indexOf("invitation_accept") != -1) {
@@ -380,7 +385,9 @@ function startup() {
           'user': user,
           'games': user.get_saved_game_list(ActiveGame.game_over),
           'gamers' : User.get_pickup_gamers(),
-          'invites' : invites}));
+          'invites' : invites,
+          'is_local' : quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false" }));
 
         if (quib_cfg.debug) 
           logger.debug(`heist.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
@@ -552,7 +559,9 @@ function startup() {
           'user': ug.user,
           'games': glist,
           'gamers' : User.get_pickup_gamers(),
-          'invites' : invites}));
+          'invites' : invites,
+          'is_local' : quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false"}));
         }
           
         if (quib_cfg.debug)
@@ -578,7 +587,9 @@ function startup() {
           'user': ug.user,
           'user_saved_games': ug.user.get_saved_game_list(ActiveGame.game_over),
           'user_a_games' : ug.user.get_a_game_list(),
-          'all_active_games' : ActiveGame.all_active
+          'all_active_games' : ActiveGame.all_active,
+          'is_local' : quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false"
         }));
 
         if (quib_cfg.debug)
@@ -621,7 +632,9 @@ function startup() {
           'game': CurrentAGame.game,
           'Game' : Game,
           'Word' : Word,
-          'player' : player}));
+          'player' : player,
+          'is_local' : quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false" }));
 
         if (quib_cfg.debug)
           logger.debug(`heist.regular_play user=${user.display_name}/${user.id.toHexString()} 
