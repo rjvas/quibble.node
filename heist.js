@@ -394,6 +394,7 @@ function startup() {
       }
     }
 
+    // site root
     else if (pathname == "/") {
       if (!Sys) Sys = System.get_system();
       var params = new URLSearchParams(query);
@@ -404,9 +405,14 @@ function startup() {
         let invite = Sys.get_invitation(parseInt(iid));
         if (!invite)
           response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
+        else
+          response.end(pug_welcome({"error" : error, "invitation_id" : iid}));
       }
       else
         response.end(pug_welcome({"error" : error, "invitation_id" : iid}));
+
+      if (quib_cfg.debug)
+        logger.debug("heist.login query: " + query);
     }
 
     // async
@@ -480,6 +486,8 @@ function startup() {
     // async
     else if (pathname == "/register") {
       User.register(query, response);
+      if (quib_cfg.debug)
+        logger.debug("heist.register query: " + query);
     }
 
     // async

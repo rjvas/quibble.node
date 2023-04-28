@@ -13,6 +13,10 @@ p {
   color : white;
 }
 
+li {
+  padding : 5px;
+}
+
 .swap_pop {
   display: none; 
   position: fixed;
