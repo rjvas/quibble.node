@@ -31,11 +31,11 @@ html(lang="en")
         input(id="help_ok_btn" type="button" class="button" value="OK")
 
     div(id="invite_dialog" class="invite" style="{display : none}")
-      p Invite a friend who is new to the game. Just enter your name (so we can say who the invitation is from) and your friend's name and email address and we'll send an invitation, setup a new game when they register and login and notify you that the game is waiting.
+      p To invite a friend just enter your name (so we can say who the invitation is from) and your friend's name and email address and we'll send an invitation, setup a new game when they register and login and notify you that the game is waiting.
       div#invite_sections
         div#invite_section1
           div
-            input(id="user_name" type="text" class="in_fields" text=user.display_name placeholder="Your Name (who the invitation is from)") 
+            input(id="user_name" type="text" class="in_fields" value=user.display_name placeholder="Your Name (who the invitation is from)") 
           div
             input(id="friend_name" type="text" class="in_fields" placeholder="Friend's Name")
           div

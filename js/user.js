@@ -166,7 +166,7 @@ class User {
     }
     else {
       let subj = `${u_name} has invited you to play Let's Quibble!`;
-      let body = `Hello ${f_name}, Let\'s Quibble is a free-to-play word game like Scr*bble only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}'s invitation click the link or copy/paste it into your browser address bar. Register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nHave fun Quibbling!\n\n`;
+      let body = `Hello ${f_name}, Let\'s Quibble is a free-to-play word game like Scr*bble only you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}\'s invitation click the link or copy/paste it into your browser address bar.\n\nIf you are new the game please register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nIf you already have an account just login. If you are already logged in please logout before clicking the link.\n\nHave fun Quibbling!\n\n`;
       body += `http://www.letsquibble.net/invitation_accept?iid=${iid}`;
 
       let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"letsquibble878\@gmail.com\" <<< \"${body}\"`; 
@@ -368,7 +368,17 @@ class User {
         // After accepting an invitation need to setup new game for inviter and invitee
         let invite = null;
         if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
-          act_game.new_invite_agame(invite, logged_in);
+          let agame;
+          if ((agame = act_game.new_invite_agame(invite, logged_in))) {
+            let inviter = User.current_users.find(u => {
+              return u.id.equals(agame.user2_id);
+            });
+            if (inviter) {
+              inviter.saved_games.push(agame);
+              inviter.send_msg("gamelist_add", agame.name);
+              inviter.send_msg("message", `${inviter.display_name} has accepted your invitation to play!`);
+            }
+          }
         }
         logger.warn("User.login warning - " + name + "has multiple logins");
         response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
@@ -438,13 +448,19 @@ class User {
         if (new_user) {
 
           // if this is an invitation fulfillment make sure the inviter, if logged in,
-          // gets the game in their saved_games list
+          // gets the game in their saved_games list and user_home dropdown list
           if (invite_id) {
-            let newest_ag = new_user.saved_games[new_user.saved_games.length -1];
-            let inviter = User.current_users.find(u => {
-              return u.id.equals(newest_ag.user2_id);
-            });
-            if (inviter) inviter.saved_games.push(newest_ag);
+            let newest_ag;
+            if((newest_ag = new_user.saved_games[new_user.saved_games.length -1])) {
+              let inviter = User.current_users.find(u => {
+                return u.id.equals(newest_ag.user2_id);
+              });
+              if (inviter) {
+                inviter.saved_games.push(newest_ag);
+                inviter.send_msg("gamelist_add", newest_ag.name);
+                inviter.send_msg("message", `${inviter.display_name} has accepted your invitation to play!`);
+              }
+            }
           }
             
           // filter out any 'game_over' games

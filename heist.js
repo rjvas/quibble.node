@@ -334,7 +334,7 @@ function startup() {
       if (!invite)
         response.end(pug_welcome({"error" : "error_bad_invitation_id", "invitation_id" : iid}));
       else
-        response.end(pug_welcome({"error" : query, "invitation_id" : iid}));
+        response.end(pug_welcome({"error" : "invitation_accepted", "invitation_id" : iid}));
 
       if (quib_cfg.debug) 
         logger.debug(`heist.invitation - query=${query}`); 

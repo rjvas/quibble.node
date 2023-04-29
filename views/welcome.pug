@@ -16,6 +16,8 @@ html(lang="en")
     #error
       if error == "error_bad_invitation_id"
         div.error_label Error: unrecognized invitation!
+      else if error == "invitation_accepted"
+        div.error_label Success! Your invitation was accepted; you may now login
       else if error == "error_reg_pass"
         div.error_label Error: passwords don't match!
       else if error == "error_reg_email"
