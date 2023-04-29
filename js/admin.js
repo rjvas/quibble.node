@@ -4,8 +4,8 @@
 * copyright 2021
 */
 
-const is_debug = document.getElementById("is_debug");
-const is_local = document.getElementById("is_local");
+const is_debug = document.getElementById("is_debug").value;
+const is_local = document.getElementById("is_local").value;
 
 function clicked_logout_btn(event) {
 

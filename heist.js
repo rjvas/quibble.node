@@ -337,7 +337,7 @@ function startup() {
         response.end(pug_welcome({"error" : query, "invitation_id" : iid}));
 
       if (quib_cfg.debug) 
-        logger.debug(`heist.invitation`); 
+        logger.debug(`heist.invitation - query=${query}`); 
         // user=${user.display_name}/${user.id.toHexString()} 
         // game=${ugv.game_name}`); 
     }

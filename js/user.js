@@ -436,6 +436,17 @@ class User {
 
       }).then(result => {
         if (new_user) {
+
+          // if this is an invitation fulfillment make sure the inviter, if logged in,
+          // gets the game in their saved_games list
+          if (invite_id) {
+            let newest_ag = new_user.saved_games[new_user.saved_games.length -1];
+            let inviter = User.current_users.find(u => {
+              return u.id.equals(newest_ag.user2_id);
+            });
+            if (inviter) inviter.saved_games.push(newest_ag);
+          }
+            
           // filter out any 'game_over' games
           new_user.saved_games = result.filter(ag => {
             return !(ag.status & game_over);

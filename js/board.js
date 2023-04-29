@@ -6,8 +6,8 @@
 const firefoxAgent = window.navigator.userAgent.indexOf("Firefox") > -1;
 const chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
-const is_debug = document.getElementById("is_debug");
-const is_local = document.getElementById("is_local");
+const is_debug = document.getElementById("is_debug").value;
+const is_local = document.getElementById("is_local").value;
 
 const is_practice = document.getElementById("is_practice").value;
 const is_admin = document.getElementById("is_admin").value;
