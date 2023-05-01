@@ -32,6 +32,28 @@ html(lang="en")
 
     div(id="invite_dialog" class="invite" style="{display : none}")
       p To invite a friend just enter your name (so we can say who the invitation is from) and your friend's name and email address and we'll send an invitation, setup a new game when they register and login and notify you that the game is waiting.
+      p OR, select from your list of friends or a list of players that have opted in to receiving invitations.
+      span#invite_lists
+        div#friends_div Friends
+          br
+          select(id="friends_lst")
+            option(value=-1) Select A Friend
+            if friends && friends.length > 0
+              each val, idx in friends
+                if val.active 
+                  option(value=idx) #{val.name}
+          input(id="remove_friend_btn" type="button" value="REMOVE FRIEND" )
+
+        div#players_div Players
+          br
+          select(id="players_lst")
+            option(value=-1) Select A Player
+            if players && players.length > 0
+              each val, idx in players
+                if val.active 
+                  option(value=idx) #{val.name}
+
+      br
       div#invite_sections
         div#invite_section1
           div

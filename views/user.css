@@ -111,6 +111,17 @@ a {
   padding: 5%;
 }
 
+#invite_list {
+  width: 100%;
+}
+#friends_div {
+  float : left;
+  width : 50%;
+}
+#players_div {
+  float : right;
+  width : 50%;
+}
 td {
   text-align: center;
 }
@@ -253,7 +264,8 @@ td {
   width: 100%;
   height: 20px;
   background-color: #333333;
-  color : white;
+  /* color : white; */
+  color:  #00ccff;
 }
 
 /* blue buttons */
@@ -264,15 +276,20 @@ td {
   background-color:  #0072bc;
 }
 
-#cancel_edit_invites_btn, #cancel_invite_btn, #cancel_pickup_btn  {
+#remove_friend_btn, #cancel_edit_invites_btn, #cancel_invite_btn, #cancel_pickup_btn  {
   float: right;
   font-size: 8pt;
   margin-top: 5px;
   color: white;
   background-color: #333333;
+  outline: none;
+  border: none;
+  cursor: pointer;
 }
-
-#pickup_lst, #games_lst {
+#remove_friend_btn {
+  float: left;
+}
+#pickup_lst, #games_lst, #friends_lst, #players_lst {
   padding: 7px;
   color: lightgrey;
   background-color: #333333;

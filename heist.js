@@ -93,7 +93,7 @@ function get_user_agame(query) {
     params = new URLSearchParams(query);
     user_id = params.get("n");
     game_id = params.get("a");
-    game_name = params.get("game_name")
+    game_name = params.get("game_name");
     vs = params.get("vs");
   }
 
@@ -286,6 +286,8 @@ function startup() {
         'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites,
+        'friends' : user.friends,
+        'players' : [],
         'is_local': quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false"
       }));
@@ -304,6 +306,8 @@ function startup() {
         'games': user.get_saved_game_list(ActiveGame.game_over),
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites,
+        'friends' : user.friends,
+        'players' : [],
         'is_local' : quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false",
       }));
@@ -349,7 +353,7 @@ function startup() {
         u2.active_games_add(CurrentAGame);
         ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
         CurrentAGame.save(false, null);
-        response.end(`/play?n=${ugv.user.id.toHexString()}?a=${CurrentAGame.game_id_str}`);
+        response.end(`/play?n=${ugv.user.id.toHexString()}&game_name=${CurrentAGame.game_id_str}`);
 
         if (quib_cfg.debug) 
           logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
@@ -549,10 +553,10 @@ function startup() {
           'invites' : invites,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false"}));
-        }
           
         if (quib_cfg.debug)
           logger.debug(`heist.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
+      }
     }
 
     else if (pathname.indexOf("wh_admin_user") != -1) {
