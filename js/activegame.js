@@ -533,7 +533,7 @@ class ActiveGame {
           " and active_game document.");
 
         response.writeHead(302 , {
-            'Location' : "/home_page?user=" + user.id.toHexString()
+            'Location' : "/home_page?n=" + user.id.toHexString()
         });
         response.end();
       }
@@ -609,8 +609,8 @@ class ActiveGame {
           }
 
           response.writeHead(302 , {
-             'Location' : "/play?game=" + new_ag.game_id_str +
-              "&user=" + user.id.toHexString()
+             'Location' : "/play?a=" + new_ag.game_id_str +
+              "&n=" + user.id.toHexString()
           });
           response.end();
         }

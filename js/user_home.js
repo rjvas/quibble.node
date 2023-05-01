@@ -32,13 +32,13 @@ function clicked_edit_invites_done_btn() {
   dia.style.display = "none";
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", `/edit_invitations?user=${user}&iids=${chk_ids}` , true);
+  xhr.open("GET", `/edit_invitations?n=${user}&iids=${chk_ids}` , true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
       document.location.href = xhr.responseURL;
-      //document.location.href = "/home_page?user=" + user;
+      //document.location.href = "/home_page?n=" + user;
       }
   }
 
@@ -72,12 +72,12 @@ function clicked_invite_friend_btn() {
     dia.style.display = "none";
 
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", `/invite_friend?user=${user}&user_name=${u_name}&friend_name=${f_name}&friend_email=${f_email}` , true);
+    xhr.open("GET", `/invite_friend?n=${user}&user_name=${u_name}&friend_name=${f_name}&friend_email=${f_email}` , true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = `/home_page?user=${user}`;
+        document.location.href = `/home_page?n=${user}`;
         }
     }
     xhr.send(null);
@@ -109,7 +109,7 @@ function new_practice_game() {
 
   if (window.confirm("New practice game?")) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/new_practice_game?user=" + user, true);
+    xhr.open("GET", "/new_practice_game?n=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -134,14 +134,14 @@ function clicked_delete_game_btn(event) {
       return;
 
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/delete_game?game_name=" + option.text + "&user=" + user, true);
+    xhr.open("GET", "/delete_game?game_name=" + option.text + "&n=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
         // delete it from the list
         deleted.remove(deleted.selectedIndex);
-        document.location.href = "/home_page?user=" + user;
+        document.location.href = "/home_page?n=" + user;
       }
     }
 
@@ -161,7 +161,7 @@ function clicked_games_btn(event) {
 
   if (option) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/load_game?game_name=" + option.text + "&user=" + user, true);
+    xhr.open("GET", "/load_game?game_name=" + option.text + "&n=" + user, true);
     xhr.setRequestHeader("Content-Type", "text/html");
 
     xhr.onreadystatechange = function () {
@@ -178,12 +178,12 @@ function clicked_logout_btn(event) {
   var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/logout?user=" + user, true);
+  xhr.open("GET", "/logout?n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/?user=" + user;
+        document.location.href = "/?n=" + user;
       }
   }
 
@@ -196,12 +196,12 @@ function clicked_add_pickup_name_btn(event) {
   dia.style.display = "none";
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/add_pickup_name?user=" + user, true);
+  xhr.open("GET", "/add_pickup_name?n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page?user=" + user;
+        document.location.href = "/home_page?n=" + user;
       }
   }
   xhr.send(null);
@@ -220,7 +220,7 @@ function clicked_play_pickup_btn(event) {
     return;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/play_pickup_game?vs=" + p_name + "&user=" + user, true);
+  xhr.open("GET", "/play_pickup_game?vs=" + p_name + "&n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
@@ -236,13 +236,13 @@ function clicked_admin_btn(event) {
   var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/wh_admin?user=" + user, true);
+  xhr.open("GET", "/wh_admin?n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
     let user = document.getElementById("user").value;
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = "/wh_admin?user=" + user;
+      document.location.href = "/wh_admin?n=" + user;
     }
   }
   xhr.send(null);

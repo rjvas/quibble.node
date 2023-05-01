@@ -370,10 +370,10 @@ class User {
         if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
           act_game.new_invite_agame(invite, logged_in);
           logger.warn("User.login warning - " + name + "has multiple logins");
-          response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
+          response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&n=${logged_in.id.toHexString()}` });
         }
         logger.warn("User.login warning - " + name + "has multiple logins");
-        response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
+        response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&n=${logged_in.id.toHexString()}` });
       }
       else {
         logger.error("User.login error - " + name + "password not valid for this user");
@@ -467,7 +467,7 @@ class User {
             response.end(JSON.stringify(jsons));
           } else {
             response.writeHead(302 , {
-              'Location' : '/home_page?user=' + new_user.id.toHexString()
+              'Location' : '/home_page?n=' + new_user.id.toHexString()
             });
             response.end();
           }

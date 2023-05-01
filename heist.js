@@ -91,8 +91,8 @@ function get_user_agame(query) {
 
   if (query) {
     params = new URLSearchParams(query);
-    user_id = params.get("user");
-    game_id = params.get("game");
+    user_id = params.get("n");
+    game_id = params.get("a");
     game_name = params.get("game_name")
     vs = params.get("vs");
   }
@@ -155,7 +155,7 @@ function play_active_game(query, response) {
         ActiveGame.all_active.push(CurrentAGame);
 
       response.writeHead(302 , {
-          'Location' : "/play?game=" + CurrentAGame.game_id_str + "&user=" + ug.user.id.toHexString()
+          'Location' : "/play?a=" + CurrentAGame.game_id_str + "&n=" + ug.user.id.toHexString()
       });
       response.end();
 
@@ -201,7 +201,7 @@ function startup() {
         user.active_games.push(CurrentAGame);
         CurrentAGame.save(false, null);
         response.writeHead(302 , {
-           'Location' : "/play?game=" + CurrentAGame.name + "&user=" + user.id.toHexString()
+           'Location' : "/play?a=" + CurrentAGame.name + "&n=" + user.id.toHexString()
         });
         response.end();
       }
@@ -275,7 +275,7 @@ function startup() {
       var params = new URLSearchParams(query);
       // colon separated list of ids
       let iids = params.get("iids");
-      let uid_hex = params.get("user")
+      let uid_hex = params.get("n")
 
       Sys.remove_invitations(iids);
       let invites = Sys.get_users_invitations(uid_hex);
@@ -349,7 +349,7 @@ function startup() {
         u2.active_games_add(CurrentAGame);
         ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
         CurrentAGame.save(false, null);
-        response.end(`/play?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
+        response.end(`/play?n=${ugv.user.id.toHexString()}?a=${CurrentAGame.game_id_str}`);
 
         if (quib_cfg.debug) 
           logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 

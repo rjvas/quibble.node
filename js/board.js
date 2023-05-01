@@ -1181,12 +1181,12 @@ function clicked_home_btn(event) {
   let game_id = document.getElementById("current_game_id").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/home_page?game=" + game_id + "&user=" + user, true);
+  xhr.open("GET", "/home_page?a=" + game_id + "&n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = "/home_page?user=" + user;
+      document.location.href = "/home_page?n=" + user;
       // console.log("home_btn.callback: port: " + ws_port);
     }
   }
@@ -1640,12 +1640,12 @@ function toggle_player() {
   let game_id = document.getElementById("current_game_id").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/play?game=" + game_id + "&user=" + user, true);
+  xhr.open("GET", "/play?a=" + game_id + "&n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = "/play?game=" + game_id + "&user=" + user;
+      document.location.href = "/play?a=" + game_id + "&n=" + user;
     }
   }
 

@@ -28,12 +28,12 @@ function clicked_home_btn(event) {
   var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", "/home_page?user=" + user, true);
+  xhr.open("GET", "/home_page?n=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        document.location.href = "/home_page?user=" + user;
+        document.location.href = "/home_page?n=" + user;
       }
   }
 
