@@ -507,8 +507,15 @@ class ActiveGame {
         user.active_games = user.active_games.filter(
           g => g.name != ag_json.name
         );
+        // should be happening at the deleter's user_home.clicked_delete_game_btn callback
+        // user.send_msg("gamelist_remove", ag_json.name);
+
         // find the other user - could be null/undefined - and remove game
-        let u2 = ag.user1.id.equals(user.id) ? ag.user2 : ag.user1;
+        let u2_id = ag_json.user1_id.equals(user.id) ? ag_json.user2_id : ag_json.user1_id;
+        let u2 = User.current_users.find(item => {
+          return item.id.equals(u2_id);
+        });
+
         if (u2) {
           u2.saved_games = u2.saved_games.filter(
             g => g.name != ag_json.name
@@ -525,9 +532,10 @@ class ActiveGame {
         // At this point, if u2 (did NOT delete the game) is still viewing the game
         // send a message to return to home_page. Otherwise, if u2 on home page, need
         // force a refresh(?), or set up new ws to home_page and send async msg.
-        if (u2)
+        if (u2) 
           u2.send_msg("gamelist_remove", ag_json.name);
-        ag.send_msg("This game has been deleted by your opponent! Please return to your home page.", ag_json.name);
+        if (ag)
+          ag.send_msg("This game has been deleted by your opponent! Please return to your home page.", ag_json.name);
 
         logger.debug("activegame.delete_game: Successfully deleted game: " + ag_json._id +
           " and active_game document.");

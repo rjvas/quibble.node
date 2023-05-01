@@ -90,7 +90,6 @@ html(lang="en")
 
     div(id="pickup_dialog" class="pickup" style="{display : none}")
       span.descrip2 Select a player from the available player pool 
-        i#num_waiting #{num} 
       select(id="pickup_lst")
         option(value=-1) Select A Player
         each val, idx in gamers
@@ -124,7 +123,7 @@ html(lang="en")
             input(id="games_btn" type="button" class="button" value="GO PLAY!" )
             input(id="delete_game_btn" type="button" value="DELETE GAME" )
             
-          - var num = `(${gamers.length} Available)`;
+          - var num = `  (${gamers.length} Waiting)`;
           div.sub_label Start A New Game
             div.sub_label_small Invite A Friend
               br
@@ -136,6 +135,7 @@ html(lang="en")
             div.sub_label_small Pickup Game 
               br
               span.descrip Play another waiting player or add your name to the list
+                i#num_waiting #{num} 
               br
               input(id="pickup_btn" type="button" class="button" value="PICKUP GAME")
 
