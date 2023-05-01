@@ -16,14 +16,19 @@ html
     link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
     link(rel="stylesheet" type="text/css" href="heist.css")
   body(bgcolor='#2a2a2e')
-    input(id="ws_port" type="hidden" value=port)
+    input(id="ws_port" type="hidden" value=CurrentAGame.port)
     input(id="is_practice" type="hidden" value=is_practice)
-    input(id="current_game_id" type="hidden" value=game_id)
+    input(id="current_game_id" type="hidden" value=CurrentAGame.game_id_str)
+    input(id="current_player" type="hidden" value=current_player)
     input(id="user" type="hidden" value=user_id)
+    input(id="player1_id" type="hidden" value=player1_id)
+    input(id="player2_id" type="hidden" value=player2_id)
     input(id="is_admin" type="hidden" value=is_admin)
     input(id="is_debug" type="hidden" value=is_debug)
     input(id="is_local" type="hidden" value=is_local)
     
+    - var game = CurrentAGame.game;
+
     div(id="swap_pop" class="swap_pop" style="{display : none}")
     div(id="help_dialog" class="help" style="{display : none}")
       div.help_head1
@@ -58,11 +63,6 @@ html
     - var tile_points_offY = 9;
     input(id="tile_points_offY" type="hidden" value=tile_points_offY)
 
-    if game.current_player == game.player_2
-      input(id="current_player" type="hidden" value="/player2")
-    else 
-      input(id="current_player" type="hidden" value="/player1")
- 
     - var player1_safe = "#eb008b";
     - var player1_risky = "#f179af";
     - var player2_safe = "#0072bc";
@@ -116,7 +116,7 @@ html
 
         //- player 2 scoreboard
         svg(id="player2" x=8*cell_size y=0 width=6*cell_size height=scorebd_xy_offset)
-          svg(id="player2_stats" x=15 y=0 width=cell_size*6 height=scorebd_xy_offset 
+          svg(id="player2_stats" x=10 y=0 width=cell_size*6 height=scorebd_xy_offset 
             viewBox=`0 0 ${cell_size*4} ${scorebd_xy_offset}`)
             
             svg(x=-10 y=7 width=cell_size height=cell_size/2 viewBox="0 0 180 180"
@@ -239,7 +239,7 @@ html
               - i++
 
         //- player tiles    
-        if player == "/player1"
+        if (is_practice == "true" && game.current_player == game.player_1) || (is_practice == "false" && user_id == player1_id)
           each t, idx in game.player_1.tiles 
             if t
               svg(id="tile_"+t.id x=player_hand_xy_offset+idx*2*cell_size y=cell_size*15+tiles_left_offset+10 

@@ -143,29 +143,19 @@ function play_active_game(query, response) {
   if (ug.user) {
     CurrentAGame = ug.agame;
     if (CurrentAGame) {
-      // if the game is a practice game ug.user is *both* user1 and user2
-      // so, set pathname with game.current_player
-      if (CurrentAGame.status & ActiveGame.practice) {
-        CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
-          pathname = "/player1" : pathname = "/player2";
-      } else {
-        // first, make sure both users are represented in the active game (if
-        // on user logs in and opens the game before the other user is logged in
-        // one of the AG users will be 'undefined')
-        if (!CurrentAGame.user1 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
-          CurrentAGame.user1 = ug.user;
-        else if (!CurrentAGame.user2 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
-          CurrentAGame.user2 = ug.user;
+      // first, make sure both users are represented in the active game (if
+      // one user logs in and opens the game before the other user is logged in
+      // one of the AG users will be 'undefined')
+      if (!CurrentAGame.user1 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
+        CurrentAGame.user1 = ug.user;
+      else if (!CurrentAGame.user2 && CurrentAGame.tmp_user_id == ug.user.id.toHexString())
+        CurrentAGame.user2 = ug.user;
 
-        ug.user == CurrentAGame.user1 ? pathname = "/player1" :
-          pathname = "/player2";
-      }
       if (!ActiveGame.all_active.find(ag => {return ag.name == CurrentAGame.name}))
         ActiveGame.all_active.push(CurrentAGame);
 
       response.writeHead(302 , {
-          'Location' : pathname + "?game=" + CurrentAGame.game_id_str +
-              "&user=" + ug.user.id.toHexString()
+          'Location' : "/play?game=" + CurrentAGame.game_id_str + "&user=" + ug.user.id.toHexString()
       });
       response.end();
 
@@ -209,11 +199,9 @@ function startup() {
         CurrentAGame = new ActiveGame(server, user, user, ActiveGame.in_play|ActiveGame.practice);
         ActiveGame.all_active.push(CurrentAGame);
         user.active_games.push(CurrentAGame);
-        pathname = "/player1";
         CurrentAGame.save(false, null);
         response.writeHead(302 , {
-           'Location' : pathname + "?game=" + CurrentAGame.name +
-            "&user=" + user.id.toHexString()
+           'Location' : "/play?game=" + CurrentAGame.name + "&user=" + user.id.toHexString()
         });
         response.end();
       }
@@ -229,8 +217,6 @@ function startup() {
       let user = ug.user;
 
       if (CurrentAGame) {
-        pathname.indexOf("player1") != -1 ? pathname = "/player1" :
-          pathname = "/player2";
         CurrentAGame.save();
         if (quib_cfg.debug) 
           logger.debug(`heist.save_game user=${user.display_name}/${user.id.toHexString()} 
@@ -244,9 +230,7 @@ function startup() {
       let user = ug.user;
 
       if (CurrentAGame) {
-        pathname.indexOf("player1") != -1 ? pathname = "/player1" :
-          pathname = "/player2";
-        CurrentAGame.save(true, pathname);
+        CurrentAGame.save();
         if (quib_cfg.debug) 
           logger.debug(`heist.save_close_game user=${user.display_name}/${user.id.toHexString()} 
             game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
@@ -311,7 +295,7 @@ function startup() {
       if (!Sys) Sys = System.get_system();
       let user = get_user_agame(query).user;
 
-      user.invite_friend(query, Sys);
+      user.invite_friend(query);
 
       let invites = Sys.get_users_invitations(user.id.toHexString());
       response.end(pug_user({
@@ -365,7 +349,7 @@ function startup() {
         u2.active_games_add(CurrentAGame);
         ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
         CurrentAGame.save(false, null);
-        response.end(`/player1?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
+        response.end(`/play?user=${ugv.user.id.toHexString()}&game=${CurrentAGame.game_id_str}`);
 
         if (quib_cfg.debug) 
           logger.debug(`heist.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
@@ -415,7 +399,6 @@ function startup() {
         logger.debug("heist.login query: " + query);
     }
 
-    // async
     else if (pathname == "/reset_phase1") {
       var params = new URLSearchParams(query);
       let name = params.get("username");
@@ -437,7 +420,6 @@ function startup() {
       }
     }
 
-    // async
     else if (pathname == "/reset_phase2") {
       var params = new URLSearchParams(query);
       let hp = decodeURIComponent(params.get("hp"));
@@ -478,19 +460,16 @@ function startup() {
         User.reset_phase3(query, hp, response);
     }
 
-    // async
     else if (pathname == "/forgot") {
       response.end(pug_reset({"phase1" : true, "phase2" : false}));
     }
 
-    // async
     else if (pathname == "/register") {
       User.register(query, response);
       if (quib_cfg.debug)
         logger.debug("heist.register query: " + query);
     }
 
-    // async
     else if (pathname == "/login") {
       if (!Sys) Sys = System.get_system();
       User.login(server, query, remote_addr, user_agent, response, ActiveGame);
@@ -606,41 +585,33 @@ function startup() {
     }
 
     // This will refresh the player's page with the currrent state of CurrentAGame
-    else if (pathname === "/player1" || pathname === "/player2") {
+    else if (pathname === "/play") {
       let ug = get_user_agame(query);
-      let player = pathname;
 
       CurrentAGame = ug.agame;
       let user = ug.user;
+      let player1_id = CurrentAGame.user1 ? CurrentAGame.user1.id.toHexString() : "";
+      let player2_id = CurrentAGame.user2 ? CurrentAGame.user2.id.toHexString() : "";
 
       if (CurrentAGame) {
         response.writeHead(200, {
           'Content-Type': 'text/html'
         });
-        let is_practice = CurrentAGame.status & ActiveGame.practice;
 
-        // this block is called for regular games an practice games. If it's a
-        // regular game the 'player' is set by the pathname. Otherwise, the
-        // player needs to be set to the CurrentAGame's active player.
-        if (is_practice) {
-          CurrentAGame.game.current_player == CurrentAGame.game.player_1 ?
-            player = "/player1" : player = "/player2";
-        }
-
-        if (quib_cfg.debug)
-          logger.info("pathname: " + pathname + " filename: " + filename);
-
+        let cur_player = CurrentAGame.game.current_player == CurrentAGame.game.player_1 ? 
+          player1_id : player2_id;
+        let is_practice = CurrentAGame.status & ActiveGame.practice ? "true" : "false";
+        
         response.end(pug_grid({
-          'a_game_chat_text' : CurrentAGame.chat_text,
+          'CurrentAGame' : CurrentAGame,
           'is_admin' : user.role & User.admin ? "true" : "false",
           'user_id' : user.id.toHexString(),
-          'game_id' : CurrentAGame.game_id_str,
+          'player1_id' : player1_id,
+          'player2_id' : player2_id,
+          'current_player' : cur_player,
           'is_practice' : is_practice,
-          'port' : CurrentAGame.port,
-          'game': CurrentAGame.game,
           'Game' : Game,
           'Word' : Word,
-          'player' : player,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false" }));
 

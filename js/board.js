@@ -19,10 +19,12 @@ var tile_points_offX = parseInt(document.getElementById("tile_points_offX").valu
 var tile_points_offY = parseInt(document.getElementById("tile_points_offY").value);
 
 var current_player = document.getElementById("current_player").value;
+const user = document.getElementById("user").value;
+const player1_id = document.getElementById("player1_id").value;
+const player2_id = document.getElementById("player2_id").value;
 
 var ws_port = document.getElementById("ws_port").value;
 
-var URL_x = null;
 var AppSpace = null;
 var Scale = 1.0;
 
@@ -756,11 +758,6 @@ function handle_the_response(resp) {
 var LastWordHilite = false;
 var HiliteWords = [];
 function clicked_hilite_last_word(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
   // if already hiliteing the last word, clear the hilite and return
   if (LastWordHilite) {
     HiliteWords.forEach(svg => {
@@ -773,7 +770,7 @@ function clicked_hilite_last_word(event) {
 
   let jsons = [];
   jsons.unshift({
-    "player": URL_x
+    "player": user
   });
   jsons.unshift({
     "type": "last_played_word"
@@ -790,12 +787,7 @@ function clicked_toggle_zoom(event) {
 // jsonify the just-played-tiles and send them back to the server
 function clicked_play(event) {
 
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
-  if (current_player != URL_x) {
+  if (current_player != user) {
     clicked_recall();
     alert(`You are not the current player - please wait ...`);
     return;
@@ -916,12 +908,8 @@ function clicked_swap_cancel(event) {
 }
 
 function clicked_swap_begin(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
 
-  if (current_player != URL_x) {
+  if (current_player != user) {
     clicked_recall();
     alert(`You are not the current player - please wait ...`);
     return;
@@ -1034,7 +1022,6 @@ function clicked_swap_end(event) {
 
 function clicked_tail_log_btn() {
   var logf_name = ChatDoc.getElementById("log_name").value;
-  var user = document.getElementById("user").value;
   if (user) {
     let msg = [];
     msg.push({"type" : "tail_log"});
@@ -1046,7 +1033,6 @@ function clicked_tail_log_btn() {
 
 function clicked_cheat_send_btn(event) {
   var cheat = ChatDoc.getElementById("cheat_text");
-  var user = document.getElementById("user").value;
   if (cheat && user) {
     let msg = [];
     msg.push({"type" : "cheat"});
@@ -1094,7 +1080,7 @@ function clicked_chat_btn() {
   p.y = "0";
   p.height = "260";
   p.width = "100%";
-  p.textContent = "<b>Salutations Worderists!</b>";
+  p.innerHTML = "<b> Salutations Worderists! </b>";
   dv.appendChild(p);
   
   let ta = ChatDoc.createElement("textarea");
@@ -1171,7 +1157,6 @@ function clicked_chat_btn() {
   Chat = ChatDoc.getElementById("chat_para");
 
   // let the other player know a chat has been started
-  var user = document.getElementById("user").value;
   let msg = [];
   msg.push({"type" : "started_chat"});
   msg.push({"player" : user});
@@ -1181,7 +1166,6 @@ function clicked_chat_btn() {
 
 function clicked_chat_send_btn(event) { 
   let txt = ChatDoc.getElementById("chat_send_text");
-  var user = document.getElementById("user").value;
   if (txt && user) {
     let msg = [];
     msg.push({"type" : "chat"});
@@ -1194,16 +1178,10 @@ function clicked_chat_send_btn(event) {
 }
 
 function clicked_home_btn(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
   let game_id = document.getElementById("current_game_id").value;
-  var user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x + "/home_page?game=" + game_id + "&user=" + user, true);
+  xhr.open("GET", "/home_page?game=" + game_id + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function() {
@@ -1288,7 +1266,6 @@ function clicked_bookmark_log(event) {
 
 function clicked_bookmk_send_btn(event) {
   let txt = BookMKDoc.getElementById("bookmk_send_text");
-  var user = document.getElementById("user").value;
   if (txt && user) {
     let msg = [];
     msg.push({"type" : "bookmark_log"});
@@ -1303,12 +1280,7 @@ function clicked_bookmk_send_btn(event) {
 }
 
 function clicked_pass(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
-  if (current_player != URL_x) {
+  if (current_player != user) {
     clicked_recall();
     alert(`You are not the current player - please wait ...`);
     return;
@@ -1377,17 +1349,12 @@ function reset_view(tile) {
 }
 
 function tile_clicked(event) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
   let id_ary = this.id.split("_");
   let id = parseInt(id_ary[1]);
 
   let jsons = [];
   jsons.push({ "type": "dictionary_lookup"});
-  jsons.push({"player": URL_x});
+  jsons.push({"player": user});
   jsons.push({"info": id});
 
   ws.send(JSON.stringify(jsons));
@@ -1669,19 +1636,16 @@ function handle_pass(resp) {
 }
 
 function toggle_player() {
-  let url = window.location.href;
-  url.indexOf("player1") > -1 ? URL_x = "/player2" : URL_x = "/player1";
 
   let game_id = document.getElementById("current_game_id").value;
-  let user = document.getElementById("user").value;
 
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", URL_x + "?game=" + game_id + "&user=" + user, true);
+  xhr.open("GET", "/play?game=" + game_id + "&user=" + user, true);
   xhr.setRequestHeader("Content-Type", "text/html");
 
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      document.location.href = URL_x + "?game=" + game_id + "&user=" + user;
+      document.location.href = "/play?game=" + game_id + "&user=" + user;
     }
   }
 
@@ -1776,7 +1740,7 @@ function handle_cheat(player, msg) {
 }
 
 function handle_chat(player, msg) {
-  Chat.innerHTML += "<br><b>" + player + "</b>:<br>" + msg;
+  Chat.innerHTML += "<br><b>" + player.player_name + "</b>:<br>" + msg;
 }
 
 function handle_game_over(info) {
@@ -1820,34 +1784,24 @@ else
 function update_current_player(player) {
   // this makes sure 'current_player' is set correctly - needed for
   // inhibiting function of Play, Swap, Pass
-  if (player.indexOf("player1") != -1) {
-   current_player = "/player2";
-  }
-  else {
-    current_player = "/player1";
-  } 
+  current_player = current_player == player1_id ? player2_id : player1_id;
   
-  if (current_player == "/player1") {
-    let photo_rec = document.getElementById("player1_photo");
-    photo_rec.setAttributeNS(null, "stroke", "red");
-    photo_rec.setAttributeNS(null, "stroke-width", "3");
-    photo_rec = document.getElementById("player2_photo");
-    photo_rec.setAttributeNS(null, "stroke-width", "0");
-  } else {
+  if (current_player == player2_id) {
     let photo_rec = document.getElementById("player2_photo");
     photo_rec.setAttributeNS(null, "stroke", "red");
     photo_rec.setAttributeNS(null, "stroke-width", "3");
     photo_rec = document.getElementById("player1_photo");
     photo_rec.setAttributeNS(null, "stroke-width", "0");
+  } else {
+    let photo_rec = document.getElementById("player1_photo");
+    photo_rec.setAttributeNS(null, "stroke", "red");
+    photo_rec.setAttributeNS(null, "stroke-width", "3");
+    photo_rec = document.getElementById("player2_photo");
+    photo_rec.setAttributeNS(null, "stroke-width", "0");
   }
 }
 
 ws.onmessage = function(msg) {
-  if (!URL_x) {
-    let url = window.location.href;
-    url.indexOf("player1") > -1 ? URL_x = "/player1" : URL_x = "/player2";
-  }
-
   let err = false;
   let resp = JSON.parse(msg.data);
   // need this for vectoring control
@@ -1859,20 +1813,15 @@ ws.onmessage = function(msg) {
   // info goes to the inactive player for a 'heads-up'
   let info = resp.shift();
 
-  // console.log("in onmessage: type = " + type.type);
-  // console.log("in onmessage: player = " + player.player + " URL = " + URL_x);
-  // if (info)
-    // console.log("in onmessage: info = " + info.info);
-
   if (type.type == "game_over") {
     handle_game_over(info);
   } else if (type.type == "pass") {
-    if (player.player != URL_x)
+    if (player.player != user)
       alert(info.info);
     handle_pass(resp);
     update_current_player(player.player);
   } else if (type.type == "xchange") {
-    if (player.player == URL_x) {
+    if (player.player == user) {
       handle_exchange(resp);
       update_current_player(player.player);
     } else {
@@ -1885,7 +1834,7 @@ ws.onmessage = function(msg) {
       alert(info.info);
     }
   } else if (type.type == "regular_play") {
-    if (player.player == URL_x) {
+    if (player.player == user) {
       if (!(err = handle_the_response(resp)))
         update_current_player(player.player);
     }
@@ -1897,15 +1846,15 @@ ws.onmessage = function(msg) {
         alert(info.info);
     }
   } else if (type.type == "message") {
-    if (player.player != URL_x)
+    if (player.player != user)
       alert(info.info);
   }
   else if (type.type == "started_chat") {
-    if (player.player != URL_x)
+    if (player.player != user)
       alert(info.info);
   }
   else if (type.type == "chat") {
-    handle_chat(player.player, info.info);
+    handle_chat(player, info.info);
   }
   else if (type.type == "cheat") {
     handle_cheat(player.player, info.info);
@@ -1914,11 +1863,11 @@ ws.onmessage = function(msg) {
     handle_tail_log(player.player, info.info);
   }
   else if (type.type == "last_played_word") {
-    if (player.player == URL_x)
+    if (player.player == user)
       handle_last_played_word(player.player, info.tiles);
   }
   else if (type.type == "dictionary_lookup") {
-    if (player.player == URL_x)
+    if (player.player == user)
       handle_dictionary_lookup(resp);
   }
   else {
@@ -1930,7 +1879,7 @@ ws.onmessage = function(msg) {
     PlayStarts = [];
 
   // in this case a single player is playing both player1 and player2
-  if (is_practice != "0" && !err &&
+  if (is_practice == "true" && !err &&
     type.type != "chat" && type.type != "cheat" && type.type != "tail_log" &&
     type.type != "last_played_word" && type.type != "dictionary_lookup") {
     toggle_player();

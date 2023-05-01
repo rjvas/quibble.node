@@ -45,7 +45,7 @@ class User {
     this.ws_server = this.setup_socket(server);
   }
 
-  static email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+  static email_regex = /(?:[a-z0-9!#$%&'*+-/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*-+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
   static port_min = 24101;
   static port_max = 25101;
   static current_port = 24101;
@@ -368,23 +368,15 @@ class User {
         // After accepting an invitation need to setup new game for inviter and invitee
         let invite = null;
         if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
-          let agame;
-          if ((agame = act_game.new_invite_agame(invite, logged_in))) {
-            let inviter = User.current_users.find(u => {
-              return u.id.equals(agame.user2_id);
-            });
-            if (inviter) {
-              inviter.saved_games.push(agame);
-              inviter.send_msg("gamelist_add", agame.name);
-              inviter.send_msg("message", `${inviter.display_name} has accepted your invitation to play!`);
-            }
-          }
+          act_game.new_invite_agame(invite, logged_in);
+          logger.warn("User.login warning - " + name + "has multiple logins");
+          response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
         }
         logger.warn("User.login warning - " + name + "has multiple logins");
         response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&user=${logged_in.id.toHexString()}` });
       }
       else {
-        logger.error("User.login error - " + name + " is already logged in");
+        logger.error("User.login error - " + name + "password not valid for this user");
         response.writeHead(302 , { 'Location' : `/?err=error_login` });
       }
       response.end();

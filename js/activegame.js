@@ -33,7 +33,7 @@ class ActiveGame {
       this.game_id_str = game._id.toHexString();
     }
 
-    this.chat_text = "Salutations Worderists!";
+    this.chat_text = "";
     this.name = this.game.name_time;
 
     this.connects = [];
@@ -57,7 +57,7 @@ class ActiveGame {
 
   static all_active = [];
 
-  save(and_close, player) {
+  save() {
     let agame_result = null;
     let new_agame_res = null;
     let a_game_js = null;
@@ -140,9 +140,9 @@ class ActiveGame {
         // if ag IS a game that user is playing make sure the 'player'
         // property is the other player (that's the logic board.onmessage for type message)
         if (ag.user1)
-          ag.user1.id.equals(user.id) ? player = "/player2" : player = "player1"; 
+          ag.user1.id.equals(user.id) ? player = "/play?d=2" : player = "play?d=1"; 
         else if (ag.user2)
-          ag.user2.id.equals(user.id) ? player = "/player1" : player = "player2"; 
+          ag.user2.id.equals(user.id) ? player = "/play?d=1" : player = "play?d=2"; 
         data.push({"player" : player});
         data.push({"info" : msg});
         ag.ws_server.clients.forEach(s => s.send(JSON.stringify(data)));
@@ -367,7 +367,7 @@ class ActiveGame {
                 player_name = a_game.user1.display_name;
               else if (a_game.user2)
                 player_name = a_game.user2.display_name;
-              play_data[1].player = player_name;
+              play_data[1].player_name = player_name;
             } else {
               player_name = play_data[1].player;
             }
@@ -383,7 +383,7 @@ class ActiveGame {
                 player_name = a_game.user1.display_name;
               else if (a_game.user2)
                 player_name = a_game.user2.display_name;
-              play_data[1].player = player_name;
+              play_data[1].player_name = player_name;
             } else {
               player_name = play_data[1].player;
             }
@@ -458,6 +458,11 @@ class ActiveGame {
               a_game.save(false, null);
             }
           }
+
+          // since games don't know about user ids but we use them at the client reset resp_data.player
+          if (resp_data[1].player == "/player1" || resp_data[1].player == "/player2")
+            resp_data[1].player = resp_data[1].player == "/player1" ? a_game.user1.id.toHexString() :
+              resp_data[1].player = a_game.user2.id.toHexString();
 
           let data = JSON.stringify(resp_data);
           a_game.ws_server.clients.forEach(s => s.send(data));
@@ -560,17 +565,6 @@ class ActiveGame {
   // this differs from newly created active_games that have
   // no _id
   static new_active_game_json(server, ag_json, user, response) {
-
-    // don't allow a reload of an active game
-    // let found = ActiveGame.all_active.find(
-    //   ag => {return ag._id && ag._id.equals(ag_json._id)}
-    // );
-    // if (found) {
-    //   logger.error("activegame.new_active_game_json: Game already loaded: " +
-    //     ag_json._id);
-    //   return;
-    // }
-
     let new_ag = null;
 
     if (!ag_json)
@@ -608,15 +602,14 @@ class ActiveGame {
           let player = null;
           ActiveGame.all_active.push(new_ag);
           if (new_ag.status & ActiveGame.practice) {
-            new_ag.game.current_player == new_ag.game.player_1 ?
-              player = "/player1" : player = "/player2";
+            new_ag.game.current_player == new_ag.game.player_1 ?  player = "/play?d=1" : player = "/play?d=2";
           }
           else {
-            player = (user == u1 ? '/player1' : '/player2');
+            player = (user == u1 ? '/play?d=1' : '/play?d=2');
           }
 
           response.writeHead(302 , {
-             'Location' : player + "?game=" + new_ag.game_id_str +
+             'Location' : "/play?game=" + new_ag.game_id_str +
               "&user=" + user.id.toHexString()
           });
           response.end();

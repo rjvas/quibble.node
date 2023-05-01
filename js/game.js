@@ -100,7 +100,6 @@ class Game {
       this.player_1_play = new Play(0, this.player_1);
       this.player_1.update_hand(this, true, this.player_1_play);
 
-      // this.player_2 = new Player(0, "Player 2", "rgba(121, 99, 255, 0.3)", "rgba(121, 99, 255, 1)", 0);
       this.player_2 = new Player(0, "Player 2", "#44c7f4", "#0072bc", 0);
       this.player_2.name = player2_name;
       this.player_2_play = new Play(0, this.player_2);
