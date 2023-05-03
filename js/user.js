@@ -328,6 +328,17 @@ class User {
       .catch((e) => console.error(e));
   }
 
+  static get_players_list() {
+    User.players = [];
+    var projection = { _id: 0, "display_name": 1, "email": 1 };
+    var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
+    var cursor = db.get_db().collection('users').find();
+    cursor.project(projection).sort(sort_it);
+    cursor.forEach(doc => {
+      User.players.push({"name" : doc.display_name, "email" : doc.email});
+    });
+  }
+
   static load_user(user_id) {
     let dbq = { "_id" : user_id };
     let usr = db.get_db().collection('users').findOne(dbq)
@@ -340,6 +351,33 @@ class User {
     return usr;
   }
 
+  // assumes, if inviter logged in, inviter.save(), invitee.save() happens downstream
+  // otherwise, invitee.save() happens at end of login and inviter.save() happens here
+  static add_friend(invite, invitee) {
+    // add each user to other's user.friends array
+    let inviter = User.current_users.find(u => { return u.id.equals(invite.sender_id) });
+    if (!inviter && invitee) {
+      db.get_db().collection('users').updateOne(
+        {_id : invite.sender_id},
+        { $addToSet: { friends: {"name" : invitee.display_name, "email" : invitee.email}}})
+        .then(() => {
+          var query = {_id : invite.sender_id}; 
+          var projection = { _id: 0, "display_name": 1, "email": 1 };
+          var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
+          var cursor = db.get_db().collection('users').find(query);
+          cursor.project(projection).sort(sort_it);
+          cursor.forEach(doc => {
+            invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
+          })
+        })
+        .catch((e) => console.error(e));
+    }
+    else if (inviter && invitee) {
+      inviter.friends.push({"name" : invitee.display_name, "email" : invitee.email});
+      invitee.friends.push({"name" : inviter.display_name, "email" : inviter.email});
+    }
+  }
+
   static async login (server, query, request_addr, user_agent, response, act_game) {
     if (!Sys) Sys = System.get_system();
     let game_over = act_game.game_over;
@@ -348,6 +386,8 @@ class User {
     let name = params.get("username");
     let passw = params.get("password");
     let invite_id = params.get("invitation_id");
+
+    User.get_players_list();
 
     let logged_in = User.current_users.find(u => {
       return u.user_name == name;
@@ -368,6 +408,7 @@ class User {
         // After accepting an invitation need to setup new game for inviter and invitee
         let invite = null;
         if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
+          User.add_friend(invite, logged_in);
           act_game.new_invite_agame(invite, logged_in);
           logger.warn("User.login warning - " + name + "has multiple logins");
           response.writeHead(302 , { 'Location' : `/home_page?iid=${invite_id}&n=${logged_in.id.toHexString()}` });
@@ -389,7 +430,6 @@ class User {
         if (usr) {
           if (bcrypt.compareSync(passw, usr.password)) {
             new_user = new User(usr, server);
-            new_user.save();
             new_user.last_login_date = Date();
             User.current_users.push(new_user);
             if (new_user.role & User.admin) {
@@ -403,6 +443,7 @@ class User {
             let invite = null;       
             let agame = null;
             if (invite_id && (invite = Sys.get_invitation(parseInt(invite_id)))) { 
+              User.add_friend(invite, new_user);
               // After accepting an invitation need to setup new game for inviter and invitee
               return act_game.new_invite_agame(invite, new_user)
                 .then(() => {
@@ -454,11 +495,13 @@ class User {
               }
             }
           }
-            
+          
+          new_user.save();
           // filter out any 'game_over' games
           new_user.saved_games = result.filter(ag => {
             return !(ag.status & game_over);
           });
+
           if (user_agent == "dbcgAndroid" || user_agent == "dbcgIphone") {
             let jsons = [];
             jsons.push({"user" : new_user.id.toHexString()});

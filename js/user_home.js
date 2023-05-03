@@ -122,6 +122,60 @@ function new_practice_game() {
   }
 }
 
+function clicked_remove_friend_btn(event) {
+
+  var removed = document.getElementById("friends_lst");
+  let option = removed.options [removed.selectedIndex];  
+  var user = document.getElementById("user").value;
+
+  if (removed.selectedIndex > 0) {
+
+    if (!window.confirm("Are you sure you want to remove this friend? It cannot be undone!"))
+      return;
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/remove_friend?friend_name=" + option.text + "&n=" + user, true);
+    xhr.setRequestHeader("Content-Type", "text/html");
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        // delete it from the list
+        removed.remove(removed.selectedIndex);
+        document.location.href = "/home_page?n=" + user;
+      }
+    }
+
+    // console.log("clicked_games_btn port: " + ws_port);
+    xhr.send(null);
+  }
+}
+
+function clicked_friends_btn(event) {
+  var friends = document.getElementById("friends_lst");
+  fill_friend_fields(friends);
+}
+function clicked_players_btn(event) {
+  var players = document.getElementById("players_lst");
+  fill_friend_fields(players);
+}
+
+function fill_friend_fields(list) {
+  let option = list.options [list.selectedIndex];  
+
+  if (option && option.value != -1) {
+    let f_name = document.getElementById("friend_name");
+    f_name.value = option.text;
+    let f_email = document.getElementById("friend_email");
+    f_email.value = option.value;
+  }
+  else {
+    let f_name = document.getElementById("friend_name");
+    f_name.value = "";
+    let f_email = document.getElementById("friend_email");
+    f_email.value = "";
+  }
+}
+
 function clicked_delete_game_btn(event) {
 
   var deleted = document.getElementById("games_lst");
@@ -270,6 +324,21 @@ function init() {
     btn.addEventListener("click", clicked_delete_game_btn);
   }
 
+  btn = document.getElementById('remove_friend_btn');
+  if (btn) {
+    btn.addEventListener("click", clicked_remove_friend_btn);
+  }
+
+  btn = document.getElementById('friends_lst');
+  if (btn) {
+    btn.addEventListener("change", clicked_friends_btn);
+  }
+
+  btn = document.getElementById('players_lst');
+  if (btn) {
+    btn.addEventListener("change", clicked_players_btn);
+  }
+
   btn = document.getElementById('edit_invites_done_btn');
   if (btn) {
     btn.addEventListener("click", clicked_edit_invites_done_btn);
@@ -362,6 +431,23 @@ ws.onmessage = function(msg) {
 
   if (type.type == "message") {
     alert(data.data);
+  }
+  else if (type.type == "friendlist_add") {
+    var fl = document.getElementById("friends_lst");
+    var opt = document.createElement("option");
+    opt.text = data.data; 
+    fl.options.add(opt); 
+  }
+  else if (type.type == "friendlist_remove") {
+    var fl = document.getElementById("friends_lst");
+    let idx = -1;
+    for (i = 0; i < fl.options.length; i++) {
+      if (fl.options[i].label == data.data)
+        idx = i;
+    }
+    if (idx != -1) {
+      fl.remove(idx);
+    }
   }
   else if (type.type == "gamelist_add") {
     var gl = document.getElementById("games_lst");

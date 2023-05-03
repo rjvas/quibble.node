@@ -287,7 +287,7 @@ function startup() {
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites,
         'friends' : user.friends,
-        'players' : [],
+        'players' : User.players,
         'is_local': quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false"
       }));
@@ -307,7 +307,7 @@ function startup() {
         'gamers' : User.get_pickup_gamers(),
         'invites' : invites,
         'friends' : user.friends,
-        'players' : [],
+        'players' : User.players,
         'is_local' : quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false",
       }));
@@ -551,6 +551,8 @@ function startup() {
           'games': glist,
           'gamers' : User.get_pickup_gamers(),
           'invites' : invites,
+          'friends' : ug.user.friends,
+          'players' : User.players,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false"}));
           

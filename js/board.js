@@ -1879,7 +1879,7 @@ ws.onmessage = function(msg) {
     PlayStarts = [];
 
   // in this case a single player is playing both player1 and player2
-  if (is_practice == "true" && !err &&
+  if (is_practice == "true" && !err && type.type != "started_chat" &&
     type.type != "chat" && type.type != "cheat" && type.type != "tail_log" &&
     type.type != "last_played_word" && type.type != "dictionary_lookup") {
     toggle_player();

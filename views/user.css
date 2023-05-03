@@ -54,7 +54,7 @@ body {
 }
 
 p {
-  font-size: medium;
+  font-size: small;
 }
 
 .help_head1 {
@@ -111,6 +111,9 @@ a {
   padding: 5%;
 }
 
+#invite_lists {
+  padding-bottom: 20px;
+}
 #invite_list {
   width: 100%;
 }
@@ -121,6 +124,10 @@ a {
 #players_div {
   float : right;
   width : 50%;
+}
+#invite_section {
+  padding-top: 20px;
+  width: 100%;
 }
 td {
   text-align: center;
