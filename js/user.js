@@ -418,7 +418,7 @@ class User {
       }
       else {
         logger.error("User.login error - " + name + "password not valid for this user");
-        response.writeHead(302 , { 'Location' : `/?err=error_login` });
+        response.writeHead(302 , { 'Location' : `/?err=error_login&iid=${invite_id}` });
       }
       response.end();
       return;
@@ -536,7 +536,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "passwords do NOT match - please try again");
       response.writeHead(302 , {
-          'Location' : '/?err=error_reg_pass'
+          'Location' : `/?err=error_reg_pass&iid=${invite_id}`
       });
       response.end();
     }
@@ -544,7 +544,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter email");
       response.writeHead(302 , {
-          'Location' : '/?err=error_reg_email'
+          'Location' : `/?err=error_reg_email&iid=${invite_id}`
       });
       response.end();
     }
@@ -552,7 +552,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter properly formatted email");
       response.writeHead(302 , {
-          'Location' : '/?err=error_reg_email'
+          'Location' : `/?err=error_reg_email&iid=${invite_id}`
       });
       response.end();
     }
@@ -560,7 +560,7 @@ class User {
       register_err = true;
       logger.error("registration error - " + "please enter display name");
       response.writeHead(302 , {
-          'Location' : '/?err=error_reg_display_name'
+          'Location' : `/?err=error_reg_display_name&iid=${invite_id}`
       });
       response.end();
     }
@@ -574,7 +574,7 @@ class User {
         if (usr) {
           logger.error("registration error - " + user_name + " already registered - either choose a unique user name or login");
           response.writeHead(302 , {
-              'Location' : '/?err=error_reg_prior'
+              'Location' : `/?err=error_reg_prior&iid=${invite_id}`
           });
           response.end();
         }

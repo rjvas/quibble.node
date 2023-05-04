@@ -49,7 +49,8 @@ html(lang="en")
             option(value=-1) Select A Player
             if players && players.length > 0
               each val, idx in players
-                option(value=val.email) #{val.name}
+                if val.name != user.display_name
+                  option(value=val.email) #{val.name}
 
       div#invite_section
         div
@@ -140,5 +141,7 @@ html(lang="en")
               br
               input(id="practice_btn" type="button" class="button" value="PRACTICE")
 
-    //- script(src="/js/user_home.min.js")
-    script(src="/js/user_home.js")
+    if is_local != "true"
+      script(src="/js/user_home.min.js")
+    else
+      script(src="/js/user_home.js")
