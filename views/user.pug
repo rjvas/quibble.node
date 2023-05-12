@@ -73,7 +73,7 @@ html(lang="en")
       table#invite_data_tbl
         th To:
         th Date:
-        th Delete:
+        th Select:
         - var i = 0;
         while i < invites.length
           tr
@@ -85,7 +85,7 @@ html(lang="en")
 
       span
         br
-        input(id="edit_invites_done_btn" type="button" class="button" value="DONE" )
+        input(id="edit_invites_done_btn" type="button" class="button" value="DELETE" )
         input(id="cancel_edit_invites_btn" type="button" class="button" value="CANCEL" )
 
     div(id="pickup_dialog" class="pickup" style="{display : none}")
@@ -130,7 +130,7 @@ html(lang="en")
               span.descrip To invite a friend we just need a name and email address
               br
               input(id="invite_btn" type="button" class="button" value="INVITE FRIEND")
-              input(id="edit_invites_btn" type="button" value="EDIT INVITES" )
+              input(id="edit_invites_btn" type="button" value="DELETE INVITES" )
 
             div.sub_label_small Pickup Game 
               br

@@ -12,39 +12,6 @@ const https = require('https');
 
 const BLANK_TILE = " ";
 
-/*
-var mongoose = require('mongoose');
-
-var Schema = mongoose.Schema;
-
-var GameSchema = new Schema(
-  {
-    name: {type: String, required: true, maxlength: 100},
-    default_name: {type: String, required: true, maxlength: 100},
-    date_create: {type: Date},
-    date_last_played: {type: Date},
-    plays: [type: Schema.Types.ObjectId, ref: 'Play', required: true}]
-  }
-);
-
-// Virtual for game's date name
-GameSchema
-.virtual('name_date')
-.get(function () {
-  return this.name + ' : ' + this.date_last_played;
-});
-
-// Virtual for author's URL
-GameSchema
-.virtual('url')
-.get(function () {
-  return '/game/' + this._id;
-});
-
-//Export model
-module.exports = mongoose.model('Game', GameSchema);
-*/
-
 class Game {
   constructor (id, player1_name, player2_name, clean) {
     // id will be passed in during construction or will be gen'd

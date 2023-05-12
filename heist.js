@@ -38,7 +38,8 @@ var hostname = (quib_cfg.local ? 'localhost' : 'letsquibble.net');
 const db = require('./js/db');
 db.connect()
     .then(() => logger.info('database connected'))
-    .then(() => startup())
+    .then(() => 
+      startup())
     .catch((e) => {
         console.error(e);
         // maybe later
