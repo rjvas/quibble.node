@@ -12,6 +12,7 @@
 //const https = require('https');
 const http = require('http');
 var fs = require('fs');
+// const concat = require('concat-stream');
 
 // debug or release, etc
 const quib_cfg = require('./js/quib_config.json');
@@ -188,6 +189,19 @@ function startup() {
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
     var user_agent = request.headers["user-agent"];
+    // request.on is async resulting in 'undefined' values
+    // for body and json_body. fuck.
+    // var body = "";
+    // var json_body;
+    // if (user_agent == "quibbleReact") {
+    //   request.on('data', function (data) {
+    //     body += data;
+    //   });
+    //   request.on('end', function () {
+    //     if (body)
+    //       json_body = JSON.parse(body);
+    //   });
+    // }
     var filename = null;
 
     if (Admin && ActiveGame && !Admin.active_games)

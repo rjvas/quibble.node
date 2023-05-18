@@ -52,6 +52,7 @@ class User {
 
   static current_users = [];
   static pickup_gamers = [];
+  static players = [];
 
   // roles
   static none = -1;
@@ -329,14 +330,18 @@ class User {
   }
 
   static get_players_list() {
-    User.players = [];
-    var projection = { _id: 0, "display_name": 1, "email": 1 };
-    var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
-    var cursor = db.get_db().collection('users').find();
-    cursor.project(projection).sort(sort_it);
-    cursor.forEach(doc => {
-      User.players.push({"name" : doc.display_name, "email" : doc.email});
-    });
+    if (User.players.length > 0)
+      return User.players;
+    else {
+      User.players = [];
+      var projection = { _id: 0, "display_name": 1, "email": 1 };
+      var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
+      var cursor = db.get_db().collection('users').find();
+      cursor.project(projection).sort(sort_it);
+      cursor.forEach(doc => {
+        User.players.push({"name" : doc.display_name, "email" : doc.email});
+      });
+    }
   }
 
   static load_user(user_id) {
@@ -393,12 +398,16 @@ class User {
       return u.user_name == name;
     });
 
-    if (logged_in && (user_agent == "quibbleReact")) {
-      let jsons = [];
+    if (logged_in && (user_agent == "quibbleReact" || user_agent == "quibbleAndroid")) {
       logged_in.last_login_date = Date();
-      jsons.push({"user" : logged_in.id.toHexString()});
-      jsons.push({"games" : logged_in.saved_games});
+      let jsons = {
+        "user" : logged_in.id.toHexString(),
+        "games" : logged_in.saved_games,
+        "friends" : logged_in.friends,
+        "players" : User.players
+      };
       response.writeHead(201 , { 'Content-Type' : 'text/json' });
+      // response.writeHead(201 , { 'Content-Type' : 'text/plain' });
       response.end(JSON.stringify(jsons));
       return;
     }
@@ -502,11 +511,15 @@ class User {
             return !(ag.status & game_over);
           });
 
-          if (user_agent == "quibbleReact") {
-            let jsons = [];
-            jsons.push({"user" : new_user.id.toHexString()});
-            jsons.push({"games" : new_user.saved_games});
+          if (user_agent == "quibbleReact" || user_agent == "quibbleAndroid") {
+            let jsons = {
+              "user" : new_user.id.toHexString(),
+              "games" : new_user.saved_games,
+              "friends" : new_user.friends,
+              "players" : User.players
+            };
             response.writeHead(201 , { 'Content-Type' : 'text/json' });
+            // response.writeHead(201 , { 'Content-Type' : 'text/plain' });
             response.end(JSON.stringify(jsons));
           } else {
             response.writeHead(302 , {
@@ -593,6 +606,10 @@ class User {
                 let invite = Sys.get_invitation(parseInt(invite_id));
                 if (invite) invite.invitee_id = new_user_id;
               }
+              
+              // this forces User.get_players_list() to gen a new list
+              User.players = [];
+
               response.writeHead(302 , {
                 'Location' : `/?err=error_reg_success&iid=${invite_id}&new_uid=${new_user_id.toHexString()}`
               });
