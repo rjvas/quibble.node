@@ -13,7 +13,7 @@
     },
     {
         "name": "Launch Program",
-        "program": "${workspaceFolder}/heist.js",
+        "program": "${workspaceFolder}/quibble.js",
         "request": "launch",
         "skipFiles": [
             "<node_internals>/**"

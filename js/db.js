@@ -7,14 +7,14 @@ const { MongoClient } = require("mongodb");
 let connection = null;
 let database = null;
 
-const dburl = 'mongodb://127.0.0.1:27017/heist';
+const dburl = 'mongodb://127.0.0.1:27017/quibble';
 
 module.exports.connect = () => new Promise((resolve, reject) => {
     MongoClient.connect(dburl, { useUnifiedTopology: true }, function(err, db) {
         if (err) { reject(err); return; };
         resolve(db);
         connection = db;
-        database = db.db("heist");
+        database = db.db("quibble");
     });
 });
 
