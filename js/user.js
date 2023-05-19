@@ -227,10 +227,10 @@ class User {
   static mail_reset(to, id) {
     let subj = "Reset <game name> password";
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
-    if (!quib_cfg.debug)
-      body += "http://www.letsquibble.net/reset_phase2?hp=" + encodeURIComponent(id);
+    if (!quib_cfg.local)
+      body += quib_cfg.prod_addr + "/reset_phase2?hp=" + encodeURIComponent(id);
     else
-      body += "localhost/reset_phase2?hp=" + encodeURIComponent(id);
+      body += quib_cfg.local_addr + "/reset_phase2?hp=" + encodeURIComponent(id);
 
     let cmd = `mail -s \"${subj}\" \"${to}\" <<< \"${body}\"`; 
 
@@ -500,7 +500,7 @@ class User {
               if (inviter) {
                 inviter.saved_games.push(newest_ag);
                 inviter.send_msg("gamelist_add", newest_ag.name);
-                inviter.send_msg("message", `${inviter.display_name} has accepted your invitation to play!`);
+                inviter.send_msg("message", `${new_user.display_name} has accepted your invitation to play!`);
               }
             }
           }

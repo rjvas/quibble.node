@@ -1,4 +1,6 @@
 {
   "debug" : true,
-  "local" : true
+  "local" : true,
+  "prod_addr" : "http://www.letsquibble.net",
+  "local_addr" : "192.168.0.16"
 }

@@ -8,6 +8,7 @@ const chromeAgent = window.navigator.userAgent.indexOf("Chrome") > -1;
 
 const is_debug = document.getElementById("is_debug").value;
 const is_local = document.getElementById("is_local").value;
+const ws_addr = document.getElementById("ws_addr").value;
 
 const is_practice = document.getElementById("is_practice").value;
 const is_admin = document.getElementById("is_admin").value;
@@ -1775,11 +1776,7 @@ AppOrientation = VERT;
 AppSpace = document.querySelectorAll('#every_damn_thing')[0];
 PlaySpace = document.querySelectorAll('#wt_board')[0];
 
-var ws;
-if (is_local == "true")
-  ws = new WebSocket('ws://192.168.0.16:' + ws_port);
-else
-  ws = new WebSocket('ws://letsquibble.net:' + ws_port);
+var ws = new WebSocket(`ws://${ws_addr}:${ws_port}`);
 
 function update_current_player(player) {
   // this makes sure 'current_player' is set correctly - needed for

@@ -19,7 +19,6 @@ const quib_cfg = require('./js/quib_config.json');
 
 const main_port = 80;
 // const main_port = 443;
-var hostname = (quib_cfg.local ? 'localhost' : 'letsquibble.net');
 
 //const certdir = (fs.readdir("/etc/letsencrypt/live"))[0];
 // const options = {
@@ -304,7 +303,8 @@ function startup() {
         'friends' : user.friends,
         'players' : User.players,
         'is_local': quib_cfg.local ? "true" : "false",
-        'is_debug' : quib_cfg.debug ? "true" : "false"
+        'is_debug' : quib_cfg.debug ? "true" : "false",
+        'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
       }));
     }
 
@@ -325,6 +325,7 @@ function startup() {
         'players' : User.players,
         'is_local' : quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false",
+        'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
       }));
     }
 
@@ -390,7 +391,8 @@ function startup() {
           'gamers' : User.get_pickup_gamers(),
           'invites' : invites,
           'is_local' : quib_cfg.local ? "true" : "false",
-          'is_debug' : quib_cfg.debug ? "true" : "false" }));
+          'is_debug' : quib_cfg.debug ? "true" : "false", 
+          'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
 
         if (quib_cfg.debug) 
           logger.debug(`quibble.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
@@ -569,7 +571,8 @@ function startup() {
           'friends' : ug.user.friends,
           'players' : User.players,
           'is_local' : quib_cfg.local ? "true" : "false",
-          'is_debug' : quib_cfg.debug ? "true" : "false"}));
+          'is_debug' : quib_cfg.debug ? "true" : "false",
+          "ws_addr" : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
           
         if (quib_cfg.debug)
           logger.debug(`quibble.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
@@ -597,7 +600,8 @@ function startup() {
           'user_a_games' : ug.user.get_a_game_list(),
           'all_active_games' : ActiveGame.all_active,
           'is_local' : quib_cfg.local ? "true" : "false",
-          'is_debug' : quib_cfg.debug ? "true" : "false"
+          'is_debug' : quib_cfg.debug ? "true" : "false",
+          'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
         }));
 
         if (quib_cfg.debug)
@@ -634,7 +638,8 @@ function startup() {
           'Game' : Game,
           'Word' : Word,
           'is_local' : quib_cfg.local ? "true" : "false",
-          'is_debug' : quib_cfg.debug ? "true" : "false" }));
+          'is_debug' : quib_cfg.debug ? "true" : "false", 
+          'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
 
         if (quib_cfg.debug)
           logger.debug(`quibble.regular_play user=${user.display_name}/${user.id.toHexString()} 

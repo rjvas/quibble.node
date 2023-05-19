@@ -5,7 +5,7 @@
 
 const is_debug = document.getElementById("is_debug").value;
 const is_local = document.getElementById("is_local").value;
-
+const ws_addr = document.getElementById("ws_addr").value;
 const ws_port = document.getElementById("ws_port").value;
 // include '-' ok
 const email_regex = /(?:[a-z0-9!#$%&'*+-/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*-+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
@@ -414,11 +414,7 @@ function init() {
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
 
-var ws;
-if (is_local == "true")
-  ws = new WebSocket('ws://192.168.0.16:' + ws_port);
-else
-  ws = new WebSocket('ws://letsquibble.net:' + ws_port);
+var ws = new WebSocket(`ws://${ws_addr}:${ws_port}`);
 
 ws.onmessage = function(msg) {
   let resp = JSON.parse(msg.data);
