@@ -168,9 +168,9 @@ class User {
     else {
       let subj = `${u_name} has invited you to play Let's Quibble!`;
       let body = `Hello ${f_name}, Let\'s Quibble is a free-to-play word game like Scr*bble except you get to capture your opponent\'s tiles and points. If you want to accept ${u_name}\'s invitation click the link or copy/paste it into your browser address bar.\n\nIf you are new to the game please register for an account (no personal information is required except a valid email address) and when you login a new game will have been started between you and ${u_name}.\n\nIf you already have an account just login. If you are already logged in please logout before clicking the link.\n\nHave fun Quibbling!\n\n`;
-      body += `http://www.letsquibble.net/invitation_accept?iid=${iid}`;
+      body += `${quib_cfg.prod_addr}/invitation_accept?iid=${iid}`;
 
-      let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"letsquibble878\@gmail.com\" <<< \"${body}\"`; 
+      let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"${quib_cfg.sys_email_addr}\" <<< \"${body}\"`; 
 
       let ret_val = false;
       try {

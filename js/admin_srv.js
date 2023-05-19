@@ -3,6 +3,7 @@
 const db = require('./db');
 // const { User } = require('./user');
 var logger = require('./log').logger;
+const quib_cfg = require('./quib_config.json');
 const {exec} = require('child_process');
 
 class Admin {
@@ -105,7 +106,7 @@ class Admin {
             
             Admin.current_users.forEach(u => { to.push(u.email); });
 
-            let cmd = `mail -s "${subj}" ${to.join(",")} -b letsquibble878@gmail.com <<< '${body}'`; 
+            let cmd = `mail -s "${subj}" ${to.join(",")} -b ${quib_cfg.sys_email_addr} <<< '${body}'`; 
 
             try {
               exec(cmd, (err, stdout, stderr) => {

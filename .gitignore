@@ -5,11 +5,11 @@ notes
 *.zip
 *.swp
 *.gz
+package-lock.json
 js/plain-draggable.js
 settings.json - Shortcut.lnk
 keybindings.json - Shortcut.lnk
 intoDNS dbc-games.com.png
 tmp
 Ticket - A2 Hosting.png
-package-lock.json
 package-lock.json
