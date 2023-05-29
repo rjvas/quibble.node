@@ -16,7 +16,7 @@ module.exports.connect = () => new Promise((resolve, reject) => {
         if (err) { reject(err); return; };
         resolve(db);
         connection = db;
-        database = db.db("quibble");
+        database = !quib_cfg.staging? db.db("quibble") : db.db("staging");
     });
 });
 
