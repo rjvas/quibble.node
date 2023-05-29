@@ -4,7 +4,7 @@
 
 const { MongoClient } = require("mongodb");
 // debug or release, etc
-const quib_cfg = require('./js/quib_config.json');
+const quib_cfg = require('./quib_config.json');
 
 let connection = null;
 let database = null;

@@ -4,7 +4,7 @@ var System  = require('./system').System;
 var Game = require('./game').Game;
 var User = require('./user').User;
 // debug or release, etc
-const quib_cfg = require('./js/quib_config.json');
+const quib_cfg = require('./quib_config.json');
 const db = require('./db');
 var logger = require('./log').logger;
 const {exec} = require('child_process');
