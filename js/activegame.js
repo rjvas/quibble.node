@@ -3,6 +3,8 @@
 var System  = require('./system').System;
 var Game = require('./game').Game;
 var User = require('./user').User;
+// debug or release, etc
+const quib_cfg = require('./js/quib_config.json');
 const db = require('./db');
 var logger = require('./log').logger;
 const {exec} = require('child_process');
@@ -40,9 +42,9 @@ class ActiveGame {
     this.ws_server = this.setup_socket(server);
   }
 
-  static port_min = 26101;
-  static port_max = 27100;
-  static current_port = 26101;
+  static port_min = !quib_cfg.staging ? 26101 : 36101;
+  static port_max = !quib_cfg.staging ? 27100 : 36201;
+  static current_port = !quib_cfg.staging ? 26101 : 36101;
 
   static none = -1;
   static in_play = 1;

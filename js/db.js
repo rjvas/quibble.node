@@ -3,11 +3,13 @@
 */
 
 const { MongoClient } = require("mongodb");
+// debug or release, etc
+const quib_cfg = require('./js/quib_config.json');
 
 let connection = null;
 let database = null;
 
-const dburl = 'mongodb://127.0.0.1:27017/quibble';
+const dburl = !quib_cfg.staging ? 'mongodb://127.0.0.1:27017/quibble' : 'mongodb://127.0.0.1:27017/quibble.staging';
 
 module.exports.connect = () => new Promise((resolve, reject) => {
     MongoClient.connect(dburl, { useUnifiedTopology: true }, function(err, db) {

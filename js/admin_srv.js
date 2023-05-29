@@ -15,9 +15,9 @@ class Admin {
     Admin.current_users = current_users;
   }
 
-  static port_min = 25900;
-  static port_max = 26000;
-  static current_port = 26000;
+  static port_min = !quib_cfg.staging ? 25900 : 35900;
+  static port_max = !quib_cfg.staging ? 26000 : 35950;
+  static current_port = !quib_cfg.staging ? 26000 : 35950;
   static active_admins = [];
   static current_users = null;
   static db_users = [];

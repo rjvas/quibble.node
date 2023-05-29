@@ -1,7 +1,8 @@
 {
   "debug" : true,
   "local" : true,
+  "staging" : false,
   "sys_email_addr" : "letsquibble878@gmail.com",
-  "prod_addr" : "http://www.letsquibble.net",
+  "prod_addr" : "letsquibble.net",
   "local_addr" : "192.168.0.16"
 }
