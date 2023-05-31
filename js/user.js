@@ -363,26 +363,28 @@ class User {
     // add each user to other's user.friends array
     let inviter = User.current_users.find(u => { return u.id.equals(invite.sender_id) });
     if (!inviter && invitee) {
-      db.get_db().collection('users').updateOne(
-        // add invitee to inviter friends
-        {_id : invite.sender_id},
-        { $addToSet: { friends: {"name" : invitee.display_name, "email" : invitee.email}}})
-        .then(() => {
-          // now, since inviter (sender) is not logged in get display_name and email
-          // and add to invitee friends
-          var query = {_id : invite.sender_id}; 
-          var projection = { _id: 0, "display_name": 1, "email": 1 };
-          var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
-          var cursor = db.get_db().collection('users').find(query);
-          cursor.project(projection).sort(sort_it);
-          cursor.forEach(doc => {
-            // don't duplicate friends
-            let in_invitee = false;
-            invitee.friends.forEach(f => { if (f.name == doc.display_name) in_invitee = true;});
-            if (!in_invitee) invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
-          })
+      // since inviter (sender) is not logged in get display_name and email and friend list
+      var inviter_in_list = false;
+      var query = {_id : invite.sender_id}; 
+      var projection = { _id: 0, "display_name": 1, "email": 1, "friends": 1};
+      var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
+      var cursor = db.get_db().collection('users').find(query);
+      cursor.project(projection).sort(sort_it);
+      cursor.forEach(doc => {
+        // don't duplicate friends
+        doc.friends.forEach(f => { if (f.name == invitee.display_name) inviter_in_list = true;});
+        let in_invitee = false;
+        invitee.friends.forEach(f => { if (f.name == doc.display_name) in_invitee = true;});
+        if (!in_invitee) invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
+      })
+      .then(() => {
+        if (!inviter_in_list) 
+          db.get_db().collection('users').updateOne(
+            // add invitee to inviter friends
+            {_id : invite.sender_id},
+            { $addToSet: { friends: {"name" : invitee.display_name, "email" : invitee.email}}})
         })
-        .catch((e) => console.error(e));
+      .catch((e) => console.error(e));
     }
     else if (inviter && invitee) {
       let in_inviter = false;
