@@ -389,7 +389,7 @@ var peek_game;
 
 var data_port = document.getElementById("data_port").value;
 
-var data_ws = new WebSocket(`ws://${ws_addr}:data_port`);
+var data_ws = new WebSocket(`ws://${ws_addr}:${data_port}`);
 
 var editor = null;
 data_ws.onmessage = function(msg) {

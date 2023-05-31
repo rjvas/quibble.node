@@ -63,6 +63,7 @@ class User {
   static none = -1;
   static pickup_game = 1;
   static in_play = 2;
+  static players_opt_in = 4;
 
   get_JSON() {
     return {
@@ -78,7 +79,7 @@ class User {
       "email" : this.email,
       "password" : this.password,
       "role" : this.role,
-      "state" : this.status,
+      "status" : this.status,
       "friends" : this.friends
     }
   }
@@ -330,16 +331,16 @@ class User {
   }
 
   static get_players_list() {
-    if (User.players.length > 0)
-      return User.players;
+    if (User.players.length > 0) 
+      return;
     else {
       User.players = [];
-      var projection = { _id: 0, "display_name": 1, "email": 1 };
+      var projection = { _id: 1, "display_name": 1, "email": 1, "status": 1 };
       var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
       var cursor = db.get_db().collection('users').find();
       cursor.project(projection).sort(sort_it);
       cursor.forEach(doc => {
-        User.players.push({"name" : doc.display_name, "email" : doc.email});
+        User.players.push({"id" : doc._id.toHexString(), "name" : doc.display_name, "email" : doc.email, "status" : doc.status});
       });
     }
   }
@@ -363,24 +364,41 @@ class User {
     let inviter = User.current_users.find(u => { return u.id.equals(invite.sender_id) });
     if (!inviter && invitee) {
       db.get_db().collection('users').updateOne(
+        // add invitee to inviter friends
         {_id : invite.sender_id},
         { $addToSet: { friends: {"name" : invitee.display_name, "email" : invitee.email}}})
         .then(() => {
+          // now, since inviter (sender) is not logged in get display_name and email
+          // and add to invitee friends
           var query = {_id : invite.sender_id}; 
           var projection = { _id: 0, "display_name": 1, "email": 1 };
           var sort_it = {"display_name":1} ; //-1 descending or 1 ascending
           var cursor = db.get_db().collection('users').find(query);
           cursor.project(projection).sort(sort_it);
           cursor.forEach(doc => {
-            invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
+            // don't duplicate friends
+            let in_invitee = false;
+            invitee.friends.forEach(f => { if (f.name == doc.display_name) in_invitee = true;});
+            if (!in_invitee) invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
           })
         })
         .catch((e) => console.error(e));
     }
     else if (inviter && invitee) {
-      inviter.friends.push({"name" : invitee.display_name, "email" : invitee.email});
-      invitee.friends.push({"name" : inviter.display_name, "email" : inviter.email});
+      let in_inviter = false;
+      inviter.friends.forEach(f => { if (f.name == invitee.display_name) in_inviter = true;});
+      let in_invitee = false;
+      invitee.friends.forEach(f => { if (f.name == inviter.display_name) in_invitee = true;});
+      // don't duplicate friends
+      if (!in_inviter) inviter.friends.push({"name" : invitee.display_name, "email" : invitee.email});
+      if (!in_invitee) invitee.friends.push({"name" : inviter.display_name, "email" : inviter.email});
     }
+  }
+
+  static broadcast_msg(data) {
+    User.current_users.forEach(cu => {
+      cu.send_msg("data_msg", data);
+    });
   }
 
   static async login (server, query, request_addr, user_agent, response, act_game) {
@@ -634,6 +652,67 @@ class User {
     logger.debug("user.send_msg: type: message data: " + JSON.stringify(data));
   }
 
+  remove_friend(play_data) {
+    let id = this.id.toHexString();
+
+    // update user in db 
+    db.get_db().collection("users").updateOne(
+      { _id: this.id },
+      { $pull: { "friends": { "name": play_data[1].info }}}
+    ) .then((result) => {
+      if (result.modifiedCount == 1) {
+        // remove from local obj
+        // TODO what about the friend? clean thier list also? Hmmm...
+        this.friends = this.friends.filter(f => f.name != play_data[1].info);
+
+        // msg the user_home page
+        let data_msg = [];
+        data_msg.push({"type" : "remove_friend"});
+        data_msg.push({
+          "friend_name" : play_data[1].info
+        });
+        this.send_msg("data_msg", data_msg);
+      }
+    }) .catch((e) => {
+        console.error(e);
+    });
+  }
+
+  update_opt_in_players(play_data) {
+    let id = this.id.toHexString();
+
+    let status = play_data[1].info ? this.status | User.players_opt_in : this.status ^ User.players_opt_in;
+    // update user in db 
+    db.get_db().collection("users").updateOne(
+      { _id: this.id },
+      { $set: { status : status } }
+    ) .then((result) => {
+      if (result.modifiedCount == 1) {
+        // update in-memory user status field
+        this.status = status;
+        // update User.players for this user
+        User.players.forEach(p => {
+          if (p.id == id) p.status = this.status;
+        });
+        // notify all current users of change
+        let data_msg = [];
+        data_msg.push({"type" : "opt_in_players_change"});
+        data_msg.push({
+          "player_name" : this.display_name, 
+          "player_email" : this.email, 
+          "opt_in" : this.status & User.players_opt_in
+        });
+        
+        User.broadcast_msg(data_msg);
+      }
+      console.log(result);
+    }) .catch((e) => {
+        console.error(e);
+    });
+
+    console.log(`user.update_opt_in: user name=${this.user_name} opt_in=${play_data[1].info}`)
+  }
+
   setup_socket(server) {
     // Now set up the WebSocket seerver
     const WebSocket = require('ws');
@@ -653,13 +732,13 @@ class User {
             u.ws_server.clients.has(socket);
         });
         if (user) {
-          let resp_data = null;
-          let player = a_game.game.current_player;
           var play_data = JSON.parse(msg);
-          let player_name = "";
-
           let type = play_data[0] && play_data[0].type ? play_data[0].type :
             "unknown"; 
+          if (type == "opt_in_players_change")
+            user.update_opt_in_players(play_data);
+          else if (type == "remove_friend")
+            user.remove_friend(play_data);
         }
 
       });

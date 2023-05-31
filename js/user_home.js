@@ -126,27 +126,17 @@ function clicked_remove_friend_btn(event) {
 
   var removed = document.getElementById("friends_lst");
   let option = removed.options [removed.selectedIndex];  
-  var user = document.getElementById("user").value;
+  let jsons = [];
 
   if (removed.selectedIndex > 0) {
 
     if (!window.confirm("Are you sure you want to remove this friend? It cannot be undone!"))
       return;
 
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/remove_friend?friend_name=" + option.text + "&n=" + user, true);
-    xhr.setRequestHeader("Content-Type", "text/html");
+    jsons.push({ "type": "remove_friend"});
+    jsons.push({"info": option.label});
 
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        // delete it from the list
-        removed.remove(removed.selectedIndex);
-        document.location.href = "/home_page?n=" + user;
-      }
-    }
-
-    // console.log("clicked_games_btn port: " + ws_port);
-    xhr.send(null);
+    ws.send(JSON.stringify(jsons));
   }
 }
 
@@ -157,6 +147,15 @@ function clicked_friends_btn(event) {
 function clicked_players_btn(event) {
   var players = document.getElementById("players_lst");
   fill_friend_fields(players);
+}
+function changed_players_opt_in(event) {
+  var opt_in = event.currentTarget;
+
+  let jsons = [];
+  jsons.push({ "type": "opt_in_players_change"});
+  opt_in.checked ? jsons.push({"info": true}) : jsons.push({"info": false});
+
+  ws.send(JSON.stringify(jsons));
 }
 
 function fill_friend_fields(list) {
@@ -339,6 +338,11 @@ function init() {
     btn.addEventListener("change", clicked_players_btn);
   }
 
+  btn = document.getElementById('opt_in_players');
+  if (btn) {
+    btn.addEventListener("change", changed_players_opt_in);
+  }
+
   btn = document.getElementById('edit_invites_done_btn');
   if (btn) {
     btn.addEventListener("click", clicked_edit_invites_done_btn);
@@ -411,6 +415,38 @@ function init() {
 
 }
 
+function handle_remove_friend(friend) {
+  var friends = document.getElementById("friends_lst");
+  let idx = -1;
+  for (i = 0; i < friends.options.length; i++) {
+    if (friends.options[i].label == friend.friend_name)
+      idx = i;
+  }
+  if (idx != -1)
+    friends.remove(idx);
+}
+
+function handle_opt_in_player_change(player) {
+  var players = document.getElementById("players_lst");
+  let idx = -1;
+  for (i = 0; i < players.options.length; i++) {
+    if (players.options[i].label == player.player_name)
+      idx = i;
+  }
+  // in this case the player is in the list - if player.opt_in
+  // is false, remove
+  if (idx != -1 && !player.opt_in) {
+    players.remove(idx);
+  }
+  else if (player.opt_in) {
+    // add to the list
+    var opt = document.createElement('option');
+    opt.value = player.player_email;
+    opt.innerHTML = player.player_name;
+    players.appendChild(opt);
+  }
+}
+
 let un = document.getElementById("user_display_name");
 let user_name = un.value;
 
@@ -427,6 +463,18 @@ ws.onmessage = function(msg) {
 
   if (type.type == "message") {
     alert(data.data);
+  }
+  else if (type.type == "data_msg") {
+    let action = data.data.shift();
+    if (action.type == "opt_in_players_change") {
+      let player = data.data[0];
+      handle_opt_in_player_change(player);
+      console.log(`user_home.onmessage: opt_in_players_change data=${data}`);
+    }
+    else if (action.type == "remove_friend") {
+      let friend = data.data[0];
+      handle_remove_friend(friend);
+    }
   }
   else if (type.type == "friendlist_add") {
     var fl = document.getElementById("friends_lst");

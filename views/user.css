@@ -279,7 +279,7 @@ td {
   background-color:  #0072bc;
 }
 
-#remove_friend_btn, #cancel_edit_invites_btn, #cancel_invite_btn, #cancel_pickup_btn  {
+.opt_in_players, #remove_friend_btn, #cancel_edit_invites_btn, #cancel_invite_btn, #cancel_pickup_btn  {
   float: right;
   font-size: 8pt;
   margin-top: 5px;
