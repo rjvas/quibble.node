@@ -151,7 +151,7 @@ html(lang="en")
               br
               input(id="practice_btn" type="button" class="button" value="PRACTICE")
 
-    if is_local != "true"
+    if is_local != "true" && is_staging != "true"
       script(src="/js/user_home.min.js")
     else
       script(src="/js/user_home.js")

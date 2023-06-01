@@ -304,6 +304,7 @@ function startup() {
         'players' : User.players,
         'is_local': quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false",
+        'is_staging' : quib_cfg.staging ? "true" : "false",
         'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
       }));
     }
@@ -325,6 +326,7 @@ function startup() {
         'players' : User.players,
         'is_local' : quib_cfg.local ? "true" : "false",
         'is_debug' : quib_cfg.debug ? "true" : "false",
+        'is_staging' : quib_cfg.staging ? "true" : "false",
         'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
       }));
     }
@@ -392,6 +394,7 @@ function startup() {
           'invites' : invites,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false", 
+          'is_staging' : quib_cfg.staging ? "true" : "false",
           'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
 
         if (quib_cfg.debug) 
@@ -572,6 +575,7 @@ function startup() {
           'players' : User.players,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false",
+          'is_staging' : quib_cfg.staging ? "true" : "false",
           "ws_addr" : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
           
         if (quib_cfg.debug)
@@ -601,6 +605,7 @@ function startup() {
           'all_active_games' : ActiveGame.all_active,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false",
+          'is_staging' : quib_cfg.staging ? "true" : "false",
           'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
         }));
 
@@ -639,6 +644,7 @@ function startup() {
           'Word' : Word,
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false", 
+          'is_staging' : quib_cfg.staging ? "true" : "false",
           'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
 
         if (quib_cfg.debug)

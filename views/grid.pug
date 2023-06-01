@@ -407,7 +407,7 @@ html
         
   script(src="./js/plain-draggable.min.js")
   script(src="./js/jsonTree.js")
-  if is_local != "true"
+  if is_local != "true" && is_staging != "true"
     script(src="./js/board.min.js")
   else
     script(src="./js/board.js")
