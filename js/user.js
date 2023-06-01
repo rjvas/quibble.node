@@ -228,7 +228,9 @@ class User {
   static mail_reset(to, id) {
     let subj = "Reset <game name> password";
     let body = "Click the link or copy/paste it into your browser address bar\n\n";
-    if (!quib_cfg.local)
+    if (!quib_cfg.local && quib_cfg.staging)
+      body += quib_cfg.prod_addr + ":" + quib_cfg.staging_port + "/reset_phase2?hp=" + encodeURIComponent(id);
+    else if (!quib_cfg.local)
       body += quib_cfg.prod_addr + "/reset_phase2?hp=" + encodeURIComponent(id);
     else
       body += quib_cfg.local_addr + "/reset_phase2?hp=" + encodeURIComponent(id);
