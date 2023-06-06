@@ -172,7 +172,7 @@ class User {
       if (!quib_cfg.local && quib_cfg.staging)
         body += `${quib_cfg.prod_addr}:${quib_cfg.staging_port}/invitation_accept?iid=${iid}`;
       else if (!quib_cfg.local)
-        body += `${quib_cfg.prod_addr}/invitation_accept?iid=${iid}`;
+        body += `http://${quib_cfg.prod_addr}/invitation_accept?iid=${iid}`;
 
       let cmd = `mail -s \"${subj}\" \"${f_email}\" -b \"${quib_cfg.sys_email_addr}\" <<< \"${body}\"`; 
 
