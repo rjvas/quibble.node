@@ -142,10 +142,14 @@ function clicked_remove_friend_btn(event) {
 
 function clicked_friends_btn(event) {
   var friends = document.getElementById("friends_lst");
+  var email_in = document.getElementById("friend_email");
+  email_in.type = "text";
   fill_friend_fields(friends);
 }
 function clicked_players_btn(event) {
   var players = document.getElementById("players_lst");
+  var email_in = document.getElementById("friend_email");
+  email_in.type = "password";
   fill_friend_fields(players);
 }
 function changed_players_opt_in(event) {
@@ -173,6 +177,7 @@ function fill_friend_fields(list) {
     let f_email = document.getElementById("friend_email");
     f_email.value = "";
   }
+  list.selectedIndex = 0;
 }
 
 function clicked_delete_game_btn(event) {
