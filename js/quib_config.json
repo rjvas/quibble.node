@@ -4,6 +4,6 @@
   "staging" : false,
   "staging_port" : 8042,
   "sys_email_addr" : "letsquibble878@gmail.com",
-  "prod_addr" : "letsquibble.net",
+  "prod_addr" : "quibbler.net",
   "local_addr" : "192.168.0.16"
 }
