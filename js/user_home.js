@@ -12,11 +12,18 @@ const email_regex = /(?:[a-z0-9!#$%&'*+-/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*-+/=?^_`
 
 function clicked_cancel_invite_btn() {
   let dia = document.getElementById("invite_dialog");
+  var f = document.getElementById("friend_email");
+  f.type = "text";
+  f.value = "";
+  f = document.getElementById("friend_name");
+  f.value = "";
   dia.style.display = "none";
 }
 
 function clicked_invite_btn() {
   let dia = document.getElementById("invite_dialog");
+  var email_in = document.getElementById("friend_email");
+  email_in.type = "text";
   dia.style.display = "block";
 }
 
@@ -30,6 +37,9 @@ function clicked_edit_invites_done_btn() {
     if (item.checked) chk_ids += ":" + item.id;
   if (chk_ids) chk_ids = chk_ids.slice(1);
   dia.style.display = "none";
+
+  var email_in = document.getElementById("friend_email");
+  email_in.type = "text";
 
   let xhr = new XMLHttpRequest();
   xhr.open("GET", `/edit_invitations?n=${user}&iids=${chk_ids}` , true);
