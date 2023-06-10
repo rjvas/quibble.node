@@ -110,6 +110,11 @@ const SAFE_INDEXES = [{
   }
 ];
 
+// if the user_agent is Firefox adjust tile text
+const ua_txt_off = firefoxAgent ? CELL_SIZE/6 : 0;
+const ua_pts_off = firefoxAgent ? (CELL_SIZE/6)-2 : 0;
+const ua_wild_off = firefoxAgent ? (CELL_SIZE/6)-3 : 0;
+
 const NUM_PLAYER_TILES = 7;
 const RECT_POSITION = 0;
 const TEXT_POSITION = 6;
@@ -541,7 +546,6 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
 
     let t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttributeNS(null, 'x', CELL_SIZE / 2);
-    t.setAttributeNS(null, 'y', CELL_SIZE / 2);
     t.setAttributeNS(null, 'width', CELL_SIZE-2);
     t.setAttributeNS(null, 'height', CELL_SIZE-2);
     t.setAttributeNS(null, 'stroke_width', 2);
@@ -550,15 +554,19 @@ function build_sub_struct(tile, idx, svg, id_prefix) {
     t.setAttributeNS(null, 'text-anchor', "middle");
     t.setAttributeNS(null, 'alignment-baseline', "central");
     t.setAttributeNS(null, 'class', 'tile_text');
-    if (tile.char == BLANK_TILE)
+    if (tile.char == BLANK_TILE) {
       t.classList.add('wild_tile');
+      t.setAttributeNS(null, 'y', (CELL_SIZE / 2) + ua_wild_off);
+    }
+    else
+      t.setAttributeNS(null, 'y', (CELL_SIZE / 2) + ua_txt_off);
     // t.addEventListener("click", tile_clicked);
     t.textContent = tile.char;
     svg.append(t);
 
     let p = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     p.setAttributeNS(null, 'x', CELL_SIZE - tile_points_offX);
-    p.setAttributeNS(null, 'y', CELL_SIZE - tile_points_offY);
+    p.setAttributeNS(null, 'y', CELL_SIZE - tile_points_offY + ua_pts_off);
     // p.setAttributeNS(null, 'style', { font: "italic 8px sans-serif" });
     p.setAttributeNS(null, 'width', CELL_SIZE*.2);
     p.setAttributeNS(null, 'height', CELL_SIZE*.2);
@@ -843,6 +851,7 @@ function clicked_recall() {
       if (item.status & Tile.is_blank) {
         item.svg.childNodes[TEXT_POSITION].textContent = "WILD";
         item.svg.childNodes[TEXT_POSITION].setAttributeNS(null, "font-size", "100%");
+        item.svg.childNodes[TEXT_POSITION].setAttributeNS(null, 'y', (CELL_SIZE / 2) + ua_wild_off);
         item.char = "WILD"
         item.svg.childNodes[TEXT_POSITION].classList.add('wild_tile');
         item.svg.childNodes[TEXT_POSITION].classList.remove('tile_text');
@@ -1390,16 +1399,18 @@ function tile_moving(new_position) {
 
   let svg = this.element;
 
-  let playXY = screenToSVG(PlaySpace, new_position.left, new_position.top);
-  // console.log(`tile_moving 2screen: ${playXY.x},${playXY.y}`);
+  let playXY = firefoxAgent ? screenToSVG(PlaySpace, Math.floor(new_position.left + CELL_SIZE/2), Math.floor(new_position.top - CELL_SIZE)) : screenToSVG(PlaySpace, Math.round(new_position.left + CELL_SIZE/2), Math.round(new_position.top + CELL_SIZE/2));
+    // { x: Math.floor(new_position.left - 3*CELL_SIZE/2), y: Math.floor(new_position.top - 3*CELL_SIZE/2) };
+  // console.log(`tile_moving drag: ${Math.round(new_position.left)},${Math.round(new_position.top)} screen: ${playXY.x},${playXY.y}`);
 
   // odd - during the move these coords are reversed
   let y = playXY.x;
   let x = playXY.y;
 
-  row = Math.round(x/ CELL_SIZE + 1);
-  col = Math.round(y/ CELL_SIZE + 1);
-  // console.log(`r/c from drag: ${row},${col}`);
+  row = Math.round((x/CELL_SIZE) + 1);
+  col = Math.min(Math.round((y/CELL_SIZE) + 1), 15);
+  col = Math.max(1, col);
+  console.log(`r/c from drag: ${row},${col}`);
 
   let tile = PlayerHand.tiles.find(t => {
     return t && t.svg == svg
@@ -1537,6 +1548,7 @@ function tile_moved(new_position) {
           svg.childNodes[TEXT_POSITION].setAttributeNS(null, "font-size", "100%");
           svg.childNodes[TEXT_POSITION].classList.remove('wild_tile');
           svg.childNodes[TEXT_POSITION].classList.add('tile_text');
+          svg.childNodes[TEXT_POSITION].setAttributeNS(null, 'y', (CELL_SIZE / 2) + ua_txt_off);
         }
         // console.log("blank tile moved: " + letter);
       }
@@ -1828,6 +1840,7 @@ ws.onmessage = function(msg) {
         let item;
         if (update_scoreboard(item, new_data[i])) { ; }
       }
+      update_current_player(player.player);
       alert(info.info);
     }
   } else if (type.type == "regular_play") {

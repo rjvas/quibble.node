@@ -509,7 +509,7 @@ class User {
         }
 
       }).then(result => {
-        return result.toArray();
+        if (result) return result.toArray();
 
       }).then(result => {
         if (new_user) {

@@ -187,7 +187,7 @@ function startup() {
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
-    var user_agent = request.headers["user-agent"];
+    var user_agent = request.headers["user-agent"].indexOf("Firefox") > -1 ? "Firefox" : request.headers["user-agent"];
     // request.on is async resulting in 'undefined' values
     // for body and json_body. fuck.
     // var body = "";
@@ -645,6 +645,7 @@ function startup() {
           'is_local' : quib_cfg.local ? "true" : "false",
           'is_debug' : quib_cfg.debug ? "true" : "false", 
           'is_staging' : quib_cfg.staging ? "true" : "false",
+          'user_agent' : user_agent,
           'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr}));
 
         if (quib_cfg.debug)

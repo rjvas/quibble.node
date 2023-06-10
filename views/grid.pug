@@ -9,6 +9,7 @@
 //-  t.setAttributeNS(null, 'class', 'scoreboard_title');
 //-  t.textContent = CurrentGame.name;
 
+//- doctype html
 html
   head
     title Let's Quibble!
@@ -16,6 +17,7 @@ html
     //- link(rel="stylesheet" href="https://use.typekit.net/cdx8egk.css")
     link(rel="stylesheet" type="text/css" href="quibble.css")
   body(bgcolor='#2a2a2e')
+    input(id="user_agent" type="hidden" value=user_agent)
     input(id="ws_port" type="hidden" value=CurrentAGame.port)
     input(id="is_practice" type="hidden" value=is_practice)
     input(id="current_game_id" type="hidden" value=CurrentAGame.game_id_str)
@@ -64,6 +66,10 @@ html
     - var tile_points_offY = 9;
     input(id="tile_points_offY" type="hidden" value=tile_points_offY)
 
+    - var ua_wild_txt_off = user_agent == "Firefox" ? (cell_size/6)-3 : 0;
+    - var ua_txt_off = user_agent == "Firefox" ? cell_size/6 : 0;
+    - var ua_pts_off = user_agent == "Firefox" ? (cell_size/6)-2 : 0;
+
     - var player1_safe = "#eb008b";
     - var player1_risky = "#f179af";
     - var player2_safe = "#0072bc";
@@ -91,7 +97,7 @@ html
             circle(id="player1_photo" cx=cell_size cy=cell_size r=2*cell_size/3 fill=player1_risky)
 
           svg(id="player1_stats" x=2*cell_size y=0 width=cell_size*4 height=scorebd_xy_offset viewBox=`0 0 ${cell_size*4} ${scorebd_xy_offset}`)
-            text(id="player1_score" class="player_stats_cls" x=0 y=cell_size/2 width=cell_size height=cell_size/2 stroke_width=2 stroke="white" 
+            text(id="player1_score" class="player_stats_cls" x=0 y=(cell_size/2)+ua_txt_off width=cell_size height=cell_size/2 stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central" font-size="18")
               |#{game.player_1.total_points}
 
@@ -100,11 +106,11 @@ html
               path(class="player_lock_cls" fill=player1_safe fill-rule="evenodd"
                   d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
             //- these consts arrived at through experiment       
-            text(id="player1_lock_pts" class="player_stats_cls" x=3*cell_size/2 y=cell_size/2 width=cell_size height=cell_size stroke_width=2 
+            text(id="player1_lock_pts" class="player_stats_cls" x=3*cell_size/2 y=(cell_size/2)+ua_txt_off width=cell_size height=cell_size stroke_width=2 
               stroke=player1_safe fill=player1_safe text-align="start" alignment-baseline="central")
               |#{game.player_1.safe_points}
 
-            text(id="player1_name" class="player_stats_cls" x="0" y="45" font-size="18"
+            text(id="player1_name" class="player_stats_cls" x="0" y=45+ua_txt_off font-size="18"
               width=scorebd_xy_offset height=cell_size stroke_width=2 stroke="white" 
               text-align="start" alignment-baseline="central")
               |#{game.player_1.name}
@@ -124,14 +130,14 @@ html
               class="player_lock_cls" id="player2_lock" preserveAspectRatio="xMidYMid meet")
               path(class="player_lock_cls" fill=player2_safe fill-rule="evenodd"
                   d="M151.4,84.32h-3.94v-26a47.46,47.46,0,0,0-94.91,0v26H48.6A14.72,14.72,0,0,0,33.89,99v75.38a14.71,14.71,0,0,0,14.71,14.7H151.4a14.75,14.75,0,0,0,14.71-14.7V99A14.75,14.75,0,0,0,151.4,84.32ZM116,169H84l7.29-30a19.09,19.09,0,1,1,17.48,0Zm11.89-84.67H72.08v-26a27.92,27.92,0,0,1,55.84,0Z")
-            text(id="player2_lock_pts" class="player_stats_cls" x=cell_size y=cell_size/2 width=cell_size height=cell_size stroke_width=2 
+            text(id="player2_lock_pts" class="player_stats_cls" x=cell_size y=(cell_size/2)+ua_txt_off width=cell_size height=cell_size stroke_width=2 
               stroke=player2_safe fill=player2_safe text-align="start" alignment-baseline="central")
               |#{game.player_2.safe_points}
 
-            text(id="player2_score" class="player_stats_cls" x="95" y="25" width=cell_size height=cell_size stroke_width=2 stroke="white" 
+            text(id="player2_score" class="player_stats_cls" x="95" y=25 width=cell_size height=cell_size stroke_width=2 stroke="white" 
               text-anchor="end" font-size="18" )
               |#{game.player_2.total_points}
-            text(id="player2_name" class="player_stats_cls" x=95 y=45 font-size="18" 
+            text(id="player2_name" class="player_stats_cls" x=95 y=45+ua_txt_off font-size="18" 
               width=scorebd_xy_offset+25 height=cell_size stroke_width=2 stroke="white" 
               text-anchor="end" alignment-baseline="central")
               |#{game.player_2.name}
@@ -206,10 +212,10 @@ html
               else
                 polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
 
-              text(x=cell_size/2 y=cell_size/2 width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
+              text(x=cell_size/2 y=(cell_size/2)+ua_txt_off width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
                 text-anchor="middle" alignment-baseline="central" class="tile_text")
                 |#{t.char}
-              text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+              text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY+ua_pts_off width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                 text-anchor="end" alignment-baseline="central" class='tile_points')
                 |#{t.points}        
             rect(class="tilehook" fill="#fff" fill-opacity=0 
@@ -260,16 +266,16 @@ html
 
                 if t.status & Game.is_blank 
                   polygon(points="3,3 15,3 3,15" fill="black")
-                  text(class="wild_tile" x=cell_size/2 y=cell_size/2 width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
+                  text(class="wild_tile" x=cell_size/2 y=(cell_size/2)+ua_wild_txt_off width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
                     |WILD
                 else
                   polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
-                  text(x=cell_size/2 y=cell_size/2 width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
+                  text(x=cell_size/2 y=(cell_size/2)+ua_txt_off width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
                     |#{t.char}
 
-                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY+ua_pts_off width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}
         else
@@ -292,16 +298,16 @@ html
 
                 if t.status & Game.is_blank 
                   polygon(points="3,3 15,3 3,15" fill="black")
-                  text(class="wild_tile" x=cell_size/2 y=cell_size/2 width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
+                  text(class="wild_tile" x=cell_size/2 y=(cell_size/2)+ua_wild_txt_off width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central")
                     |WILD
                 else
                   polygon(points="3,3 15,3 3,15" fill="white" fill-opacity=0)
-                  text(x=cell_size/2 y=cell_size/2 width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
+                  text(x=cell_size/2 y=(cell_size/2)+ua_txt_off width=cell_size-2 height=cell_size-2 stroke_width=2 stroke="#000" 
                     text-anchor="middle" alignment-baseline="central" class="tile_text")
                     |#{t.char}
 
-                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
+                text(x=cell_size-tile_points_offX y=cell_size-tile_points_offY+ua_pts_off width=cell_size*.2 height=cell_size*.2 stroke_width="1" stroke="#000" 
                   text-anchor="end" alignment-baseline="central" class='tile_points')
                   |#{t.points}
 
