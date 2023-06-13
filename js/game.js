@@ -56,10 +56,7 @@ class Game {
       player1_name && player2_name ? this.name = player1_name + " vs " + player2_name :
         this.name = this.default_name;
 
-      let date_parts = Date().split(" ");
-      let save_date = date_parts[0] + " " + date_parts[1] + " " + date_parts[2] +
-        " " + date_parts[3] + " " + date_parts[4];
-      this.name_time = this.name + " : " + save_date;
+      this.name_time = this.name + " - " + Game.build_date_part();
 
       // this.player_1 = new Player(0, "Player 1", "rgba(255, 99, 121, 0.3)", "rgba(255, 99, 121, 1)", 0);
       this.player_1 = new Player(0, "Player 1", "#f179af", "#eb008b", 0);
@@ -76,6 +73,20 @@ class Game {
       this.current_player = this.player_1;
       this.current_play.player = this.player_1;
     }
+  }
+
+  static build_date_part() {
+    let parts = Date().split(" ");
+    parts.shift(); //get rid of day name
+    let tparts = parts[3].split(":");
+    let hr = parseInt(tparts.shift());
+    let ampm;
+    if (hr >= 12) {
+      ampm = " PM";
+      if (hr > 12) hr -= 12;
+    } else ampm = " AM";
+    let date_str = parts[0] + " "  + parts[1] + " " + hr + ":" + tparts[0] + ampm;
+    return date_str;
   }
 
   static current_id = 0;
@@ -105,7 +116,6 @@ class Game {
     {row: Math.round(Game.NUM_ROWS_COLS/2), col: Game.NUM_ROWS_COLS, rect: null},
     {row: Game.NUM_ROWS_COLS, col: Math.round(Game.NUM_ROWS_COLS/2), rect: null}
   ];
-
 
   static new_game_json(js) {
     // do this last

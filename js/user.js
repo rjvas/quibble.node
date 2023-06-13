@@ -114,7 +114,7 @@ class User {
     let ret_val = []; 
 
     this.saved_games.forEach((item, i) => {
-      ret_val.push({"name" : item.name, "active" : true});
+      ret_val.push({"name" : item.name});
     });
 
     return ret_val;
@@ -426,7 +426,7 @@ class User {
     if (logged_in && (user_agent == "quibbleReact" || user_agent == "quibbleAndroid")) {
       logged_in.last_login_date = Date();
       let jsons = {
-        "user" : logged_in.id.toHexString(),
+        "user" : {"id" : logged_in.id.toHexString(), "display_name" : logged_in.display_name},
         "games" : logged_in.saved_games,
         "friends" : logged_in.friends,
         "players" : User.players
@@ -538,7 +538,7 @@ class User {
 
           if (user_agent == "quibbleReact" || user_agent == "quibbleAndroid") {
             let jsons = {
-              "user" : new_user.id.toHexString(),
+              "user" : {"id" : new_user.id.toHexString(), "display_name" : new_user.display_name},
               "games" : new_user.saved_games,
               "friends" : new_user.friends,
               "players" : User.players
