@@ -3,7 +3,7 @@
 */
 
 body {
-  width: 96%;
+  width: 100%;
   height: 98%;
   display: flex;
   flex-direction: column;
@@ -11,21 +11,40 @@ body {
 
 p {
   color : white;
+  font-size: large;
 }
 
 li {
-  padding : 5px;
+  /* padding : 5px; */
+  font-size: large;
 }
 
 .swap_pop {
+  background-color: black;
+  transform: scale(1.5,1.5);
   display: none; 
   position: fixed;
+  align-self: center;
+  /* align-content: center; */
   z-index: 99;
   flex-direction: row;
-  left: 10%;
-  top: 45%;
+  flex-wrap: wrap;
+  /* width: 90%; */
+  /* height: 50%; */
+  /* left: 10%; */
+  top: 15%;
 }
 
+.swap_btn {
+  position: relative;
+  top: -32;
+  font-size: 105%;
+  font-weight: bold;
+} 
+#swap_sel_all {
+  position: relative;
+  top: -41;
+}
 a {
   color :  #eb008b;
 }
@@ -37,12 +56,25 @@ a {
   position: fixed;
   z-index: 99;
   flex-direction: column;
-  left: 10%;
+  align-self: center;
+  /* left: 10%; */
   top : 10%;
   width: 80%;
   height: 80%;
   overflow: auto;
-  padding: 5%;
+  padding: 3%;
+}
+
+#help_head1 {
+  margin-top: 20px;
+  color: white;
+  font-size: largest;
+  /* font-weight: 800; */
+  width: 100%;
+}
+
+#help_rule_list {
+  font-size: large;
 }
 
 .help_ctrls {
@@ -64,14 +96,6 @@ a {
   background-color:  #0072bc;
   cursor: pointer;
 }
-
-/* 
-#swap_pop_ctrls {
-  fill: none;
-  display: flex; 
-  flex-direction: column;
-  font-size: 100%;
-} */
 
 #grid_background {
   fill: #333333;

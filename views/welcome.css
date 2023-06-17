@@ -57,13 +57,14 @@ a {
   position: fixed;
   z-index: 99;
   flex-direction: column;
-  left: 10%;
-  right: 10%;
+  left: 5%;
+  right: 2%;
   top : 10%;
-  width: 80%;
+  width: 85%;
   height: 70%;
   overflow: auto;
-  padding: 5%;
+  padding-left: 2%;
+  padding-right: 2%;
 }
 
 
@@ -72,7 +73,7 @@ a {
   display: flex;
   flex-direction: column;
   background-color: black;
-  width: 80%;
+  width: 100%;
   margin-top: 5%;
   margin-bottom: 5%;
   max-width: 600px;

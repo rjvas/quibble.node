@@ -919,12 +919,6 @@ function clicked_swap_cancel(event) {
 
 function clicked_swap_begin(event) {
 
-  if (current_player != user) {
-    clicked_recall();
-    alert(`You are not the current player - please wait ...`);
-    return;
-  }
-
   let tiles_left = parseInt(document.getElementById("tiles_left_count").textContent);
   if (tiles_left < 11) {
     alert("Tile swaps are limited to tile pool sizes of 10 or more - no swap!");
@@ -932,6 +926,9 @@ function clicked_swap_begin(event) {
   }
 
   let pu = document.getElementById("swap_pop");
+  // want 2 rows including buttons
+  pu.style.width = 10*CELL_SIZE;
+  pu.style.height = 4*CELL_SIZE;
 
   // don't allow multiple displays of PlayerHand
   if (pu.firstChild) {
@@ -956,37 +953,48 @@ function clicked_swap_begin(event) {
   // now the controls
   var sel = document.createElement("BUTTON"); 
   sel.id = "swap_sel_all";
+  sel.className = "swap_btn";
   sel.textContent = "Select All";
-  sel.width = CELL_SIZE*2;
-  sel.height = CELL_SIZE;
+  sel.style.width = CELL_SIZE*2;
+  sel.style.height = CELL_SIZE*2;
   sel.onclick = swap_select_all;
   pu.appendChild(sel);
 
   var swap = document.createElement("BUTTON"); 
   swap.id = "swap_now";
+  swap.className = "swap_btn";
   swap.textContent = "Swap";
-  swap.width = CELL_SIZE*2;
-  swap.height = CELL_SIZE;
+  swap.style.width = CELL_SIZE*2;
+  swap.style.height = CELL_SIZE*2;
   swap.onclick = clicked_swap_end;
   pu.appendChild(swap);
 
   var cancel = document.createElement("BUTTON"); 
   cancel.id = "swap_cancel";
+  cancel.className = "swap_btn";
   cancel.textContent = "Cancel";
-  cancel.width = CELL_SIZE*2;
-  cancel.height = CELL_SIZE;
+  cancel.style.width = CELL_SIZE*2;
+  cancel.style.height = CELL_SIZE*2;
   cancel.onclick = clicked_swap_cancel;
   pu.appendChild(cancel);
 
   pu.style.display = "block";
+  // pu.style.display = "flex";
 }
 
 function clicked_swap_end(event) {
   let pu = document.getElementById("swap_pop");
   pu.style.display = "none";
+
   // clear the pu elements
   while (pu.firstChild) {
    pu.removeChild(pu.firstChild)
+  }
+
+  if (current_player != user) {
+    clicked_recall();
+    alert(`You are not the current player - please wait ...`);
+    return;
   }
 
   let jsons = null;
@@ -1003,13 +1011,13 @@ function clicked_swap_end(event) {
     if (Tile.swapped_tiles.length == 7 &&
       window.confirm("Are you sure you want to trade all of your tiles?")) {
       jsons = get_player_hand_JSONS();
-      erase_player_hand(jsons);
+      //erase_player_hand(jsons);
 
     } else if (Tile.swapped_tiles.length > 0) {
       // roll back if no confirm
       if (window.confirm("Are you sure you want to trade " + Tile.swapped_tiles.length + " of your tiles?")) {
         jsons = get_swap_JSONS();
-        erase_player_hand(jsons);
+        // erase_player_hand(jsons);
       }
       // move the trashed tiles back to the player tile area
       else {
@@ -1908,6 +1916,11 @@ ws.onclose = function(msg) {
 
 function set_button_callbacks() {
   let btn = document.getElementById('back_on_click');
+  if (btn) {
+    btn.addEventListener("click", clicked_home_btn);
+  }
+
+  btn = document.getElementById('back_arrow');
   if (btn) {
     btn.addEventListener("click", clicked_home_btn);
   }

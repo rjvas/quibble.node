@@ -170,6 +170,13 @@ function play_active_game(query, response) {
   return ret_val;
 }
 
+function get_user_agent(ua_str) {
+  let ua = ua_str.indexOf("Firefox") > -1 ? "Firefox" : null;
+  if (!ua)
+    ua = ua_str.indexOf("AppleWebKit") > -1 ? "AppleWebKit" : ua_str;
+  return ua;
+}
+
 function startup() {
   /*
   // pug is a template engine that can pre-compile template defs
@@ -187,7 +194,7 @@ function startup() {
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
-    var user_agent = request.headers["user-agent"].indexOf("Firefox") > -1 ? "Firefox" : request.headers["user-agent"];
+    var user_agent = get_user_agent(request.headers["user-agent"]);
     // request.on is async resulting in 'undefined' values
     // for body and json_body. fuck.
     // var body = "";

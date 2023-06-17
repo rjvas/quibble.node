@@ -87,7 +87,7 @@ html
         rect(id="scoreboard_bg" x="0" y="0" width=grid_wh height=scorebd_xy_offset fill="black")
         svg(id="back_arrow" x="0" y=0 width=cell_size height=scorebd_xy_offset viewBox=`0 0 ${cell_size} ${2*cell_size}`)
             polyline(stroke="#fff" stroke-width=3 points="30,15 7,35 30,55" stroke-line-join=miter)
-        rect(id="back_on_click" class="controls" x=0  y=0 width=cell_size height=scorebd_xy_offset fill="#fff" fill-opacity=0)
+        rect(id="back_on_click" class="controls" x=0  y=0 width=cell_size*2 height=scorebd_xy_offset fill="#fff" fill-opacity=0)
 
         //- player 1 scoreboard
         svg(id="player1" x=cell_size y=0 width=cell_size*6 height=scorebd_xy_offset)
