@@ -54,6 +54,8 @@ class User {
   static pickup_gamers = [];
   static players = [];
 
+  static challenge_accepted = 1;
+
   // roles
   static none = -1;
   static player = 1;
@@ -134,14 +136,7 @@ class User {
     return this.saved_games.find(g => {return g.name == name});
   }
 
-  get_user_page() {
-    let games = this.getGameList();
-    let gamers = User.get_pickup_gamers();
-    return pug_user({
-      'games' : games,
-      'gamers' : gamers
-    });
-  }
+  
 
   active_games_add(agame) {
     this.active_games.push(agame);
@@ -377,9 +372,9 @@ class User {
       cursor.project(projection).sort(sort_it);
       cursor.forEach(doc => {
         // don't duplicate friends
-        doc.friends.forEach(f => { if (f.name == invitee.display_name) inviter_in_list = true;});
+        doc.friends.forEach(f => { if (f.name == invitee.display_name && f.email == invitee.email) inviter_in_list = true;});
         let in_invitee = false;
-        invitee.friends.forEach(f => { if (f.name == doc.display_name) in_invitee = true;});
+        invitee.friends.forEach(f => { if (f.name == doc.display_name && f.email == doc.email) in_invitee = true;});
         if (!in_invitee) invitee.friends.push({"name" : doc.display_name, "email" : doc.email});
       })
       .then(() => {
@@ -393,9 +388,9 @@ class User {
     }
     else if (inviter && invitee) {
       let in_inviter = false;
-      inviter.friends.forEach(f => { if (f.name == invitee.display_name) in_inviter = true;});
+      inviter.friends.forEach(f => { if (f.name == invitee.display_name && f.email == invitee.email) in_inviter = true;});
       let in_invitee = false;
-      invitee.friends.forEach(f => { if (f.name == inviter.display_name) in_invitee = true;});
+      invitee.friends.forEach(f => { if (f.name == inviter.display_name && f.email == inviter.email) in_invitee = true;});
       // don't duplicate friends
       if (!in_inviter) inviter.friends.push({"name" : invitee.display_name, "email" : invitee.email});
       if (!in_invitee) invitee.friends.push({"name" : inviter.display_name, "email" : inviter.email});
@@ -526,6 +521,7 @@ class User {
                 inviter.saved_games.push(newest_ag);
                 inviter.send_msg("gamelist_add", newest_ag.name);
                 inviter.send_msg("message", `${new_user.display_name} has accepted your invitation to play!`);
+                inviter.send_email(User.challenge_accepted, {"invitee" : new_user.display_name});
               }
             }
           }
@@ -647,6 +643,41 @@ class User {
         }
       })
       .catch((e) => console.error(e));
+  }
+
+  send_email(type, data) {
+    if (type == User.challenge_accepted) {
+      if (quib_cfg.debug && quib_cfg.local) {
+        console.log(`User.challenge_accepted: user_name=${this.user_name} friend_name=${data.invitee}`);
+      }
+      else {
+        let subj = `${data.invitee} has accepted your challenge to play Let's Quibble!`;
+        let body = `Hello ${this.display_name}, ${data.invitee} has accepted your challenge to playe Let's Quibble and there is a game waiting! Have fun Quibbling!\n\n Your friend,\nThe Quibbler at http://www.quibbler.net`;
+
+        let cmd = `mail -s \"${subj}\" \"${this.email}\" -b \"${quib_cfg.sys_email_addr}\" <<< \"${body}\"`; 
+
+        let ret_val = false;
+        try {
+          ret_val = exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+              console.log("Challenge accepted email failed");
+              console.log(err);
+              return false;
+            } else {
+              console.log("Challenge accepted email success");
+              console.log(`${cmd} stdout: ${stdout}`);
+              console.log(`${cmd} stderr: ${stderr}`);
+              return true;
+            }
+          });
+        } catch(error) {
+            console.log("Challenge accepted email: exception error");
+            console.log(error);
+            return false;
+        }
+      }
+      return ret_val;
+    }
   }
 
   send_msg(type, info) {

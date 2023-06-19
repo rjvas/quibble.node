@@ -170,10 +170,16 @@ function play_active_game(query, response) {
   return ret_val;
 }
 
-function get_user_agent(ua_str) {
-  let ua = ua_str.indexOf("Firefox") > -1 ? "Firefox" : null;
-  if (!ua)
-    ua = ua_str.indexOf("AppleWebKit") > -1 ? "AppleWebKit" : ua_str;
+const react_hosts = [];
+function get_user_agent(host, ua_str, quib_agent) {
+  let ua = ua_str.indexOf("Firefox") > -1 ? "Firefox" : ua_str;
+  let qa = quib_agent && quib_agent.indexOf("ReactWebkit") > -1 ? "ReactWebkit" : null;
+  if (react_hosts.includes(host))
+    ua = "ReactWebkit";
+  else if (qa) {
+    if (!react_hosts.includes(host)) react_hosts.push(host);
+    ua = qa;
+  }
   return ua;
 }
 
@@ -194,7 +200,9 @@ function startup() {
     var pathname = url.parse(request.url).pathname;
     var query = url.parse(request.url).query;
     var remote_addr = request.client.remoteAddress;
-    var user_agent = get_user_agent(request.headers["user-agent"]);
+    // NOTE: quibble-agent sent from react-native-webkit ONLY on first request so
+    // subsequent requests will NOT set correctly FIX THIS!
+    var user_agent = get_user_agent(request.headers["host"], request.headers["user-agent"], request.headers["quibble-agent"]);
     // request.on is async resulting in 'undefined' values
     // for body and json_body. fuck.
     // var body = "";
