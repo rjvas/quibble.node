@@ -652,7 +652,7 @@ class User {
       }
       else {
         let subj = `${data.invitee} has accepted your challenge to play Let's Quibble!`;
-        let body = `Hello ${this.display_name}, ${data.invitee} has accepted your challenge to playe Let's Quibble and there is a game waiting! Have fun Quibbling!\n\n Your friend,\nThe Quibbler at http://www.quibbler.net`;
+        let body = `Hello ${this.display_name}, ${data.invitee} has accepted your challenge to playe Let's Quibble and there is a game waiting! Have fun Quibbling!\n\nYour friend,\nThe Quibbler at http://www.quibbler.net`;
 
         let cmd = `mail -s \"${subj}\" \"${this.email}\" -b \"${quib_cfg.sys_email_addr}\" <<< \"${body}\"`; 
 
