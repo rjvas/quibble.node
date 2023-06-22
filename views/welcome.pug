@@ -32,6 +32,8 @@ html(lang="en")
         div.error_label Error: with password or user name!
       else if error == "error_login"
         div.error_label Error: invalid password!
+      else if error == "error_user_logged_out"
+        div.error_label Error: user is logged out!
 
     #both
       span#info

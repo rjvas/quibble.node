@@ -166,6 +166,10 @@ function play_active_game(query, response) {
     }
     else ret_val = false;
   }
+  else {
+    // if the user had logged out in some other window
+    response.end(pug_welcome({"error" : "error_user_logged_out"}));
+  }
 
   return ret_val;
 }
@@ -233,11 +237,16 @@ function startup() {
            'Location' : "/play?a=" + CurrentAGame.name + "&n=" + user.id.toHexString()
         });
         response.end();
+
+      if (CurrentAGame && quib_cfg.debug)
+        logger.debug(`quibble.new_practice_game user=${user.display_name}/${user.id.toHexString()} 
+          game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
 
-        if (CurrentAGame && quib_cfg.debug)
-          logger.debug(`quibble.new_practice_game user=${user.display_name}/${user.id.toHexString()} 
-            game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
     }
 
     else if (pathname.indexOf("save_game") != -1) {
@@ -245,11 +254,15 @@ function startup() {
       CurrentAGame = ug.agame;
       let user = ug.user;
 
-      if (CurrentAGame) {
+      if (CurrentAGame && user) {
         CurrentAGame.save();
         if (quib_cfg.debug) 
           logger.debug(`quibble.save_game user=${user.display_name}/${user.id.toHexString()} 
             game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
     }
 
@@ -258,11 +271,15 @@ function startup() {
       CurrentAGame = ug.agame;
       let user = ug.user;
 
-      if (CurrentAGame) {
+      if (CurrentAGame && user) {
         CurrentAGame.save();
         if (quib_cfg.debug) 
           logger.debug(`quibble.save_close_game user=${user.display_name}/${user.id.toHexString()} 
             game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
     }
 
@@ -282,6 +299,10 @@ function startup() {
             logger.debug(`quibble.load_game user=${user.display_name}/${user.id.toHexString()} 
               game=${user.get_game(ugv.game_name)}'); // not yet initialized(async) port: ${user.get_game(ugv.game_name).port}`); 
         }
+        else {
+          // if the user had logged out in some other window
+          response.end(pug_welcome({"error" : "error_user_logged_out"}));
+        }
       }
     }
 
@@ -296,6 +317,10 @@ function startup() {
           logger.debug(`quibble.delete_game user=${user.display_name}/${user.id.toHexString()} 
             game=${ugv.game_name}`); 
       }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("edit_invitations") != -1) {
@@ -306,44 +331,56 @@ function startup() {
       let iids = params.get("iids");
       let uid_hex = params.get("n")
 
-      Sys.remove_invitations(iids);
-      let invites = Sys.get_users_invitations(uid_hex);
+      if (user) {
+        Sys.remove_invitations(iids);
+        let invites = Sys.get_users_invitations(uid_hex);
 
-      response.end(pug_user({
-        'User' : User,
-        'user': user,
-        'games': user.get_saved_game_list(ActiveGame.game_over),
-        'gamers' : User.get_pickup_gamers(),
-        'invites' : invites,
-        'friends' : user.friends,
-        'players' : User.players,
-        'is_local': quib_cfg.local ? "true" : "false",
-        'is_debug' : quib_cfg.debug ? "true" : "false",
-        'is_staging' : quib_cfg.staging ? "true" : "false",
-        'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
-      }));
+        response.end(pug_user({
+          'User' : User,
+          'user': user,
+          'games': user.get_saved_game_list(ActiveGame.game_over),
+          'gamers' : User.get_pickup_gamers(),
+          'invites' : invites,
+          'friends' : user.friends,
+          'players' : User.players,
+          'is_local': quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false",
+          'is_staging' : quib_cfg.staging ? "true" : "false",
+          'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
+        }));
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("invite_friend") != -1) {
       if (!Sys) Sys = System.get_system();
       let user = get_user_agame(query).user;
 
-      user.invite_friend(query);
+      if (user) {
+        user.invite_friend(query);
 
-      let invites = Sys.get_users_invitations(user.id.toHexString());
-      response.end(pug_user({
-        'User' : User,
-        'user': user,
-        'games': user.get_saved_game_list(ActiveGame.game_over),
-        'gamers' : User.get_pickup_gamers(),
-        'invites' : invites,
-        'friends' : user.friends,
-        'players' : User.players,
-        'is_local' : quib_cfg.local ? "true" : "false",
-        'is_debug' : quib_cfg.debug ? "true" : "false",
-        'is_staging' : quib_cfg.staging ? "true" : "false",
-        'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
-      }));
+        let invites = Sys.get_users_invitations(user.id.toHexString());
+        response.end(pug_user({
+          'User' : User,
+          'user': user,
+          'games': user.get_saved_game_list(ActiveGame.game_over),
+          'gamers' : User.get_pickup_gamers(),
+          'invites' : invites,
+          'friends' : user.friends,
+          'players' : User.players,
+          'is_local' : quib_cfg.local ? "true" : "false",
+          'is_debug' : quib_cfg.debug ? "true" : "false",
+          'is_staging' : quib_cfg.staging ? "true" : "false",
+          'ws_addr' : quib_cfg.local ? quib_cfg.local_addr : quib_cfg.prod_addr
+        }));
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("invitation_accept") != -1) {
@@ -377,22 +414,26 @@ function startup() {
         // if we got u2 remove the pickup gamer from the list
         if (u2)
           User.remove_pickup_gamer(pickup_name, u1.display_name);
-      }
 
-      if (u1 && u2) {
-        CurrentAGame = new ActiveGame(server, u1, u2, ActiveGame.in_play);
-        ActiveGame.all_active.push(CurrentAGame);
-        u1.active_games_add(CurrentAGame);
-        u2.active_games_add(CurrentAGame);
-        ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
-        CurrentAGame.save(false, null);
-        response.end(`/play?n=${ugv.user.id.toHexString()}&game_name=${CurrentAGame.game_id_str}`);
+        if (u1 && u2) {
+          CurrentAGame = new ActiveGame(server, u1, u2, ActiveGame.in_play);
+          ActiveGame.all_active.push(CurrentAGame);
+          u1.active_games_add(CurrentAGame);
+          u2.active_games_add(CurrentAGame);
+          ActiveGame.send_msg_to_user(u2, `Player ${u1.display_name} has accepted your challenge!`);
+          CurrentAGame.save(false, null);
+          response.end(`/play?n=${ugv.user.id.toHexString()}&game_name=${CurrentAGame.game_id_str}`);
 
-        if (quib_cfg.debug) 
-          logger.debug(`quibble.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+          if (quib_cfg.debug) 
+            logger.debug(`quibble.new_pickup_game user=${u1.display_name}/${u2.display_name} game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+        }
+        else if (quib_cfg.debug) 
+          logger.error("quibble.new_pickup_game u1: ", u1, " u2: ", u2);
       }
-      else if (quib_cfg.debug) 
-        logger.error("quibble.new_pickup_game u1: ", u1, " u2: ", u2);
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("add_pickup_name") != -1) {
@@ -414,6 +455,10 @@ function startup() {
 
         if (quib_cfg.debug) 
           logger.debug(`quibble.add_pickup_name user=${user.display_name}/${user.id.toHexString()}`); 
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
     }
 
@@ -572,6 +617,10 @@ function startup() {
         user.logout(response);
 
       }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("home_page") != -1) {
@@ -596,6 +645,10 @@ function startup() {
         if (quib_cfg.debug)
           logger.debug(`quibble.home_page user=${ug.user.display_name}/${ug.user.id.toHexString()}`); 
       }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     else if (pathname.indexOf("wh_admin_user") != -1) {
@@ -605,6 +658,10 @@ function startup() {
 
         if (quib_cfg.debug)
           logger.debug(`quibble.wh_admin_user user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
     }
 
@@ -627,6 +684,10 @@ function startup() {
         if (quib_cfg.debug)
           logger.debug(`quibble.wh_admin user=${ug.user.display_name}/${ug.user.id.toHexString()}`);
       }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
+      }
     }
 
     // This will refresh the player's page with the currrent state of CurrentAGame
@@ -638,7 +699,7 @@ function startup() {
       let player1_id = CurrentAGame.user1 ? CurrentAGame.user1.id.toHexString() : "";
       let player2_id = CurrentAGame.user2 ? CurrentAGame.user2.id.toHexString() : "";
 
-      if (CurrentAGame) {
+      if (CurrentAGame && user) {
         response.writeHead(200, {
           'Content-Type': 'text/html'
         });
@@ -666,6 +727,10 @@ function startup() {
         if (quib_cfg.debug)
           logger.debug(`quibble.regular_play user=${user.display_name}/${user.id.toHexString()} 
             game=${CurrentAGame.game.name_time} port: ${CurrentAGame.port}`); 
+      }
+      else {
+        // if the user had logged out in some other window
+        response.end(pug_welcome({"error" : "error_user_logged_out"}));
       }
     }
 
