@@ -25,15 +25,15 @@ html(lang="en")
       else if error == "error_reg_display_name"
         div.error_label Error: please enter an alias for other players to see (display name)!
       else if error == "error_reg_prior"
-        div.error_label Error: user already registered!
+        div.error_label Error: Player already registered!
       else if error == "error_reg_success"
         div.error_label Thanks for registering - you may now login
       else if error == "error_password"
-        div.error_label Error: with password or user name!
+        div.error_label Error: with password or Player name!
       else if error == "error_login"
         div.error_label Error: invalid password!
       else if error == "error_user_logged_out"
-        div.error_label Error: user is logged out!
+        div.error_label Warning: Player is logged out!
 
     #both
       span#info
@@ -46,7 +46,7 @@ html(lang="en")
       div#about_dialog.about style="{display : none}"
         p Free to play, Let's Quibble combines the word-building of Scr*bble with the excitement and deep satisfaction of capturing your opponent's tiles and points. Capture tiles by building new words; adding prefixes, suffixes, intersections and adjacencies. 
         p No hidden costs, no ads, no tokens. Accept no substitutes and beware sound-alikes!
-        p Please note: this is NOT a secure website; it is, after all, just a game. We don't require any personal identifying information to register. Just a unique user-name (only the system sees this), a name to show other players (please do not use your real full name), and an email address (we recommend a free hotmail, gmail or other dedicated email account). 
+        p Please note: this is NOT a secure website; it is, after all, just a game. We don't require any personal identifying information to register. Just a unique Player-name (only the system sees this), a name to show other players (please do not use your real full name), and an email address (we recommend a free hotmail, gmail or other dedicated email account). 
         p Your email address is used by the game to deliver invitations to play from other players and friends. Occasionally, the system will email a notification; usually a temporary shutdown notice for new code.
         p Please, DO NOT use a password that you also use elsewhere. Passwords are stored hashed but there are various attacks that can be used to aquire your password.
         p Have fun playing!
@@ -58,7 +58,7 @@ html(lang="en")
         form(action="login")
           input(id="invitation_id" name="invitation_id" type="hidden" value=invitation_id)
           div.username
-            input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="User Name")
+            input(type="text" class="in_fields" name="username" autocapitalize="off" placeholder="Player Name")
           div.password
             input(type="password" class="in_fields" name="password" placeholder="Password")
           div.submit
@@ -70,9 +70,9 @@ html(lang="en")
       #second
         form(action="register")
           input(id="reg_invitation_id" name="invitation_id" type="hidden" value=invitation_id)
-          div.section_label New User?
+          div.section_label New Player?
           div.reg_username
-            input(type="text" class="in_fields" name="username" placeholder="User Name (Your Private Login Name)")
+            input(type="text" class="in_fields" name="username" placeholder="Player Name (Your Private Login Name)")
           div.reg_displayname
             input(type="text" class="in_fields" name="displayname" placeholder="Display Name (Other Players See This)")
           div.reg_email

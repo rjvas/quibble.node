@@ -603,6 +603,7 @@ function startup() {
           }
         });
 
+        ActiveGame.send_msg_to_user(user, `Player ${user.display_name} has logged out - please close your window`);
         remove_ags.forEach((item, i) => {
           if (item.status & ActiveGame.remove_active) {
             // clear the bit
@@ -696,10 +697,11 @@ function startup() {
 
       CurrentAGame = ug.agame;
       let user = ug.user;
-      let player1_id = CurrentAGame.user1 ? CurrentAGame.user1.id.toHexString() : "";
-      let player2_id = CurrentAGame.user2 ? CurrentAGame.user2.id.toHexString() : "";
 
       if (CurrentAGame && user) {
+        let player1_id = CurrentAGame.user1 ? CurrentAGame.user1.id.toHexString() : "";
+        let player2_id = CurrentAGame.user2 ? CurrentAGame.user2.id.toHexString() : "";
+
         response.writeHead(200, {
           'Content-Type': 'text/html'
         });
