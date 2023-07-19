@@ -5,24 +5,6 @@
 var Tile = require('./tile').Tile;
 var logger = require('./log').logger;
 
-/*
-var mongoose = require('mongoose');
-
-var Schema = mongoose.Schema;
-
-var PlayerSchema = new Schema(
-  {
-    game_id: {type: Schema.Types.ObjectId, ref: 'Game', required: true},
-    player: {type: Schema.Types.ObjectId, ref: 'Player', required: true},
-    tiles: [{type: Schema.Types.ObjectId, ref: 'Tile', required: true}],
-  }
-);
-
-
-//Export model
-module.exports = mongoose.model('Play', PlaySchema);
-*/
-
 class Player {
   constructor (id, name, tile_color_risky, tile_color_safe, total_points, safe_points) {
     if (id > 0) {

@@ -2,19 +2,6 @@
    Copyright 2021 Richard Vassilaros 
 */
 
-/*
-var mongoose = require('mongoose');
-
-var Schema = mongoose.Schema;
-
-var PlaySchema = new Schema(
-  {
-    game_id: {type: Schema.Types.ObjectId, ref: 'Game', required: true},
-    player: {type: Schema.Types.ObjectId, ref: 'Player', required: true},
-    tiles: [{type: Schema.Types.ObjectId, ref: 'Tile', required: true}],
-  }
-);
-*/
 var Tile = require ('./tile').Tile;
 
 class Play {

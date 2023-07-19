@@ -6,29 +6,6 @@ var TileState = require('./tileState').TileState;
 var TileDefs = require('./tileDefs').TileDefs;
 var logger = require('./log').logger;
 
-/*
-var mongoose = require('mongoose');
-
-var Schema = mongoose.Schema;
-
-var TileSchema = new Schema(
-  {
-    char: {type: String, required: true, maxlength: 1},
-    is_safe: {type: boolean, required: true, default: false},
-    row: {type: Integer, required: true},
-    column: {type: Integer, required: true},
-
-    word_id: {type: Schema.Types.ObjectId, ref: 'Word', required: true},
-    player_id: {type: Schema.Types.ObjectId, ref: 'Player', required: true},
-    states: [{type: Schema.Types.ObjectId, ref: 'TileState', required: false}]
-  }
-);
-
-
-//Export model
-module.exports = mongoose.model('Tile', TileSchema);
-*/
-
 class Tile {
   constructor (id, char, points, safe, row, column, status, player) {
     if (id != 0) {
