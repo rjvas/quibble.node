@@ -17,7 +17,7 @@ var fs = require('fs');
 // debug or release, etc
 const quib_cfg = require('./js/quib_config.json');
 
-const main_port = !quib_cfg.staging ? 80 : quib_cfg.staging_port;
+const main_port = (!quib_cfg.staging &&  !quib_cfg.local) ? 80 : quib_cfg.staging_port;
 // const main_port = 443;
 
 //const certdir = (fs.readdir("/etc/letsencrypt/live"))[0];

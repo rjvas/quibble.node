@@ -1,4 +1,4 @@
-Aaron vs
+// Aaron vs
 db.active_games.findAndModify(
 {
   query: {"_id" : ObjectId("60a8518bcc210070b77cdec1")},
@@ -62,7 +62,7 @@ db.active_games.findAndModify(
 
 
 
-Andee vs
+// Andee vs
   db.active_games.findAndModify(
   {
     query: {"_id" : ObjectId("60a70005cc210070b77c9621")},
